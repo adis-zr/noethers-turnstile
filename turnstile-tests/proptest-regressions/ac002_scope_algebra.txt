@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 10eb0e0b39b929ae357787721576070bad107e8dc85a275247578d45c0ff35be # shrinks to a_tools = ["wrench"], b_tools = ["hammer"], c_tools = ["hammer"]
+cc dfa88d711b4e76d5554be40f2eabffa3a9e9ddb91ffc3e94d234977521ec275f # shrinks to a_tools = ["drill"], b_tools = ["drill", "drill"]

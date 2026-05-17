@@ -25,6 +25,82 @@ path = "src/proptest_expiry.rs"
 name = "proptest_monotonicity"
 path = "src/proptest_monotonicity.rs"
 
+[[test]]
+name = "ec003a_permission_order"
+path = "src/ec003a_permission_order.rs"
+
+[[test]]
+name = "ec003b_composition_algebra"
+path = "src/ec003b_composition_algebra.rs"
+
+[[test]]
+name = "ec003c_runtime_nonupgrade"
+path = "src/ec003c_runtime_nonupgrade.rs"
+
+[[test]]
+name = "ec003d_anti_laundering"
+path = "src/ec003d_anti_laundering.rs"
+
+[[test]]
+name = "ec003e_blocking_and_ooc"
+path = "src/ec003e_blocking_and_ooc.rs"
+
+[[test]]
+name = "ec004_profile_wellformedness"
+path = "src/ec004_profile_wellformedness.rs"
+
+[[test]]
+name = "ec005_domain_admission"
+path = "src/ec005_domain_admission.rs"
+
+[[test]]
+name = "ac002_scope_algebra"
+path = "src/ac002_scope_algebra.rs"
+
+[[test]]
+name = "audit_store"
+path = "src/audit_store.rs"
+
+[[test]]
+name = "step11_assembler"
+path = "src/step11_assembler.rs"
+
+[[test]]
+name = "ec003f_nary_composition"
+path = "src/ec003f_nary_composition.rs"
+
+[[test]]
+name = "ec003g_gap_status_algebra"
+path = "src/ec003g_gap_status_algebra.rs"
+
+[[test]]
+name = "ec003h_compile_idempotence"
+path = "src/ec003h_compile_idempotence.rs"
+
+[[test]]
+name = "ec003i_token_status_exhaustive"
+path = "src/ec003i_token_status_exhaustive.rs"
+
+[[test]]
+name = "ec003j_multi_gap_multi_token"
+path = "src/ec003j_multi_gap_multi_token.rs"
+
+[[test]]
+name = "ec003k_version_nonupgrade"
+path = "src/ec003k_version_nonupgrade.rs"
+
+[[test]]
+name = "ec003l_ooc_all_variants"
+path = "src/ec003l_ooc_all_variants.rs"
+
+[[test]]
+name = "ec003m_evidence_monotonicity"
+path = "src/ec003m_evidence_monotonicity.rs"
+
+[[test]]
+name = "ec003n_certifier_interface"
+path = "src/ec003n_certifier_interface.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }
