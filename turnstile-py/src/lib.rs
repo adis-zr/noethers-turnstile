@@ -20,9 +20,11 @@ use turnstile_core::{
     },
     permission::Permission as RustPermission,
     token::{
-        compute_provenance_hash as rust_compute_provenance_hash, ProofToken as RustProofToken,
+        compute_provenance_hash as rust_compute_provenance_hash,
+        NegativeControlStatus as RustNegativeControlStatus, ProofToken as RustProofToken,
         TokenStatus as RustTokenStatus,
     },
+    audit::{Derivation as RustDerivation, DerivationStep as RustDerivationStep},
 };
 
 // ── Python exceptions ─────────────────────────────────────────────────────────
@@ -51,6 +53,121 @@ pyo3::create_exception!(
     TurnstileError,
     "Provenance mismatch."
 );
+
+// ── PyNegativeControlStatus ───────────────────────────────────────────────────
+
+#[pyclass(name = "NegativeControlStatus")]
+#[derive(Clone)]
+pub struct PyNegativeControlStatus {
+    inner: RustNegativeControlStatus,
+}
+
+#[pymethods]
+impl PyNegativeControlStatus {
+    #[classattr]
+    fn Live() -> Self {
+        Self { inner: RustNegativeControlStatus::Live }
+    }
+    #[classattr]
+    fn Stale() -> Self {
+        Self { inner: RustNegativeControlStatus::Stale }
+    }
+    #[classattr]
+    fn Failed() -> Self {
+        Self { inner: RustNegativeControlStatus::Failed }
+    }
+    #[classattr]
+    fn Missing() -> Self {
+        Self { inner: RustNegativeControlStatus::Missing }
+    }
+
+    fn __repr__(&self) -> &str {
+        match self.inner {
+            RustNegativeControlStatus::Live => "NegativeControlStatus.Live",
+            RustNegativeControlStatus::Stale => "NegativeControlStatus.Stale",
+            RustNegativeControlStatus::Failed => "NegativeControlStatus.Failed",
+            RustNegativeControlStatus::Missing => "NegativeControlStatus.Missing",
+        }
+    }
+
+    fn __str__(&self) -> &str {
+        match self.inner {
+            RustNegativeControlStatus::Live => "Live",
+            RustNegativeControlStatus::Stale => "Stale",
+            RustNegativeControlStatus::Failed => "Failed",
+            RustNegativeControlStatus::Missing => "Missing",
+        }
+    }
+
+    fn __eq__(&self, other: &PyNegativeControlStatus) -> bool {
+        self.inner == other.inner
+    }
+}
+
+// ── PyDerivationStep ──────────────────────────────────────────────────────────
+
+#[pyclass(name = "DerivationStep")]
+#[derive(Clone)]
+pub struct PyDerivationStep {
+    inner: RustDerivationStep,
+}
+
+#[pymethods]
+impl PyDerivationStep {
+    #[getter]
+    fn phase(&self) -> &str {
+        &self.inner.phase
+    }
+    #[getter]
+    fn permission_after(&self) -> PyPermission {
+        PyPermission { inner: self.inner.permission_after }
+    }
+    #[getter]
+    fn note(&self) -> &str {
+        &self.inner.note
+    }
+    #[getter]
+    fn token_ids(&self) -> Vec<String> {
+        self.inner.token_ids.clone()
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "DerivationStep(phase={:?}, permission_after={}, note={:?})",
+            self.inner.phase,
+            self.inner.permission_after,
+            self.inner.note,
+        )
+    }
+}
+
+// ── PyDerivation ──────────────────────────────────────────────────────────────
+
+#[pyclass(name = "Derivation")]
+#[derive(Clone)]
+pub struct PyDerivation {
+    inner: RustDerivation,
+}
+
+#[pymethods]
+impl PyDerivation {
+    #[getter]
+    fn steps(&self) -> Vec<PyDerivationStep> {
+        self.inner.steps.iter().map(|s| PyDerivationStep { inner: s.clone() }).collect()
+    }
+    #[getter]
+    fn provenance_hash(&self) -> &str {
+        &self.inner.provenance_hash
+    }
+    #[getter]
+    fn compiled_at(&self) -> Option<f64> {
+        self.inner.compiled_at.map(|dt| dt.timestamp() as f64)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("Derivation(steps={}, provenance_hash={:?})", self.inner.steps.len(), self.inner.provenance_hash)
+    }
+}
 
 // ── PyPermission ──────────────────────────────────────────────────────────────
 
@@ -429,6 +546,8 @@ impl PyProofToken {
         closes_gaps, bounds_gaps, provenance_hash,
         issued_at, issuer,
         expires_at=None,
+        details=None,
+        is_negative_control=false,
     ))]
     #[allow(clippy::too_many_arguments)]
     fn new(
@@ -442,6 +561,8 @@ impl PyProofToken {
         issued_at: f64, // Unix timestamp (seconds)
         issuer: String,
         expires_at: Option<f64>,
+        details: Option<&str>,
+        is_negative_control: bool,
     ) -> PyResult<Self> {
         let token_status = match status {
             "valid" => RustTokenStatus::Valid,
@@ -462,6 +583,13 @@ impl PyProofToken {
         let expires_at_dt =
             expires_at.and_then(|ts| chrono::DateTime::from_timestamp(ts as i64, 0));
 
+        let details_value = match details {
+            Some(s) => serde_json::from_str(s).map_err(|e| {
+                PyValueError::new_err(format!("Invalid JSON for details: {}", e))
+            })?,
+            None => serde_json::Value::Null,
+        };
+
         Ok(Self {
             inner: RustProofToken {
                 token_id,
@@ -474,8 +602,8 @@ impl PyProofToken {
                 issued_at: issued_at_dt,
                 expires_at: expires_at_dt,
                 issuer,
-                details: serde_json::Value::Null,
-                is_negative_control: false,
+                details: details_value,
+                is_negative_control,
             },
         })
     }
@@ -513,12 +641,28 @@ impl PyProofToken {
         &self.inner.issuer
     }
 
+    /// The details payload as a JSON string, or None if not set.
+    #[getter]
+    fn details(&self) -> Option<String> {
+        if self.inner.details.is_null() {
+            None
+        } else {
+            Some(self.inner.details.to_string())
+        }
+    }
+
+    #[getter]
+    fn is_negative_control(&self) -> bool {
+        self.inner.is_negative_control
+    }
+
     fn __repr__(&self) -> String {
         format!(
-            "ProofToken(id={:?}, type={:?}, status={:?})",
+            "ProofToken(id={:?}, type={:?}, status={:?}, nc={})",
             self.inner.token_id,
             self.inner.token_type,
-            self.status()
+            self.status(),
+            self.inner.is_negative_control,
         )
     }
 
@@ -755,6 +899,11 @@ impl PyJudgment {
         }
     }
 
+    #[getter]
+    fn derivation(&self) -> PyDerivation {
+        PyDerivation { inner: self.inner.derivation.clone() }
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "Judgment(permission={}, expiry={:?})",
@@ -777,20 +926,41 @@ pub struct PyRuntimeContext {
 
 #[pymethods]
 impl PyRuntimeContext {
+    /// Create a RuntimeContext.
+    ///
+    /// `negative_control_states` is an optional dict mapping token_id (str) to a
+    /// `NegativeControlStatus` value.  `strict_mode` defaults to `True`.
     #[new]
-    fn new(now_unix: f64, context_fingerprint: String) -> Self {
+    #[pyo3(signature = (now_unix, context_fingerprint, negative_control_states=None, strict_mode=true))]
+    fn new(
+        now_unix: f64,
+        context_fingerprint: String,
+        negative_control_states: Option<std::collections::HashMap<String, PyNegativeControlStatus>>,
+        strict_mode: bool,
+    ) -> Self {
         let now =
             chrono::DateTime::from_timestamp(now_unix as i64, 0).unwrap_or_else(chrono::Utc::now);
+        let nc_states = negative_control_states
+            .unwrap_or_default()
+            .into_iter()
+            .map(|(k, v)| (k, v.inner))
+            .collect();
         Self {
-            inner: RustRuntimeContext::new(now, context_fingerprint),
+            inner: RustRuntimeContext::with_nc_states(now, context_fingerprint, nc_states, strict_mode),
         }
+    }
+
+    #[getter]
+    fn strict_mode(&self) -> bool {
+        self.inner.strict_mode
     }
 
     fn __repr__(&self) -> String {
         format!(
-            "RuntimeContext(now={}, fp={:?})",
+            "RuntimeContext(now={}, fp={:?}, strict_mode={})",
             self.inner.now.to_rfc3339(),
-            self.inner.context_fingerprint
+            self.inner.context_fingerprint,
+            self.inner.strict_mode,
         )
     }
 }
@@ -883,6 +1053,9 @@ fn _turnstile(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("ProvenanceError", py.get_type_bound::<ProvenanceError>())?;
 
     // Types.
+    m.add_class::<PyNegativeControlStatus>()?;
+    m.add_class::<PyDerivationStep>()?;
+    m.add_class::<PyDerivation>()?;
     m.add_class::<PyPermission>()?;
     m.add_class::<PyScope>()?;
     m.add_class::<PyGapRecord>()?;

@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 description = "Admissibility compiler core: Γ ⊢ z : p until ε"
 license = "Apache-2.0"
+repository = "https://github.com/adis-zr/turnstile"
+homepage = "https://github.com/adis-zr/turnstile"
+documentation = "https://docs.rs/turnstile-core"
+keywords = ["admissibility", "permission", "formal-methods", "safety", "compiler"]
+categories = ["algorithms", "data-structures"]
 
 [dependencies]
 serde = { workspace = true }
@@ -12,6 +17,7 @@ chrono = { workspace = true }
 sha2 = { workspace = true }
 thiserror = { workspace = true }
 hex = { workspace = true }
+tracing = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }

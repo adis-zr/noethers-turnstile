@@ -10,6 +10,7 @@
 /// Every meet can only lower the outcome.
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use tracing::{debug, instrument, warn};
 
 use crate::audit::{Derivation, DerivationStep};
 use crate::context::ProofContext;
@@ -38,11 +39,27 @@ pub struct Judgment {
 ///
 /// Returns `Err(TurnstileError::MalformedContext)` if the context is structurally
 /// invalid (e.g. a profile references a gap_id that does not exist in `ctx.gaps`).
+#[instrument(
+    name = "turnstile.compile",
+    skip(ctx),
+    fields(
+        claim_id = %ctx.claim_id,
+        candidate_id = %ctx.candidate_id,
+        context_id = %ctx.context_id,
+        allowed_use = %ctx.allowed_use,
+    )
+)]
 pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileError> {
     let mut derivation = Derivation::new().with_provenance(ctx.provenance_hash());
 
     // Step 1: membership check.
     if !ctx.membership.is_in_class() {
+        debug!(
+            phase = "membership_check",
+            membership = ?ctx.membership,
+            permission = "OOC",
+            "out-of-class membership: emitting OOC"
+        );
         let step = DerivationStep {
             phase: "membership_check".into(),
             permission_after: Permission::OOC,
@@ -71,16 +88,25 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
                 break 'outer;
             }
             ProfileCheckResult::NoProfile => {
-                // No profile registered for this permission level; continue descending.
                 continue;
             }
             ProfileCheckResult::GapNotMet => {
-                // Gap requirement not met; continue descending.
+                debug!(
+                    phase = "descending_search",
+                    permission = %p,
+                    "gap requirement not met; descending"
+                );
                 continue;
             }
         }
     }
 
+    debug!(
+        phase = "descending_search",
+        permission = %outcome,
+        note = %search_note,
+        "descending search complete"
+    );
     derivation.push(DerivationStep {
         phase: "descending_search".into(),
         permission_after: outcome,
@@ -91,6 +117,13 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     // Step 3: structural blockers.
     let (blocker_outcome, blocker_note) = structural_blockers(&ctx, outcome);
     if blocker_outcome < outcome {
+        warn!(
+            phase = "structural_blockers",
+            before = %outcome,
+            after = %blocker_outcome,
+            note = %blocker_note,
+            "structural blocker lowered permission"
+        );
         derivation.push(DerivationStep {
             phase: "structural_blockers".into(),
             permission_after: blocker_outcome,
@@ -103,6 +136,12 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     // Step 4: authority ceiling.
     let ceiling = ctx.authority_ceiling;
     if ceiling < outcome {
+        warn!(
+            phase = "authority_ceiling",
+            ceiling = %ceiling,
+            before = %outcome,
+            "authority ceiling lowered permission"
+        );
         derivation.push(DerivationStep {
             phase: "authority_ceiling".into(),
             permission_after: ceiling,
@@ -122,22 +161,32 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         }
     });
     if has_expired_token && outcome > Permission::EXP {
+        let expired_ids: Vec<String> = ctx
+            .tokens
+            .iter()
+            .filter(|t| t.expires_at.map(|e| now >= e).unwrap_or(false))
+            .map(|t| t.token_id.clone())
+            .collect();
+        warn!(
+            phase = "expiry_blocker",
+            expired_token_ids = ?expired_ids,
+            "expired proof token(s) flooring permission to EXP"
+        );
         derivation.push(DerivationStep {
             phase: "expiry_blocker".into(),
             permission_after: Permission::EXP,
             note: "at least one proof token has expired".into(),
-            token_ids: ctx
-                .tokens
-                .iter()
-                .filter(|t| t.expires_at.map(|e| now >= e).unwrap_or(false))
-                .map(|t| t.token_id.clone())
-                .collect(),
+            token_ids: expired_ids,
         });
         outcome = Permission::EXP;
     }
 
     // Also apply the context-level expiry as a ceiling at compile time.
     if ctx.expiry.fired(now) && outcome > Permission::EXP {
+        warn!(
+            phase = "context_expiry",
+            "context expiry has already fired; flooring permission to EXP"
+        );
         derivation.push(DerivationStep {
             phase: "context_expiry".into(),
             permission_after: Permission::EXP,
@@ -157,6 +206,12 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         .map(|t| t.token_id.clone())
         .collect();
     if !nc_token_ids.is_empty() {
+        debug!(
+            phase = "negative_control_registration",
+            nc_token_count = nc_token_ids.len(),
+            nc_token_ids = ?nc_token_ids,
+            "negative-control tokens registered for runtime liveness check (T17)"
+        );
         derivation.push(DerivationStep {
             phase: "negative_control_registration".into(),
             permission_after: outcome,
@@ -168,6 +223,7 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         });
     }
 
+    debug!(permission = %outcome, "compilation complete");
     Ok(Judgment {
         permission: outcome,
         expiry: ctx.expiry.clone(),

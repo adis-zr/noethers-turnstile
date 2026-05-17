@@ -33,6 +33,8 @@ Usage::
     print(live.permission_str(rt))  # "OOC" (no profiles registered)
 """
 
+import logging as _logging
+
 from ._turnstile import (  # noqa: F401
     # Exceptions
     TurnstileError,
@@ -41,6 +43,9 @@ from ._turnstile import (  # noqa: F401
     ProvenanceError,
 
     # Types
+    NegativeControlStatus,
+    DerivationStep,
+    Derivation,
     Permission,
     Scope,
     GapRecord,
@@ -66,6 +71,9 @@ __all__ = [
     "ExpiredError",
     "CompositionError",
     "ProvenanceError",
+    "NegativeControlStatus",
+    "DerivationStep",
+    "Derivation",
     "Permission",
     "Scope",
     "GapRecord",
@@ -83,3 +91,49 @@ __all__ = [
     "compose",
     "compute_provenance_hash",
 ]
+
+# Structured logging helpers.
+# Callers install a handler on "turnstile"; we emit structured log records so
+# that JSON formatters (e.g. python-json-logger) pick up the extra fields.
+
+_logger = _logging.getLogger("turnstile")
+
+
+def _log_compile(judgment: "Judgment", *, level: int = _logging.DEBUG) -> None:
+    """Emit a structured log record for a compile result."""
+    deriv = judgment.derivation
+    _logger.log(
+        level,
+        "turnstile.compile",
+        extra={
+            "permission": judgment.permission_str,
+            "provenance_hash": deriv.provenance_hash,
+            "derivation_steps": [
+                {
+                    "phase": s.phase,
+                    "permission_after": str(s.permission_after),
+                    "note": s.note,
+                    "token_ids": s.token_ids,
+                }
+                for s in deriv.steps
+            ],
+        },
+    )
+
+
+def _log_live_permission(
+    live: "LiveJudgment",
+    runtime: "RuntimeContext",
+    *,
+    level: int = _logging.DEBUG,
+) -> None:
+    """Emit a structured log record for a live permission read."""
+    perm = live.permission_str(runtime)
+    _logger.log(
+        level,
+        "turnstile.live_permission",
+        extra={
+            "permission": perm,
+            "strict_mode": runtime.strict_mode,
+        },
+    )

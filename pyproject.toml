@@ -10,6 +10,11 @@ license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 readme = "README.md"
 keywords = ["admissibility", "permission", "formal-methods", "safety"]
+
+[project.urls]
+Repository = "https://github.com/adis-zr/turnstile"
+Homepage = "https://github.com/adis-zr/turnstile"
+Documentation = "https://github.com/adis-zr/turnstile#readme"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

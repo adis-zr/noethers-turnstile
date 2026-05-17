@@ -4,6 +4,8 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use tracing::{debug, warn};
+
 use crate::compiler::Judgment;
 use crate::context::ProofContext;
 use crate::permission::Permission;
@@ -193,9 +195,21 @@ impl<'ctx> LiveJudgment<'ctx> {
     /// context's NC state map (T17).
     pub fn permission(&self) -> Permission {
         if self.inner.expiry.fired(self.runtime.now) {
+            warn!(
+                candidate_id = %self.inner.context.candidate_id,
+                claim_id = %self.inner.context.claim_id,
+                "judgment expired; returning EXP"
+            );
             return Permission::EXP;
         }
         if !self.runtime.satisfies(&self.inner.context) {
+            warn!(
+                candidate_id = %self.inner.context.candidate_id,
+                claim_id = %self.inner.context.claim_id,
+                runtime_fingerprint = %self.runtime.context_fingerprint,
+                compile_fingerprint = %self.inner.context.context_fingerprint,
+                "fingerprint mismatch; returning EXP"
+            );
             return Permission::EXP;
         }
         // T17: negative-control liveness check.
@@ -206,9 +220,21 @@ impl<'ctx> LiveJudgment<'ctx> {
             .iter()
             .filter(|t| t.is_negative_control)
             .map(|t| t.token_id.as_str());
-        if self.runtime.check_negative_controls(nc_ids).is_err() {
+        if let Err(failed_id) = self.runtime.check_negative_controls(nc_ids) {
+            warn!(
+                candidate_id = %self.inner.context.candidate_id,
+                claim_id = %self.inner.context.claim_id,
+                failed_nc_token_id = %failed_id,
+                "T17: negative-control not live; flooring to REF"
+            );
             return Permission::REF;
         }
+        debug!(
+            candidate_id = %self.inner.context.candidate_id,
+            claim_id = %self.inner.context.claim_id,
+            permission = %self.inner.permission,
+            "live permission read"
+        );
         self.inner.permission
     }
 

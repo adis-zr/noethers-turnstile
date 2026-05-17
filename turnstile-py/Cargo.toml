@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 description = "Python bindings for turnstile-core via PyO3"
 license = "Apache-2.0"
+repository = "https://github.com/adis-zr/turnstile"
+homepage = "https://github.com/adis-zr/turnstile"
+keywords = ["admissibility", "permission", "formal-methods", "python", "pyo3"]
 
 [lib]
 name = "_turnstile"
