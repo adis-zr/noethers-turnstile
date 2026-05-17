@@ -408,10 +408,10 @@ fn effective_gap_status(
         if token.closes_gaps.iter().any(|g| g == &gap.gap_id) {
             best_status = GapStatus::Closed;
             break;
-        } else if token.bounds_gaps.iter().any(|g| g == &gap.gap_id) {
-            if best_status < GapStatus::Bounded(crate::gap::Bound::infinity()) {
-                best_status = GapStatus::Bounded(crate::gap::Bound::infinity());
-            }
+        } else if token.bounds_gaps.iter().any(|g| g == &gap.gap_id)
+            && best_status < GapStatus::Bounded(crate::gap::Bound::infinity())
+        {
+            best_status = GapStatus::Bounded(crate::gap::Bound::infinity());
         }
     }
 

@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- **Clippy: collapsible-if in `compiler.rs:411`** — collapsed nested `if` inside the
+  `bounds_gaps` branch into a single `else if … && …` condition to satisfy
+  `clippy::collapsible_if` under `-D warnings`.
+
 - **Formatting: `assert_eq!` line-length violations in EC-003j and EC-049** — split two
   over-length `assert_eq!` calls into multi-line form so `cargo fmt --check` passes cleanly.
 
