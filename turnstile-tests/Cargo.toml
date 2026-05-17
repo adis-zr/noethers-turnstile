@@ -225,6 +225,46 @@ path = "src/ec019_t11_diagnostic_action_separation.rs"
 name = "ec020_token_expiry_edge_cases"
 path = "src/ec020_token_expiry_edge_cases.rs"
 
+[[test]]
+name = "ec021_malformed_context_validation"
+path = "src/ec021_malformed_context_validation.rs"
+
+[[test]]
+name = "ec022_livejudgment_lifetime_guard"
+path = "src/ec022_livejudgment_lifetime_guard.rs"
+
+[[test]]
+name = "ec023_descending_order_stability"
+path = "src/ec023_descending_order_stability.rs"
+
+[[test]]
+name = "ec024_token_expiry_in_composition"
+path = "src/ec024_token_expiry_in_composition.rs"
+
+[[test]]
+name = "ec025_bound_variant_coverage"
+path = "src/ec025_bound_variant_coverage.rs"
+
+[[test]]
+name = "ec026_dead_token_expiry_semantics"
+path = "src/ec026_dead_token_expiry_semantics.rs"
+
+[[test]]
+name = "ec027_compose_claim_id_semantics"
+path = "src/ec027_compose_claim_id_semantics.rs"
+
+[[test]]
+name = "ec028_provenance_unicode_and_large_input"
+path = "src/ec028_provenance_unicode_and_large_input.rs"
+
+[[test]]
+name = "ec029_poisoned_mutex_recovery"
+path = "src/ec029_poisoned_mutex_recovery.rs"
+
+[[test]]
+name = "ec030_compile_never_panics"
+path = "src/ec030_compile_never_panics.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }

@@ -11,10 +11,6 @@ requires-python = ">=3.10"
 readme = "README.md"
 keywords = ["admissibility", "permission", "formal-methods", "safety"]
 
-[project.urls]
-Repository = "https://github.com/adis-zr/turnstile"
-Homepage = "https://github.com/adis-zr/turnstile"
-Documentation = "https://github.com/adis-zr/turnstile#readme"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -28,8 +24,16 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+[project.urls]
+Repository = "https://github.com/adis-zr/turnstile"
+Homepage = "https://github.com/adis-zr/turnstile"
+Documentation = "https://github.com/adis-zr/turnstile#readme"
+
 [tool.maturin]
 features = ["pyo3/extension-module"]
 module-name = "turnstile._turnstile"
 python-source = "python"
 manifest-path = "turnstile-py/Cargo.toml"
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]

@@ -25,6 +25,7 @@ use proptest::prelude::*;
 use turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
+    error,
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
@@ -213,17 +214,18 @@ fn a2_same_context_same_result_ten_times() {
 // ── A3: Finite gap basis (distinct gap_ids) ───────────────────────────────────
 
 #[test]
-fn a3_duplicate_gap_ids_use_first_found() {
+fn a3_duplicate_gap_ids_produce_malformed_context() {
     let mut ctx = base_ctx();
-    // Duplicate gap_id: second one is ignored (find_gap returns first match)
-    ctx.gaps.push(GapRecord::open("g1", "calibration_gap")); // duplicate
-                                                             // The first record is Closed, second is Open;
-                                                             // profile_satisfied uses ctx.find_gap which returns the first match → Closed
-    let j = compile(ctx).unwrap();
-    assert_eq!(
-        j.permission,
-        Permission::DIA,
-        "duplicate gap: first (Closed) should win"
+    // Duplicate gap_id is now a structural error: compile() returns MalformedContext.
+    ctx.gaps.push(GapRecord::open("g1", "calibration_gap")); // duplicate of the g1 already in base_ctx
+    let result = compile(ctx);
+    assert!(
+        matches!(
+            result,
+            Err(crate::error::TurnstileError::MalformedContext(_))
+        ),
+        "A3: duplicate gap_id must produce MalformedContext; got {:?}",
+        result
     );
 }
 
@@ -242,7 +244,7 @@ fn a4_empty_required_gaps_means_trivially_satisfied() {
 }
 
 #[test]
-fn a4_profile_referencing_missing_gap_not_satisfied() {
+fn a4_profile_referencing_missing_gap_is_malformed() {
     let mut ctx = base_ctx();
     ctx.profiles.push(Profile {
         permission: Permission::REV,
@@ -251,9 +253,16 @@ fn a4_profile_referencing_missing_gap_not_satisfied() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    // REV requires nonexistent-gap (not in ctx.gaps) → not satisfied; falls to DIA
-    let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    // REV references a gap_id not in ctx.gaps → MalformedContext (validation step).
+    let result = compile(ctx);
+    assert!(
+        matches!(
+            result,
+            Err(crate::error::TurnstileError::MalformedContext(_))
+        ),
+        "A4: profile referencing missing gap_id must produce MalformedContext; got {:?}",
+        result
+    );
 }
 
 // ── A5: Typed token schema versions ─────────────────────────────────────────

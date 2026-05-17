@@ -32,13 +32,67 @@ pub struct Judgment {
     pub derivation: Derivation,
 }
 
+/// Validate structural preconditions on a context before compilation.
+///
+/// Returns `Err(MalformedContext)` for any of:
+///   - A profile references a `gap_id` not present in `ctx.gaps`.
+///   - `ctx.gaps` contains duplicate `gap_id` values.
+///   - `ctx.profiles` contains two entries with the same `permission` level.
+///   - `ctx.allowed_use` is empty.
+fn validate_context(ctx: &ProofContext) -> Result<(), crate::error::TurnstileError> {
+    if ctx.allowed_use.is_empty() {
+        return Err(crate::error::TurnstileError::MalformedContext(
+            "allowed_use must not be empty".into(),
+        ));
+    }
+
+    // Check for duplicate gap_ids.
+    let mut seen_gap_ids = std::collections::HashSet::new();
+    for g in &ctx.gaps {
+        if !seen_gap_ids.insert(g.gap_id.as_str()) {
+            return Err(crate::error::TurnstileError::MalformedContext(format!(
+                "duplicate gap_id '{}'",
+                g.gap_id
+            )));
+        }
+    }
+
+    // Check that all gap_ids referenced by profiles exist.
+    for profile in &ctx.profiles {
+        for req in &profile.required_gaps {
+            if ctx.find_gap(&req.gap_id).is_none() {
+                return Err(crate::error::TurnstileError::MalformedContext(format!(
+                    "profile for {:?} references unknown gap_id '{}'",
+                    profile.permission, req.gap_id
+                )));
+            }
+        }
+    }
+
+    // Check for duplicate permission levels in profiles.
+    let mut seen_perms = std::collections::HashSet::new();
+    for profile in &ctx.profiles {
+        let key = profile.permission as u8;
+        if !seen_perms.insert(key) {
+            return Err(crate::error::TurnstileError::MalformedContext(format!(
+                "duplicate profile for permission level {:?}",
+                profile.permission
+            )));
+        }
+    }
+
+    Ok(())
+}
+
 /// Compile a proof context into a judgment.
 ///
 /// This function is `O(|P| · max_p |gaps_required_at_p|)` in the number of
 /// permission levels and the maximum required-gap count per profile.
 ///
 /// Returns `Err(TurnstileError::MalformedContext)` if the context is structurally
-/// invalid (e.g. a profile references a gap_id that does not exist in `ctx.gaps`).
+/// invalid (e.g. a profile references a gap_id that does not exist in `ctx.gaps`,
+/// duplicate gap_ids, duplicate permission levels in profiles, or empty
+/// `allowed_use`).
 #[instrument(
     name = "turnstile.compile",
     skip(ctx),
@@ -50,6 +104,8 @@ pub struct Judgment {
     )
 )]
 pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileError> {
+    validate_context(&ctx)?;
+
     let mut derivation = Derivation::new().with_provenance(ctx.provenance_hash());
 
     // Step 1: membership check.
@@ -151,20 +207,20 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     }
     outcome = outcome.meet(ceiling);
 
-    // Step 5: expiry blocker — if any token in the context has expired, floor to EXP.
+    // Step 5: expiry blocker — if any *live* (Valid-status) token in the context
+    // has expired, floor to EXP.  Invalid/Revoked/Malformed tokens are already
+    // dead and cannot trigger EXP; only a token that *was* valid but whose
+    // deadline has now passed is semantically expired.
     let now = Utc::now();
-    let has_expired_token = ctx.tokens.iter().any(|t| {
-        if let Some(exp) = t.expires_at {
-            now >= exp
-        } else {
-            false
-        }
-    });
+    let has_expired_token = ctx
+        .tokens
+        .iter()
+        .any(|t| t.status.is_usable() && t.expires_at.map(|exp| now >= exp).unwrap_or(false));
     if has_expired_token && outcome > Permission::EXP {
         let expired_ids: Vec<String> = ctx
             .tokens
             .iter()
-            .filter(|t| t.expires_at.map(|e| now >= e).unwrap_or(false))
+            .filter(|t| t.status.is_usable() && t.expires_at.map(|e| now >= e).unwrap_or(false))
             .map(|t| t.token_id.clone())
             .collect();
         warn!(
