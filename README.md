@@ -171,6 +171,8 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p turnstile-tests
 ```
 
+**562 tests across 46 files.** Every test passes on every commit (ubuntu + macos CI matrix).
+
 ---
 
 ## Implementing a Certifier
@@ -223,6 +225,63 @@ impl Certifier for CalibrationCertifier {
 ```
 
 Turnstile's compiler does not call certifiers directly — it only inspects token provenance hashes and gap membership. Certifiers are called by your domain layer before tokens are placed in a `ProofContext`.
+
+---
+
+## Caller Responsibilities
+
+Two checks that the compiler does **not** enforce internally — callers must invoke them:
+
+### 1. Scope candidate admission
+
+The compiler does not verify that `candidate_id ∈ scope.allowed_candidates`. After compiling, check before acting on the judgment:
+
+```rust
+// Returns true when allowed_candidates is empty (unconstrained) or contains candidate_id.
+fn candidate_in_scope(scope: &Scope, candidate_id: &str) -> bool {
+    scope.allowed_candidates.is_empty()
+        || scope.allowed_candidates.iter().any(|c| c == candidate_id)
+}
+
+if !candidate_in_scope(&ctx.scope, &ctx.candidate_id) {
+    // reject — candidate is outside declared scope
+}
+```
+
+### 2. Profile monotonicity (Law G01)
+
+The compiler does not validate that profiles are monotone (stronger permissions require at least as strong evidence as weaker ones). Validate on profile construction:
+
+```rust
+// Returns an error message if profiles[i].permission > profiles[j].permission but
+// profiles[i] declares a weaker gap requirement than profiles[j] for the same gap_id.
+fn check_profile_monotonicity(profiles: &[Profile]) -> Option<String> {
+    for i in 0..profiles.len() {
+        for j in 0..profiles.len() {
+            if profiles[i].permission <= profiles[j].permission { continue; }
+            for req_j in &profiles[j].required_gaps {
+                if let Some(req_i) = profiles[i].required_gaps.iter()
+                    .find(|r| r.gap_id == req_j.gap_id)
+                {
+                    let rank = |r: RequiredStatus| match r {
+                        RequiredStatus::BoundedRequired => 1u8,
+                        RequiredStatus::ClosedRequired  => 2u8,
+                    };
+                    if rank(req_i.minimum_status) < rank(req_j.minimum_status) {
+                        return Some(format!(
+                            "gap '{}': {} requires {:?} but {} requires {:?}",
+                            req_j.gap_id,
+                            profiles[i].permission, req_i.minimum_status,
+                            profiles[j].permission, req_j.minimum_status,
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+```
 
 ---
 
@@ -283,6 +342,12 @@ turnstile-tests/         Structural and property-based tests
                          provenance, expiry, token status, OOC variants, …)
   ec004_*/               EC-004 profile well-formedness
   ec005_*/               EC-005 domain admission
+  ec006_*                Law G01 profile monotonicity validator
+  ec007_*                Derivation chain soundness (non-increasing steps)
+  ec008_*                Concurrent AuditStore integrity
+  ec009_*                Permission::from_str exhaustive coverage
+  ec010_*                Scope candidate admission (rule [ADMISSIBLE])
+  ec011_*                GapStatus min_status algebra invariants
   proptest_*/            Property-based tests for the 4 structural guarantees
   step11_assembler       Assembler integration tests
 ```
