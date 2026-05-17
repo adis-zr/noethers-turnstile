@@ -165,6 +165,30 @@ path = "src/ec003x_audit_not_authority.rs"
 name = "ec003z_compose_n"
 path = "src/ec003z_compose_n.rs"
 
+[[test]]
+name = "ec006_profile_monotonicity_law"
+path = "src/ec006_profile_monotonicity_law.rs"
+
+[[test]]
+name = "ec007_derivation_chain_soundness"
+path = "src/ec007_derivation_chain_soundness.rs"
+
+[[test]]
+name = "ec008_concurrent_audit_store"
+path = "src/ec008_concurrent_audit_store.rs"
+
+[[test]]
+name = "ec009_permission_from_str"
+path = "src/ec009_permission_from_str.rs"
+
+[[test]]
+name = "ec010_scope_candidate_admission"
+path = "src/ec010_scope_candidate_admission.rs"
+
+[[test]]
+name = "ec011_gap_composition_invariants"
+path = "src/ec011_gap_composition_invariants.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }
