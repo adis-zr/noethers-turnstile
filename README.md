@@ -171,7 +171,7 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p turnstile-tests
 ```
 
-**656 tests across 55 files.** Every test passes on every commit (ubuntu + macos CI matrix).
+**865 tests total — 765 Rust (65 files) + 100 Python (8 files).** Every test passes on every commit (ubuntu + macos CI matrix).
 
 ---
 
@@ -308,13 +308,17 @@ cargo bench -p turnstile-core
 pip install maturin
 
 # Build and install in development mode.
-python3 -m maturin develop
+python3 -m venv .venv && .venv/bin/pip install maturin pytest
+.venv/bin/maturin develop
+
+# Run the Python integration test suite.
+.venv/bin/pytest
 
 # Build a release wheel.
-python3 -m maturin build --release
+.venv/bin/maturin build --release
 ```
 
-After `maturin develop`, the `turnstile` package is importable in the current Python environment.
+After `maturin develop`, the `turnstile` package is importable in the active environment.
 
 ---
 
@@ -337,7 +341,7 @@ turnstile-core/          Pure Rust library (no PyO3 dependency)
 turnstile-py/            PyO3 bindings (thin wrapper over turnstile-core)
   src/lib.rs             #[pymodule] + all #[pyclass] wrappers
 
-turnstile-tests/         Structural and property-based tests
+turnstile-tests/         Structural and property-based tests (765 Rust tests)
   ec003*/                EC-003 theorem suite (composition algebra,
                          provenance, expiry, token status, OOC variants, …)
   ec004_*/               EC-004 profile well-formedness
@@ -357,8 +361,28 @@ turnstile-tests/         Structural and property-based tests
   ec018_*                Large-context stress (100–500 gaps, 200 tokens)
   ec019_*                T11 diagnostic/action separation (exhaustive)
   ec020_*                Token and context expiry edge cases
+  ec021_*                MalformedContext validation (all 4 conditions)
+  ec022_*                LiveJudgment<'ctx> runtime T15 contract
+  ec023_*                descending() order stability (pinned sequence)
+  ec024_*                Token expiry masking in composition
+  ec025_*                BoundKind variant coverage (Numeric/SetValued/Infinity)
+  ec026_*                Dead-token expiry semantics (only Valid triggers EXP)
+  ec027_*                Compose claim_id/candidate_id semantics
+  ec028_*                Provenance hash unicode and large inputs
+  ec029_*                Poisoned-mutex recovery (SchemaRegistry + AuditStore)
+  ec030_*                compile()/compose() never panic (adversarial inputs)
   proptest_*/            Property-based tests for the 4 structural guarantees
   step11_assembler       Assembler integration tests
+
+python/tests/            Python integration tests (100 tests, pytest)
+  test_py001_permission  Permission ordering, meet, from_str, hash
+  test_py002_compile_basic  compile() outcomes: OOC/DIA/EXP/MalformedContext
+  test_py003_live_judgment  LiveJudgment expiry, fingerprint, idempotence
+  test_py004_compose     compose() identity inheritance, g2 token rejection
+  test_py005_timestamps  Timestamp precision and EXP floor boundary behavior
+  test_py006_exceptions  Exception hierarchy and message quality
+  test_py007_types       GapRecord/Membership/NegativeControlStatus/ProofToken
+  test_py008_derivation  Derivation steps, compiled_at, permission match
 ```
 
 ---

@@ -9,6 +9,106 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **EC-021** (`ec021_malformed_context_validation`): `MalformedContext` validation — V1–V8
+  covering all four pre-flight rejection conditions: empty `allowed_use`, duplicate `gap_id`s,
+  profile referencing an unknown `gap_id`, and duplicate permission levels in profiles.
+  Proptest confirms `allowed_use` is always required. 16 tests.
+
+- **EC-022** (`ec022_livejudgment_lifetime_guard`): `LiveJudgment<'ctx>` lifetime guard —
+  L1–L8 covering the runtime T15 contract: `permission()` returns EXP on fingerprint
+  mismatch, non-expired context returns stored permission, idempotent reads, strict-mode
+  NC liveness. 11 tests.
+
+- **EC-023** (`ec023_descending_order_stability`): `Permission::descending()` order stability
+  — O1–O7 pinning the exact 12-element descending sequence
+  `[AAA, ALR, AEX, REV, DIA, ROL, ESC, ETA, UNS, REF, EXP, OOC]`.
+  Verifies `descending()[0] > descending()[1]`, round-trip through `as_str()`, and
+  stability across 100 repeated calls. 9 tests.
+
+- **EC-024** (`ec024_token_expiry_in_composition`): Token expiry masking in composition —
+  X1–X6 documenting the dedup contract: when g1 and g2 carry the same `token_id` with
+  identical content, the composed context keeps one copy; the earlier expiry is not masked
+  by a later one; Revoked status is not upgraded to Valid. 6 tests.
+
+- **EC-025** (`ec025_bound_variant_coverage`): `BoundKind` variant coverage — B1–B15
+  exercising `Numeric`, `SetValued`, and `Infinity` across `PartialEq`, serde round-trip,
+  `GapStatus` rank ordering, and bounding-token behavior in `compile()`. 19 tests.
+
+- **EC-026** (`ec026_dead_token_expiry_semantics`): Dead-token expiry semantics — D1–D10
+  verifying that only `status = Valid` tokens trigger the EXP floor in compiler step 5.
+  `Invalid`, `Expired`, `Revoked`, and `Malformed` tokens with past `expires_at` do not
+  cause EXP. Fixes a pre-existing bug where dead-token expiry silently downgraded outcomes.
+  10 tests.
+
+- **EC-027** (`ec027_compose_claim_id_semantics`): Compose `claim_id` / `candidate_id`
+  semantics — C1–C8 documenting that `compose(g1, g2)` inherits g1's identity tuple; tokens
+  issued for g2's tuple have wrong provenance in the composed context and are silently
+  rejected. Fingerprint concatenation (`"fp-a+fp-b"`) also pinned. 8 tests.
+
+- **EC-028** (`ec028_provenance_unicode_and_large_input`): Provenance hash unicode and large
+  inputs — U1–U8 confirming NFC vs NFD produce distinct hashes, CJK characters are hashed
+  over UTF-8 bytes, null bytes embedded in fields do not collide with the `\0` delimiter,
+  1 MB inputs complete without panic, and `verify_provenance` is deterministic. 10 tests.
+
+- **EC-029** (`ec029_poisoned_mutex_recovery`): Poisoned-mutex recovery — P1–P5 confirming
+  `SchemaRegistry` and `InMemoryAuditStore` remain fully functional after a thread panic
+  mid-write. New entries can be registered, `get_schema` returns existing entries, and
+  `append` continues to accumulate audit records. 5 tests.
+
+- **EC-030** (`ec030_compile_never_panics`): `compile()` and `compose()` never panic —
+  N1–N13 exercising every identified panic surface: `NaN`/`+∞`/`-∞` in `Bound::Numeric`,
+  1000-gap contexts, 1000-token contexts with one correct provenance, `compose_n` over
+  200 contexts, profiles with 100 required gaps, and 10k-character field strings. 13 tests.
+
+- **Python integration test suite** (`python/tests/`, 100 tests across 8 files):
+  - `PY-001` — `Permission` ordering, meet commutativity/idempotence, `from_str`
+    (case-insensitive), `hash`, `__eq__`. 17 tests.
+  - `PY-002` — `compile()` basic outcomes: OOC, DIA, authority-ceiling truncation, all
+    four `MalformedContext` conditions surfaced as `TurnstileError`. 13 tests.
+  - `PY-003` — `LiveJudgment` runtime evaluation: `ExpiredError` raised on expired context
+    and on fingerprint mismatch; `permission_str()` never raises; idempotence. 10 tests.
+  - `PY-004` — `compose()` semantics: identity-field inheritance, g2-token rejection
+    (provenance mismatch), `CompositionError` on use-mismatch, token deduplication. 10 tests.
+  - `PY-005` — Timestamp precision: `as i64` truncation behavior documented; valid
+    expired token triggers EXP floor; dead token does not; far-future and near-epoch
+    timestamps handled without error. 11 tests.
+  - `PY-006` — Exception hierarchy: all four exception types (`TurnstileError`,
+    `ExpiredError`, `CompositionError`, `ProvenanceError`) reachable; message quality
+    spot-checks. 11 tests.
+  - `PY-007` — Data types: all `GapRecord`/`Membership`/`NegativeControlStatus` variants,
+    `ProofToken` details and `is_negative_control`, `Scope` defaults,
+    `compute_provenance_hash` determinism and field-order sensitivity. 18 tests.
+  - `PY-008` — Derivation inspection: step types, `compiled_at` float, final step matches
+    `Judgment.permission`. 10 tests.
+
+### Fixed
+
+- **`compiler.rs` — `validate_context()` pre-flight** (previously missing): `compile()`
+  now returns `Err(TurnstileError::MalformedContext)` for four conditions that were
+  previously silently degraded: empty `allowed_use`, duplicate `gap_id`s, a profile
+  referencing an unknown `gap_id`, and duplicate permission levels across profiles.
+
+- **`compiler.rs` — dead-token EXP floor** (step 5): The expiry blocker previously
+  checked all tokens regardless of status. Dead tokens (`Invalid`, `Expired`, `Revoked`,
+  `Malformed`) with a past `expires_at` incorrectly floored outcomes to EXP. The check
+  now guards with `t.status.is_usable()` so only live (`Valid`) tokens with a past
+  deadline can trigger the EXP floor.
+
+- **`ec005_domain_admission.rs`** — tests A3 and A4 updated to reflect corrected
+  `MalformedContext` semantics (previously documented silent-degradation behavior that is
+  no longer correct).
+
+- **`pyproject.toml`** — `classifiers` was incorrectly nested under `[project.urls]`
+  (TOML parse error in maturin ≥ 1.4); moved to `[project]`. Adds
+  `[tool.pytest.ini_options]` with `testpaths = ["python/tests"]` so `pytest` resolves
+  tests without path arguments.
+
+Total test count: **865 tests** — 765 Rust (65 files) + 100 Python (8 files).
+
+## [0.1.1] - 2026-05-17
+
+### Added
+
 - **EC-006** (`ec006_profile_monotonicity_law`): Law G01 profile-monotonicity validator.
   `validate_profile_monotonicity()` detects configurations where a stronger permission
   declares weaker evidence requirements than a lower permission — a misconfiguration that
