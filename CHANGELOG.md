@@ -9,6 +9,74 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **EC-041** (`ec041_allowed_use_soundness`): Allowed-use soundness exhaustive coverage (T12,
+  EC-001 §14) — AU1–AU14 plus a property-based test; verifies that `allowed_use` is bound
+  byte-for-byte in the provenance hash (Unicode, whitespace, case, leading/trailing space, null
+  bytes), that empty `allowed_use` is rejected by `compile()`, that `compose()` returns
+  UseConflict on mismatch, that `compose_n` fails closed if any context differs, and that a token
+  issued under one `allowed_use` cannot close a gap in a context with a different `allowed_use`.
+  14 + 1 prop tests.
+
+- **EC-042** (`ec042_heterogeneous_anti_laundering`): Heterogeneous anti-laundering exhaustive
+  coverage (T16, EC-001 §38) — H1–H16 plus two property-based tests; confirms that OOC membership
+  is absorbing under `compose_n` for all 16 pairwise Membership combinations, all N-ary sizes
+  (N=3,5,10), every insertion position (first/middle/last), the adversarial majority attack (9
+  InClass + 1 OOC → OOC), and all three non-InClass membership variants paired with InClass. 18 +
+  2 prop tests.
+
+- **EC-043** (`ec043_audit_not_authority`): Audit-not-authority exhaustive coverage (T18,
+  EC-001 §31.18) — A1–A9 plus a property-based test; extends EC-003x with 10k fabricated-AAA
+  entries, concurrent audit writes + compiles, future-timestamp entries, duplicate entries, replay
+  attacks using AuditEntry data as a ProofToken, and confirms that compile() result is independent
+  of the number of store observers. 10 + 1 prop tests.
+
+- **EC-044** (`ec044_authority_ceiling_exhaustive`): Authority ceiling exhaustive coverage (T19,
+  EC-001 §31.19) — C1–C14 plus a property-based test; confirms that all 12 ceiling values act as
+  hard caps (full evidence → result = ceiling), that ceiling OOC/EXP/DIA/REF/ROL each cap
+  correctly, that `compose_n` ceiling is the meet of all inputs, that adding evidence above the
+  ceiling is inert, and that ceiling is consulted after gap resolution. 15 + 1 prop tests.
+
+- **EC-045** (`ec045_permission_triples_exhaustive`): Permission triples exhaustive coverage
+  (T8/T9/T10, EC-001 §16) — TR1–TR5; full 12³ = 1728-triple enumeration of `meet` associativity,
+  `meet_n` order-independence, left-fold = right-fold = `meet_n` equivalence, `meet_n` idempotence
+  on duplicates, and split-fold correctness. 5 tests (each iterates all 1728 triples).
+
+- **EC-046** (`ec046_meet_glb_exhaustive`): Meet GLB property exhaustive (T8, EC-001 §16) —
+  GLB1–GLB5 plus a property-based test; verifies that `meet(a,b)` is the *greatest* lower bound
+  (not just a lower bound) for all 144 pairs: lower bound law, GLB law (all common lower bounds
+  ≤ meet), uniqueness (no strictly higher lower bound exists), idempotence, and the degenerate
+  single-element case. 6 + 1 prop tests.
+
+- **EC-047** (`ec047_step11_truth_table`): Step 11 assembler truth table (T8/T11, EC-001 §30) —
+  S1–S16; ported from the Python `test_ec003f_step11_assembler.py` 16-case critical-combination
+  table; covers refusal-tier vs control-tier dominance, all OOC-absorbing cases, control-tier
+  ordering, cross-tier conflict matrix for UNS, all 12 idempotence cases, and permutation
+  invariance of [OOC, ESC, AAA]. 16 tests.
+
+- **EC-048** (`ec048_theorem2_greatest_satisfiable`): Theorem 2 greatest-satisfiable permission
+  (T5/T10, EC-001 §31.2) — T2-1–T2-11 plus a property-based test; ported from Python
+  `test_ec004a_theorem2_property_based.py`; verifies that `compile()` returns the *greatest*
+  satisfying permission (not just *a* satisfying permission): all 12 permission targets reachable,
+  boundary conditions (all-open → weakest; all-closed → highest), evidence upgrade raises
+  permission by exactly one step, partial evidence satisfies exactly the reachable profile, and
+  authority ceiling caps the greatest satisfiable. 12 + 1 prop tests.
+
+- **EC-049** (`ec049_admission_contract_a1_a9`): Admission contract A1–A9 depth (T6/T19,
+  EC-001 §35) — 14 tests; ported from Python `test_ec005a_admission_contract_predicates.py`
+  (~311-test suite); deepens coverage of the nine finite admission conditions enforced by
+  `compile()`: duplicate gap_id rejection, aliased-but-distinct gap_ids accepted, 10k-gap context
+  terminates in bounded time, ceiling-capped result for all 12 levels, fingerprint mismatch in
+  RuntimeContext, and adversarial large inputs (1M-char `allowed_use`, 1k gaps × 1k-char IDs,
+  1k all-open profiles). 14 tests.
+
+- **EC-050** (`ec050_schema_version_adversarial`): Schema version mismatch adversarial (T2,
+  EC-001 §13) — SV1–SV12; extends EC-003k and EC-014 with adversarial schema/version mismatch
+  scenarios: unregistered version rejection, empty schema_version rejected as MalformedContext,
+  concurrent same-version registration (exactly one wins), 100-entry registry correctness,
+  older-version token acceptance, two tokens with different versions of the same schema, whitespace
+  and Unicode in schema_version treated as distinct identifiers, very long schema_version, and
+  `get()` with wrong version returns None. 12 tests.
+
 - **EC-031** (`ec031_adversarial_families`): Adversarial families A1–A10 from EC-001 §34 —
   systematically tests all ten named laundering paths: fake-token promotion (A1), diagnostic
   promoted into action (A2), stale context laundering (A3), provenance mismatch (A4), parent-scope

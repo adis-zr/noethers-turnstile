@@ -305,6 +305,46 @@ path = "src/ec039_derivation_and_audit_trail.rs"
 name = "ec040_composition_identity_laws"
 path = "src/ec040_composition_identity_laws.rs"
 
+[[test]]
+name = "ec041_allowed_use_soundness"
+path = "src/ec041_allowed_use_soundness.rs"
+
+[[test]]
+name = "ec042_heterogeneous_anti_laundering"
+path = "src/ec042_heterogeneous_anti_laundering.rs"
+
+[[test]]
+name = "ec043_audit_not_authority"
+path = "src/ec043_audit_not_authority.rs"
+
+[[test]]
+name = "ec044_authority_ceiling_exhaustive"
+path = "src/ec044_authority_ceiling_exhaustive.rs"
+
+[[test]]
+name = "ec045_permission_triples_exhaustive"
+path = "src/ec045_permission_triples_exhaustive.rs"
+
+[[test]]
+name = "ec046_meet_glb_exhaustive"
+path = "src/ec046_meet_glb_exhaustive.rs"
+
+[[test]]
+name = "ec047_step11_truth_table"
+path = "src/ec047_step11_truth_table.rs"
+
+[[test]]
+name = "ec048_theorem2_greatest_satisfiable"
+path = "src/ec048_theorem2_greatest_satisfiable.rs"
+
+[[test]]
+name = "ec049_admission_contract_a1_a9"
+path = "src/ec049_admission_contract_a1_a9.rs"
+
+[[test]]
+name = "ec050_schema_version_adversarial"
+path = "src/ec050_schema_version_adversarial.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }

@@ -171,7 +171,7 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p turnstile-tests
 ```
 
-**973 tests total — 873 Rust (75 files) + 100 Python (8 files).** Every test passes on every commit (ubuntu + macos CI matrix).
+**1098 tests total — 998 Rust (85 files) + 100 Python (8 files).** Every test passes on every commit (ubuntu + macos CI matrix).
 
 ---
 
@@ -341,7 +341,7 @@ turnstile-core/          Pure Rust library (no PyO3 dependency)
 turnstile-py/            PyO3 bindings (thin wrapper over turnstile-core)
   src/lib.rs             #[pymodule] + all #[pyclass] wrappers
 
-turnstile-tests/         Structural and property-based tests (873 Rust tests)
+turnstile-tests/         Structural and property-based tests (998 Rust tests)
   ec003*/                EC-003 theorem suite (composition algebra,
                          provenance, expiry, token status, OOC variants, …)
   ec004_*/               EC-004 profile well-formedness
@@ -381,6 +381,16 @@ turnstile-tests/         Structural and property-based tests (873 Rust tests)
   ec038_*                Scope intersection semantics (SI1–SI10, T14)
   ec039_*                Derivation and audit trail integrity (D1–D12, T18)
   ec040_*                Composition identity laws (CI1–CI8, T6 end-to-end)
+  ec041_*                Allowed-use soundness (AU1–AU14, T12, byte-exact binding)
+  ec042_*                Heterogeneous anti-laundering (H1–H16, T16, OOC absorbing)
+  ec043_*                Audit-not-authority exhaustive (A1–A9, T18, replay attacks)
+  ec044_*                Authority ceiling exhaustive (C1–C14, T19, hard cap)
+  ec045_*                Permission triples exhaustive (TR1–TR5, all 1728 triples)
+  ec046_*                Meet GLB property exhaustive (GLB1–GLB5, T8, greatest lower bound)
+  ec047_*                Step 11 assembler truth table (S1–S16, T8/T11, tier dominance)
+  ec048_*                Theorem 2 greatest-satisfiable (T2-1–T2-11, T5/T10)
+  ec049_*                Admission contract A1–A9 depth (T6/T19, bounded-time, adversarial)
+  ec050_*                Schema version adversarial (SV1–SV12, T2, mismatch/concurrent)
   proptest_*/            Property-based tests for the 4 structural guarantees
   step11_assembler       Assembler integration tests
 
