@@ -178,7 +178,7 @@ fn compose_profiles(profiles1: Vec<Profile>, profiles2: Vec<Profile>) -> Vec<Pro
 
     let mut result: Vec<Profile> = map.into_values().collect();
     // Sort descending by permission.
-    result.sort_by(|a, b| b.permission.cmp(&a.permission));
+    result.sort_by_key(|p| std::cmp::Reverse(p.permission));
     result
 }
 
