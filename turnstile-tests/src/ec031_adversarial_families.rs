@@ -290,8 +290,8 @@ fn a4_wrong_provenance_hash_leaves_gap_open() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "A4: provenance mismatch must not close gap"
+        Permission::REF,
+        "A4: provenance mismatch must not close gap; PROVENANCE_MISMATCH → REF (InClass)"
     );
 }
 
@@ -327,8 +327,8 @@ fn a4_recycled_token_from_different_claim_rejected() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "A4: recycled token from different claim must be rejected"
+        Permission::REF,
+        "A4: recycled token from different claim must be rejected; PROVENANCE_MISMATCH → REF (InClass)"
     );
 }
 
@@ -459,8 +459,8 @@ fn a6_bounding_token_does_not_satisfy_closed_required() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "A6: bounding token cannot satisfy ClosedRequired profile"
+        Permission::REF,
+        "A6: bounding token cannot satisfy ClosedRequired profile; InClass unmet profile → REF"
     );
 }
 
@@ -555,8 +555,8 @@ fn a7_missing_required_coupling_gap_blocks_permission() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "A7: open required coupling gap must block permission"
+        Permission::REF,
+        "A7: open required coupling gap must block permission; InClass unmet profile → REF"
     );
 }
 
@@ -802,11 +802,11 @@ fn a10_audit_derivation_does_not_grant_authority() {
     // No tokens — gap stays open
 
     let j = compile(ctx).unwrap();
-    // Derivation says DIA profile was not satisfied; outcome is OOC
+    // Derivation says DIA profile was not satisfied; InClass candidate with unmet profile → REF.
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "A10: no satisfied profile means OOC"
+        Permission::REF,
+        "A10: no satisfied profile on InClass candidate means REF"
     );
 
     // The derivation steps never fabricate a higher permission

@@ -496,6 +496,7 @@ impl PyGapRequirement {
     #[getter]
     fn minimum_status(&self) -> &str {
         match self.inner.minimum_status {
+            RustRequiredStatus::OpenAllowed => "open",
             RustRequiredStatus::BoundedRequired => "bounded",
             RustRequiredStatus::ClosedRequired => "closed",
         }

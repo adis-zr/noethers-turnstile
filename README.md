@@ -264,6 +264,7 @@ fn check_profile_monotonicity(profiles: &[Profile]) -> Option<String> {
                     .find(|r| r.gap_id == req_j.gap_id)
                 {
                     let rank = |r: RequiredStatus| match r {
+                        RequiredStatus::OpenAllowed     => 0u8,
                         RequiredStatus::BoundedRequired => 1u8,
                         RequiredStatus::ClosedRequired  => 2u8,
                     };

@@ -96,7 +96,8 @@ fn three_gap_profile_requires_all_closed() {
     ctx.tokens = vec![t1, t2]; // g3 not closed
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "missing g3 must block DIA");
+    // Missing g3 → profile not satisfied → REF (in-class, profile defined)
+    assert_eq!(j.permission, Permission::REF, "missing g3 must block DIA; in-class → REF not OOC");
 }
 
 #[test]
@@ -309,10 +310,11 @@ fn bounding_token_does_not_satisfy_closed_required() {
     ctx.tokens = vec![t];
 
     let j = compile(ctx).unwrap();
+    // Bounding token doesn't satisfy ClosedRequired → REF (in-class, profile defined)
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "bounding token must not satisfy ClosedRequired"
+        Permission::REF,
+        "bounding token must not satisfy ClosedRequired; in-class → REF not OOC"
     );
 }
 

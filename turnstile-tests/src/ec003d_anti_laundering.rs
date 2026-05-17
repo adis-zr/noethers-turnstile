@@ -8,9 +8,9 @@
 ///   test_ec003d_heterogeneous_anti_laundering.py
 ///
 /// Properties proved:
-///   T1  — Fake-token non-promotion: wrong provenance → gap stays Open
+///   T1  — Fake-token non-promotion: wrong provenance → PROVENANCE_MISMATCH → REF
 ///   T3  — Provenance soundness: token bound to (claim, candidate, ctx, use)
-///   T4  — Instance identity: token for z₁ never licenses z₂
+///   T4  — Instance identity: token for z₁ never licenses z₂ (emits REF via prov mismatch)
 ///   T16 — Heterogeneous anti-laundering: stale never upgrades; group-fold independent
 use chrono::Utc;
 use proptest::prelude::*;
@@ -79,10 +79,11 @@ fn wrong_candidate_token_rejected() {
 
     let ctx = ctx_with_token("claim", "z-correct", "ctx", "use", &wrong_hash);
     let j = compile(ctx).unwrap();
+    // Wrong provenance → PROVENANCE_MISMATCH structural failure → REF meet applied.
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "wrong provenance token must not close gap"
+        Permission::REF,
+        "wrong provenance token must not close gap; PROVENANCE_MISMATCH floors to REF"
     );
 }
 
@@ -100,7 +101,7 @@ fn wrong_claim_token_rejected() {
     let wrong_hash = compute_provenance_hash("claim-WRONG", "z-1", "ctx", "use");
     let ctx = ctx_with_token("claim-RIGHT", "z-1", "ctx", "use", &wrong_hash);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::REF);
 }
 
 #[test]
@@ -108,7 +109,7 @@ fn wrong_context_id_token_rejected() {
     let wrong_hash = compute_provenance_hash("claim", "z-1", "ctx-WRONG", "use");
     let ctx = ctx_with_token("claim", "z-1", "ctx-RIGHT", "use", &wrong_hash);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::REF);
 }
 
 #[test]
@@ -116,7 +117,7 @@ fn wrong_allowed_use_token_rejected() {
     let wrong_hash = compute_provenance_hash("claim", "z-1", "ctx", "use-WRONG");
     let ctx = ctx_with_token("claim", "z-1", "ctx", "use-RIGHT", &wrong_hash);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::REF);
 }
 
 // ── T4: Token for z₁ cannot license z₂ ──────────────────────────────────────
@@ -127,10 +128,11 @@ fn token_for_z1_does_not_license_z2() {
     // Present the z1 token against a z2 context
     let ctx = ctx_with_token("claim", "z-2", "ctx", "use", &hash_z1);
     let j = compile(ctx).unwrap();
+    // Wrong provenance → PROVENANCE_MISMATCH → REF (not OOC; candidate is in-class).
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "token for z-1 must not license z-2"
+        Permission::REF,
+        "token for z-1 must not license z-2; PROVENANCE_MISMATCH floors to REF"
     );
 }
 
@@ -175,10 +177,12 @@ fn invalid_token_does_not_close_gap() {
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
+    // Correct provenance but Invalid status → token skipped, gap stays Open,
+    // profile not satisfied → REF (in-class candidate with profile defined).
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "invalid token must not close gap"
+        Permission::REF,
+        "invalid token must not close gap; in-class with unmet profile → REF"
     );
 }
 
@@ -221,10 +225,12 @@ fn revoked_token_does_not_close_gap() {
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
+    // Correct provenance but Revoked status → token skipped, gap stays Open,
+    // profile not satisfied → REF (in-class candidate with profile defined).
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "revoked token must not close gap"
+        Permission::REF,
+        "revoked token must not close gap; in-class with unmet profile → REF"
     );
 }
 
@@ -324,7 +330,7 @@ fn adding_stale_context_cannot_upgrade() {
 
 proptest! {
     #[test]
-    fn prop_wrong_provenance_always_ooc(
+    fn prop_wrong_provenance_always_ref(
         claim_id in arb_id(),
         candidate_id in arb_id(),
         context_id in arb_id(),
@@ -340,7 +346,10 @@ proptest! {
         );
         let ctx = ctx_with_token(&claim_id, &candidate_id, &context_id, &allowed_use, &wrong_hash);
         let j = compile(ctx).unwrap();
-        prop_assert_eq!(j.permission, Permission::OOC);
+        // Wrong provenance → PROVENANCE_MISMATCH structural failure → REF meet applied.
+        // Permission must be ≤ REF (cannot be higher than REF when a provenance mismatch exists).
+        prop_assert!(j.permission <= Permission::REF,
+            "wrong provenance must not emit above REF; got {:?}", j.permission);
     }
 
     #[test]

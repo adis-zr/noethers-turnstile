@@ -106,8 +106,8 @@ fn l2_one_gap_open_out_of_50_yields_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "L2: 49/50 gaps closed must yield OOC (profile not satisfied)"
+        Permission::REF,
+        "L2: 49/50 gaps closed must yield REF (in-class candidate, profile defined but unmet)"
     );
 }
 
@@ -257,8 +257,8 @@ fn l5_500_open_gaps_all_required_yields_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "L5: 500 open gaps required closed must yield OOC"
+        Permission::REF,
+        "L5: 500 open gaps required closed must yield REF (in-class candidate, profile defined but unmet)"
     );
 }
 

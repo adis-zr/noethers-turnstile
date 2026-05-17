@@ -26,6 +26,10 @@ use turnstile_core::{
 };
 
 fn dia_ctx(deadline_offset_secs: i64) -> ProofContext {
+    dia_ctx_at(deadline_offset_secs, Utc::now())
+}
+
+fn dia_ctx_at(deadline_offset_secs: i64, base_now: chrono::DateTime<Utc>) -> ProofContext {
     let claim_id = "claim-time";
     let candidate_id = "z-time";
     let context_id = "ctx-time";
@@ -35,7 +39,7 @@ fn dia_ctx(deadline_offset_secs: i64) -> ProofContext {
     let expiry = if deadline_offset_secs == 0 {
         Expiry::never()
     } else {
-        Expiry::at(Utc::now() + Duration::seconds(deadline_offset_secs))
+        Expiry::at(base_now + Duration::seconds(deadline_offset_secs))
     };
 
     ProofContext {
@@ -62,7 +66,7 @@ fn dia_ctx(deadline_offset_secs: i64) -> ProofContext {
             closes_gaps: vec!["g1".into()],
             bounds_gaps: vec![],
             provenance_hash: hash,
-            issued_at: Utc::now(),
+            issued_at: base_now,
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
@@ -279,7 +283,7 @@ proptest! {
         deadline_secs in 1i64..=3600i64,
     ) {
         let now = Utc::now();
-        let ctx = dia_ctx(deadline_secs);
+        let ctx = dia_ctx_at(deadline_secs, now);
         let judgment = compile(ctx).unwrap();
         let compiled_p = judgment.permission;
 
@@ -300,7 +304,7 @@ proptest! {
     ) {
         let now = Utc::now();
         let deadline = now + Duration::seconds(deadline_secs);
-        let ctx = dia_ctx(deadline_secs);
+        let ctx = dia_ctx_at(deadline_secs, now);
         let judgment = compile(ctx).unwrap();
 
         let check_time = deadline + Duration::seconds(past_secs);
@@ -320,7 +324,7 @@ proptest! {
     ) {
         let now = Utc::now();
         let deadline = now + Duration::seconds(deadline_secs);
-        let ctx = dia_ctx(deadline_secs);
+        let ctx = dia_ctx_at(deadline_secs, now);
         let judgment = compile(ctx).unwrap();
 
         // Check 1ns before deadline.

@@ -72,10 +72,11 @@ proptest! {
         };
 
         let j = compile(ctx).unwrap();
-        // Wrong provenance → gap stays Open → DIA not satisfied → OOC.
+        // Wrong provenance → PROVENANCE_MISMATCH structural failure → REF meet applied.
+        // InClass candidate with profile defined but unmet → REF.
         prop_assert_eq!(
             j.permission,
-            Permission::OOC,
+            Permission::REF,
             "wrong provenance token should not close gap; got {:?}",
             j.permission,
         );

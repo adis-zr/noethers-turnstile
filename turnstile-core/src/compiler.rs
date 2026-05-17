@@ -131,22 +131,55 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         });
     }
 
-    // Step 2: descending search.
-    let mut outcome = Permission::OOC;
+    // Step 2: early expiry check — halt before touching any tokens (spec §14 step 4).
+    let now = Utc::now();
+    if ctx.expiry.fired(now) {
+        warn!(
+            phase = "context_expiry",
+            "context expiry has already fired; emitting EXP"
+        );
+        derivation.push(DerivationStep {
+            phase: "context_expiry".into(),
+            permission_after: Permission::EXP,
+            note: "context expiry fired before token evaluation".into(),
+            token_ids: vec![],
+        });
+        return Ok(Judgment {
+            permission: Permission::EXP,
+            expiry: ctx.expiry.clone(),
+            derivation,
+            context: ctx,
+        });
+    }
+
+    // Step 3: descending search.
+    // outcome starts at REF (not OOC) so that an in-class candidate whose
+    // profiles all have unmet gap requirements emits REF, not OOC.
+    // OOC is reserved for out-of-class membership (already handled above).
+    let mut outcome = Permission::REF;
     let mut search_note = "no profile satisfied".to_string();
     let mut consulted_tokens: Vec<String> = vec![];
+    let mut had_any_profile = false;
+    let mut provenance_mismatch_seen = false;
 
     'outer: for p in Permission::descending() {
-        match profile_satisfied(&ctx, p, &mut consulted_tokens) {
+        match profile_satisfied(
+            &ctx,
+            p,
+            &mut consulted_tokens,
+            &mut provenance_mismatch_seen,
+        ) {
             ProfileCheckResult::Satisfied => {
                 outcome = p;
                 search_note = format!("profile satisfied at {}", p);
+                had_any_profile = true;
                 break 'outer;
             }
             ProfileCheckResult::NoProfile => {
                 continue;
             }
             ProfileCheckResult::GapNotMet => {
+                had_any_profile = true;
                 debug!(
                     phase = "descending_search",
                     permission = %p,
@@ -155,6 +188,12 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
                 continue;
             }
         }
+    }
+
+    // If no profiles were defined at all, emit OOC (undefined class behavior).
+    if !had_any_profile {
+        outcome = Permission::OOC;
+        search_note = "no profiles defined".to_string();
     }
 
     debug!(
@@ -170,7 +209,24 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         token_ids: consulted_tokens.clone(),
     });
 
-    // Step 3: structural blockers.
+    // Step 4: structural blockers — PROVENANCE_MISMATCH forces REF meet (spec §14 steps 6+9).
+    // Only apply when the profile was NOT satisfied: if a correct-provenance token already
+    // satisfied a profile (outcome > REF), wrong-provenance tokens are silently rejected.
+    if provenance_mismatch_seen && outcome <= Permission::REF {
+        warn!(
+            phase = "structural_blockers",
+            "provenance mismatch(es) detected; meeting outcome with REF"
+        );
+        derivation.push(DerivationStep {
+            phase: "structural_blockers".into(),
+            permission_after: outcome.meet(Permission::REF),
+            note: "PROVENANCE_MISMATCH: token(s) with wrong provenance seen; REF meet applied"
+                .into(),
+            token_ids: vec![],
+        });
+        outcome = outcome.meet(Permission::REF);
+    }
+
     let (blocker_outcome, blocker_note) = structural_blockers(&ctx, outcome);
     if blocker_outcome < outcome {
         warn!(
@@ -189,7 +245,7 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     }
     outcome = blocker_outcome;
 
-    // Step 4: authority ceiling.
+    // Step 5: authority ceiling.
     let ceiling = ctx.authority_ceiling;
     if ceiling < outcome {
         warn!(
@@ -207,11 +263,8 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     }
     outcome = outcome.meet(ceiling);
 
-    // Step 5: expiry blocker — if any *live* (Valid-status) token in the context
-    // has expired, floor to EXP.  Invalid/Revoked/Malformed tokens are already
-    // dead and cannot trigger EXP; only a token that *was* valid but whose
-    // deadline has now passed is semantically expired.
-    let now = Utc::now();
+    // Step 6: token-level expiry blocker — if any *live* (Valid-status) token
+    // has expired, floor to EXP.  Context expiry was already handled above.
     let has_expired_token = ctx
         .tokens
         .iter()
@@ -233,21 +286,6 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
             permission_after: Permission::EXP,
             note: "at least one proof token has expired".into(),
             token_ids: expired_ids,
-        });
-        outcome = Permission::EXP;
-    }
-
-    // Also apply the context-level expiry as a ceiling at compile time.
-    if ctx.expiry.fired(now) && outcome > Permission::EXP {
-        warn!(
-            phase = "context_expiry",
-            "context expiry has already fired; flooring permission to EXP"
-        );
-        derivation.push(DerivationStep {
-            phase: "context_expiry".into(),
-            permission_after: Permission::EXP,
-            note: "context expiry has already fired".into(),
-            token_ids: vec![],
         });
         outcome = Permission::EXP;
     }
@@ -299,14 +337,14 @@ enum ProfileCheckResult {
 /// in context `ctx`.
 ///
 /// Token provenance is checked bitwise: any token with wrong provenance is
-/// treated as if the gap is still Open (the token is silently rejected for that
-/// gap, but nothing is surfaced to the caller — gaps simply remain Open).
+/// treated as if the gap is still Open and the mismatch flag is set on the
+/// caller so a REF-meet can be applied (spec §14 steps 6+9).
 fn profile_satisfied(
     ctx: &ProofContext,
     p: Permission,
     consulted: &mut Vec<String>,
+    provenance_mismatch: &mut bool,
 ) -> ProfileCheckResult {
-    // Find the profile for this permission.
     let profile = match ctx.profiles.iter().find(|pr| pr.permission == p) {
         Some(pr) => pr,
         None => return ProfileCheckResult::NoProfile,
@@ -315,20 +353,16 @@ fn profile_satisfied(
     let expected_hash = ctx.provenance_hash();
 
     for req in &profile.required_gaps {
-        // Look up the gap record.
         let gap = match ctx.find_gap(&req.gap_id) {
             Some(g) => g,
             None => {
-                // Gap referenced in profile but not present in context → treat as Open.
                 return ProfileCheckResult::GapNotMet;
             }
         };
 
-        // Determine the effective gap status after provenance validation.
-        // A token closes/bounds a gap only if its provenance hash matches exactly.
-        let effective_status = effective_gap_status(ctx, gap, &expected_hash, consulted);
+        let effective_status =
+            effective_gap_status(ctx, gap, &expected_hash, consulted, provenance_mismatch);
 
-        // Check the requirement.
         if !req.minimum_status.satisfied_by(&effective_status) {
             return ProfileCheckResult::GapNotMet;
         }
@@ -340,21 +374,19 @@ fn profile_satisfied(
 /// Compute the effective gap status for a gap, considering only tokens whose
 /// provenance hash matches the context exactly.
 ///
-/// Tokens with wrong provenance are silently skipped — they do not contribute
-/// to gap status.  The gap remains at its original status from `GapRecord`.
+/// Tokens with wrong provenance are skipped and `provenance_mismatch` is set
+/// to true so the caller can apply the REF-meet (spec §14 steps 6+9).
 fn effective_gap_status(
     ctx: &ProofContext,
     gap: &crate::gap::GapRecord,
     _expected_hash: &str,
     consulted: &mut Vec<String>,
+    provenance_mismatch: &mut bool,
 ) -> GapStatus {
     let base_status = gap.status.clone();
-
-    // Find tokens that claim to close or bound this gap with correct provenance.
     let mut best_status = base_status;
 
     for token in ctx.tokens_for_gap(&gap.gap_id) {
-        // Provenance check: skip token if it doesn't match.
         if !verify_provenance(
             token,
             &ctx.claim_id,
@@ -362,27 +394,21 @@ fn effective_gap_status(
             &ctx.context_id,
             &ctx.allowed_use,
         ) {
-            // Wrong provenance: token is silently rejected.
+            // Wrong provenance: token is rejected. Record the structural failure.
+            *provenance_mismatch = true;
             continue;
         }
 
-        // Token must be live (valid status, not expired).
         if !token.is_live(Utc::now()) {
             continue;
         }
 
         consulted.push(token.token_id.clone());
 
-        // Determine what status the token contributes.
         if token.closes_gaps.iter().any(|g| g == &gap.gap_id) {
-            // A closing token upgrades the gap to Closed.
             best_status = GapStatus::Closed;
-            break; // Closed is the maximum; no need to check further.
+            break;
         } else if token.bounds_gaps.iter().any(|g| g == &gap.gap_id) {
-            // A bounding token upgrades to at least Bounded (if not already Closed).
-            // We use the gap's existing bound if already Bounded; otherwise use a
-            // default numeric bound of 0.0 (the certifier is responsible for the
-            // actual bound value stored in the gap record).
             if best_status < GapStatus::Bounded(crate::gap::Bound::infinity()) {
                 best_status = GapStatus::Bounded(crate::gap::Bound::infinity());
             }
@@ -556,8 +582,9 @@ mod tests {
         };
         ctx.tokens.push(bad_token);
         let j = compile(ctx).unwrap();
-        // Wrong provenance → gap stays Open → DIA profile not satisfied → OOC.
-        assert_eq!(j.permission, Permission::OOC);
+        // Wrong provenance → PROVENANCE_MISMATCH structural failure → REF meet applied.
+        // Candidate is in-class, profile exists but gap unmet → REF (not OOC).
+        assert_eq!(j.permission, Permission::REF);
     }
 
     #[test]

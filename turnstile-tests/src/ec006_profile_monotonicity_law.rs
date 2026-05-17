@@ -64,8 +64,9 @@ pub fn validate_profile_monotonicity(profiles: &[Profile]) -> Option<Monotonicit
                     .iter()
                     .find(|r| r.gap_id == req_j.gap_id)
                 {
-                    // ClosedRequired(2) > BoundedRequired(1).
+                    // ClosedRequired(2) > BoundedRequired(1) > OpenAllowed(0).
                     let rank = |r: RequiredStatus| match r {
+                        RequiredStatus::OpenAllowed => 0u8,
                         RequiredStatus::BoundedRequired => 1u8,
                         RequiredStatus::ClosedRequired => 2u8,
                     };

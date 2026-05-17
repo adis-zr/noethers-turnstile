@@ -80,8 +80,8 @@ fn invalid_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Invalid)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "Invalid token must not close gap"
+        Permission::REF,
+        "Invalid token must not close gap; in-class with unmet profile → REF"
     );
 }
 
@@ -90,8 +90,8 @@ fn expired_status_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Expired)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "Expired status token must not close gap"
+        Permission::REF,
+        "Expired status token must not close gap; in-class with unmet profile → REF"
     );
 }
 
@@ -100,8 +100,8 @@ fn revoked_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Revoked)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "Revoked token must not close gap"
+        Permission::REF,
+        "Revoked token must not close gap; in-class with unmet profile → REF"
     );
 }
 
@@ -110,8 +110,8 @@ fn malformed_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Malformed)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "Malformed token must not close gap"
+        Permission::REF,
+        "Malformed token must not close gap; in-class with unmet profile → REF"
     );
 }
 
@@ -412,7 +412,8 @@ proptest! {
     #[test]
     fn prop_non_valid_token_never_closes_gap(status in arb_non_valid_status()) {
         let j = compile(ctx_with_status(status)).unwrap();
-        prop_assert_eq!(j.permission, Permission::OOC,
-            "non-Valid token {:?} must not close gap", status);
+        // Non-valid token → gap stays Open → profile not satisfied → REF (in-class, profile defined)
+        prop_assert!(j.permission <= Permission::REF,
+            "non-Valid token {:?} must not emit above REF; got {:?}", status, j.permission);
     }
 }

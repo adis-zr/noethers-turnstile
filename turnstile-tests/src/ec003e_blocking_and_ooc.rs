@@ -84,9 +84,9 @@ fn profile_without_token_gives_ooc() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    // No token supplied → gap stays Open → profile not satisfied
+    // No token supplied → gap stays Open → profile not satisfied → REF (in-class, profile defined)
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::REF);
 }
 
 #[test]
@@ -100,8 +100,9 @@ fn open_gap_blocks_profile() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
+    // Open gap → ClosedRequired not satisfied → REF (in-class, profile defined)
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::REF);
 }
 
 #[test]
@@ -146,8 +147,8 @@ fn bounded_gap_does_not_satisfy_closed_required() {
         }],
     });
     let j = compile(ctx).unwrap();
-    // Bounded ≠ Closed → ClosedRequired not satisfied
-    assert_eq!(j.permission, Permission::OOC);
+    // Bounded ≠ Closed → ClosedRequired not satisfied → REF (in-class, profile defined)
+    assert_eq!(j.permission, Permission::REF);
 }
 
 // ── T2: Token validity — only Valid tokens contribute ────────────────────────
@@ -178,8 +179,9 @@ fn malformed_token_does_not_satisfy_profile() {
         details: serde_json::Value::Null,
         is_negative_control: false,
     });
+    // Malformed token → skipped, gap stays Open, profile not satisfied → REF
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::REF);
 }
 
 // ── Out-of-class membership → always OOC (T6 / structural) ───────────────────

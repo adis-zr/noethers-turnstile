@@ -234,8 +234,8 @@ fn au10_token_hash_bound_to_exact_allowed_use() {
     let j = compile(ctx_with_token_use("use-wrong", "use-correct")).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "AU10: token bound to 'use-correct' cannot close gap in 'use-wrong' context"
+        Permission::REF,
+        "AU10: token bound to 'use-correct' cannot close gap in 'use-wrong' context; PROVENANCE_MISMATCH → REF"
     );
 }
 
@@ -259,8 +259,8 @@ fn au11_token_bound_to_other_use_cannot_close_gap() {
     let j = compile(ctx_with_token_use("use-B", "use-A")).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "AU11: token for use-A must not close gap in use-B context"
+        Permission::REF,
+        "AU11: token for use-A must not close gap in use-B context; PROVENANCE_MISMATCH → REF"
     );
 }
 
@@ -325,8 +325,8 @@ fn au12_two_tokens_wrong_use_neither_closes() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "AU12: two tokens with wrong allowed_use: neither closes the gap"
+        Permission::REF,
+        "AU12: two tokens with wrong allowed_use: PROVENANCE_MISMATCH → REF"
     );
 }
 

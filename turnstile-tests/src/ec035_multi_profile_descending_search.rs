@@ -169,8 +169,8 @@ fn s3_no_satisfied_profile_produces_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "S3: no satisfied profile must produce OOC"
+        Permission::REF,
+        "S3: no satisfied profile (InClass, profile defined but unmet) must produce REF"
     );
 }
 
@@ -400,8 +400,8 @@ fn s9_bounded_required_not_satisfied_by_open() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "S9: Open must not satisfy BoundedRequired"
+        Permission::REF,
+        "S9: Open must not satisfy BoundedRequired; InClass unmet profile → REF"
     );
 }
 

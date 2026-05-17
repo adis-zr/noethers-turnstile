@@ -124,6 +124,8 @@ impl GapRecord {
 /// Minimum status required by a profile for a given gap.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RequiredStatus {
+    /// Gap must exist (be induced) but may remain Open, Bounded, or Closed.
+    OpenAllowed,
     /// Gap must be at least Bounded (Bounded or Closed).
     BoundedRequired,
     /// Gap must be fully Closed.
@@ -134,6 +136,7 @@ impl RequiredStatus {
     /// Check whether an actual GapStatus satisfies this requirement.
     pub fn satisfied_by(self, status: &GapStatus) -> bool {
         match self {
+            RequiredStatus::OpenAllowed => true,
             RequiredStatus::BoundedRequired => {
                 matches!(status, GapStatus::Bounded(_) | GapStatus::Closed)
             }
@@ -164,6 +167,14 @@ pub struct Profile {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn required_status_open_allowed_accepts_all() {
+        let bound = Bound::numeric(0.05);
+        assert!(RequiredStatus::OpenAllowed.satisfied_by(&GapStatus::Open));
+        assert!(RequiredStatus::OpenAllowed.satisfied_by(&GapStatus::Bounded(bound)));
+        assert!(RequiredStatus::OpenAllowed.satisfied_by(&GapStatus::Closed));
+    }
 
     #[test]
     fn required_status_bounded_accepts_bounded_and_closed() {

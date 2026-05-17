@@ -170,11 +170,12 @@ fn c6_g2_token_rejected_after_composition() {
     let composed = compose(g1, g2).unwrap();
     let j = compile(composed).unwrap();
     // The token's provenance doesn't match the composed context (g1's identity),
-    // so it is silently rejected → profile unsatisfied → OOC.
+    // so it is rejected (PROVENANCE_MISMATCH) → REF meet applied.
+    // InClass candidate with profile defined but unmet → REF (not OOC).
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "C6: token issued for g2 must be silently rejected (provenance mismatch) after composition"
+        Permission::REF,
+        "C6: token issued for g2 must be rejected (provenance mismatch) after composition → REF"
     );
 }
 

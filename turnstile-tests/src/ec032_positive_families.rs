@@ -194,8 +194,8 @@ fn p1_inference_without_calibration_bound_stays_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "P1: open calibration gap must block DIA profile"
+        Permission::REF,
+        "P1: open calibration gap must block DIA profile; InClass unmet profile → REF"
     );
 }
 

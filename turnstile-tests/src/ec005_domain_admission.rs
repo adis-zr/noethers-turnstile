@@ -140,10 +140,11 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
     };
 
     let j = compile(ctx).unwrap();
+    // Wrong provenance → PROVENANCE_MISMATCH → REF (in-class, profile defined)
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "token issued for different identity must not close gap"
+        Permission::REF,
+        "token issued for different identity must not close gap; PROVENANCE_MISMATCH → REF"
     );
 }
 
@@ -192,10 +193,11 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
     };
 
     let j = compile(ctx).unwrap();
+    // Wrong provenance → PROVENANCE_MISMATCH → REF (in-class, profile defined)
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "token issued for different candidate must not close gap"
+        Permission::REF,
+        "token issued for different candidate must not close gap; PROVENANCE_MISMATCH → REF"
     );
 }
 

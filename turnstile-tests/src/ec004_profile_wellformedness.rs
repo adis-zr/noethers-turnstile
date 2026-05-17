@@ -205,7 +205,8 @@ fn adding_evidence_never_lowers_permission_ordered_profiles() {
     };
 
     let p_before = compile(base_ctx.clone()).unwrap().permission;
-    assert_eq!(p_before, Permission::OOC);
+    // In-class, profile defined, gap open, no token → REF
+    assert_eq!(p_before, Permission::REF);
 
     // Add a closing token + update gap to Closed
     let tok = make_token("g1", &base_ctx);

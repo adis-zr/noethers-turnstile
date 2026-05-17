@@ -86,10 +86,11 @@ fn t18_audit_store_not_consulted_by_compiler() {
     let ctx = ctx_needs_g1_closed();
     let j = compile(ctx).unwrap();
 
+    // In-class, profile defined, no proof token → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T18: audit record must not grant permission; gap still open → OOC expected"
+        Permission::REF,
+        "T18: audit record must not grant permission; gap still open → REF (in-class)"
     );
 }
 
@@ -98,14 +99,15 @@ fn t18_repeated_compilations_do_not_escalate() {
     // Compiling the same context 100 times must not produce different results.
     let ctx = ctx_needs_g1_closed();
     let baseline = compile(ctx.clone()).unwrap().permission;
-    assert_eq!(baseline, Permission::OOC);
+    // In-class, profile defined, no token → REF
+    assert_eq!(baseline, Permission::REF);
 
     for i in 0..100 {
         let p = compile(ctx.clone()).unwrap().permission;
         assert_eq!(
             p,
-            Permission::OOC,
-            "T18: repeated compilation {i} changed permission from OOC to {p}"
+            Permission::REF,
+            "T18: repeated compilation {i} changed permission from REF to {p}"
         );
     }
 }
@@ -173,10 +175,11 @@ fn t18_compile_result_unaffected_by_audit_store_size() {
     // Compile a context that cannot produce AAA (no valid tokens).
     let ctx = ctx_needs_g1_closed();
     let j = compile(ctx).unwrap();
+    // In-class, profile defined, no valid tokens → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T18: 1000 audit entries must not affect compile result; still OOC"
+        Permission::REF,
+        "T18: 1000 audit entries must not affect compile result; still REF (in-class)"
     );
 }
 
@@ -209,10 +212,11 @@ fn t18_audit_entry_cannot_be_used_as_proof_token() {
     let mut ctx = ctx_ref;
     ctx.tokens.push(fake_tok);
     let j = compile(ctx).unwrap();
+    // Fake token with wrong provenance → PROVENANCE_MISMATCH → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T18: audit-laundering via fake token must be rejected (wrong provenance → OOC)"
+        Permission::REF,
+        "T18: audit-laundering via fake token must be rejected (wrong provenance → REF)"
     );
 }
 

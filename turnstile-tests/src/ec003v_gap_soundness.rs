@@ -82,10 +82,11 @@ fn base_ctx(with_token: bool, gap_status_fn: impl Fn() -> GapRecord) -> ProofCon
 fn t6_open_gap_no_token_blocks_permission() {
     let ctx = base_ctx(false, || GapRecord::open("g1", "calibration_gap"));
     let j = compile(ctx).unwrap();
+    // In-class, profile defined, gap open, no token → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T6: open gap without token must not grant DIA"
+        Permission::REF,
+        "T6: open gap without token must not grant DIA; in-class → REF"
     );
 }
 
@@ -150,10 +151,11 @@ fn t6_bounded_gap_does_not_satisfy_closed_required() {
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
+    // In-class, profile defined, bounding token ≠ ClosedRequired → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T6: bounding token does not satisfy ClosedRequired"
+        Permission::REF,
+        "T6: bounding token does not satisfy ClosedRequired; in-class → REF"
     );
 }
 
@@ -389,10 +391,11 @@ fn t5_wrong_gap_id_in_token_does_not_satisfy_profile() {
     };
 
     let j = compile(ctx).unwrap();
+    // In-class, token for g2 doesn't close g1 → GapNotMet → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T5/T6: token for g2 must not satisfy g1 requirement"
+        Permission::REF,
+        "T5/T6: token for g2 must not satisfy g1 requirement; in-class → REF"
     );
 }
 
@@ -441,10 +444,11 @@ fn t6_empty_gap_claim_in_token_satisfies_nothing() {
     };
 
     let j = compile(ctx).unwrap();
+    // In-class, empty closes_gaps → gap not closed → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T6: token with empty closes_gaps must not satisfy any gap requirement"
+        Permission::REF,
+        "T6: token with empty closes_gaps must not satisfy any gap requirement; in-class → REF"
     );
 }
 

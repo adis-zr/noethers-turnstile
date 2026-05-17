@@ -166,8 +166,8 @@ fn t2_2_all_gaps_open_weakest_satisfied() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "T2-2: no evidence → no profile satisfied → OOC"
+        Permission::REF,
+        "T2-2: no evidence → no profile satisfied → REF (InClass, profile defined but unmet)"
     );
 }
 

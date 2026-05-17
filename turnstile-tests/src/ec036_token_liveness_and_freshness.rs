@@ -150,11 +150,11 @@ fn l4_invalid_token_neither_closes_nor_triggers_exp() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    // Invalid token: gap not closed → OOC; and no EXP floor (dead token)
+    // Invalid token: gap not closed; InClass + profile unmet → REF (not OOC)
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "L4: invalid token must not close gap"
+        Permission::REF,
+        "L4: invalid token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
@@ -175,8 +175,8 @@ fn l5_expired_status_token_neither_closes_nor_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "L5: expired-status token must not close gap"
+        Permission::REF,
+        "L5: expired-status token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
@@ -197,8 +197,8 @@ fn l6_revoked_token_neither_closes_nor_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "L6: revoked token must not close gap"
+        Permission::REF,
+        "L6: revoked token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
@@ -219,8 +219,8 @@ fn l7_malformed_token_neither_closes_nor_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "L7: malformed token must not close gap"
+        Permission::REF,
+        "L7: malformed token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
@@ -376,8 +376,8 @@ fn l11_only_dead_tokens_with_past_expiry_no_exp_floor() {
     );
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "L11: dead tokens don't close gaps either"
+        Permission::REF,
+        "L11: dead tokens don't close gaps; InClass unmet profile → REF"
     );
 }
 

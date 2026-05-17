@@ -87,7 +87,8 @@ fn adding_closed_token_raises_permission_from_ooc() {
         }],
     }];
     let p_before = compile(ctx.clone()).unwrap().permission;
-    assert_eq!(p_before, Permission::OOC);
+    // In-class candidate with a profile defined but gap unmet → REF (not OOC)
+    assert_eq!(p_before, Permission::REF);
 
     // Now close the gap with a token
     let tok = make_closing_token("g1", &ctx);

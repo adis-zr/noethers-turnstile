@@ -293,10 +293,11 @@ fn token_for_z1_not_accepted_for_z2_end_to_end() {
     };
 
     let j = compile(ctx_z2).unwrap();
+    // z1 token has wrong provenance for z2 → PROVENANCE_MISMATCH → REF
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "z1 token must not license z2"
+        Permission::REF,
+        "z1 token must not license z2; PROVENANCE_MISMATCH floors to REF"
     );
 }
 

@@ -301,8 +301,8 @@ fn c10_ceiling_applied_after_gap_resolution() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "C10: unsatisfied gap → OOC even though ceiling is DIA"
+        Permission::REF,
+        "C10: unsatisfied gap → REF (InClass, profile defined but unmet)"
     );
 }
 

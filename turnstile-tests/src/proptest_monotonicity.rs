@@ -165,7 +165,8 @@ fn wrong_provenance_token_does_not_lower_permission() {
     };
 
     let p_before = compile(base_ctx.clone()).unwrap().permission;
-    assert_eq!(p_before, Permission::OOC);
+    // InClass candidate with profile defined but unmet → REF (not OOC).
+    assert_eq!(p_before, Permission::REF);
 
     // Add a wrong-provenance token.
     let bad_token = ProofToken {
@@ -189,8 +190,8 @@ fn wrong_provenance_token_does_not_lower_permission() {
     };
     let p_after = compile(ctx_with_bad).unwrap().permission;
 
-    // Must not lower (already at OOC, must stay at OOC or above).
+    // Must not lower (already at REF, must stay at REF or above).
     assert!(p_after >= p_before);
     // And a wrong-provenance token must not raise it either.
-    assert_eq!(p_after, Permission::OOC);
+    assert_eq!(p_after, Permission::REF);
 }

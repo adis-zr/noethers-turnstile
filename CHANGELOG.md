@@ -7,6 +7,30 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- **Compiler: early context-expiry check (spec §14 step 4)** — `compile()` now checks
+  `ctx.expiry.fired(now)` before evaluating any tokens or profiles.  If the context has already
+  expired at compile time, a single `"context_expiry"` derivation step is emitted and the judgment
+  short-circuits to `EXP`.  This prevents stale contexts from reaching the descending search.
+
+- **Compiler: OOC → REF for in-class candidates with unmet profiles (spec §14 step 3)** — the
+  descending search now initialises `outcome` to `REF` instead of `OOC`.  `OOC` is reserved for
+  out-of-class membership (emitted by the membership check before the search begins) and for
+  contexts that define no profiles at all.  An `InClass` candidate whose profiles are all defined
+  but whose gap requirements are not met now emits `REF`, not `OOC`.
+
+- **Compiler: `PROVENANCE_MISMATCH` structural blocker (spec §14 steps 6+9)** — tokens whose
+  provenance hash does not match the context are now tracked via a `provenance_mismatch_seen` flag.
+  When the flag is set *and* the descending search produced `REF` or lower (i.e. no profile was
+  satisfied by a correct-provenance token), a `"structural_blockers"` derivation step applies a
+  `meet(REF)` to the outcome.  If a correct-provenance token already satisfied a profile (outcome
+  above `REF`), wrong-provenance tokens are silently rejected as before.
+
+- **`gap::RequiredStatus::OpenAllowed` variant** — new variant that accepts any gap status
+  (Open, Bounded, or Closed).  Satisfies the requirement whenever the gap is induced, regardless
+  of closure level.  Python binding maps to the string `"open"`.
+
 ### Added
 
 - **EC-041** (`ec041_allowed_use_soundness`): Allowed-use soundness exhaustive coverage (T12,

@@ -126,12 +126,12 @@ fn bounded_required_profile_fails_with_no_token() {
             minimum_status: RequiredStatus::BoundedRequired,
         }],
     }];
-    // No token.
+    // No token → BoundedRequired not met → REF (in-class, profile defined)
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "no token → BoundedRequired not met"
+        Permission::REF,
+        "no token → BoundedRequired not met; in-class → REF"
     );
 }
 
@@ -151,11 +151,12 @@ fn closed_required_profile_not_satisfied_by_bounding_token() {
     let tok = bounding_token("g1", &ctx);
     ctx.tokens = vec![tok];
 
+    // Bounding token doesn't satisfy ClosedRequired → REF (in-class, profile defined)
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
-        "bounding token must NOT satisfy ClosedRequired"
+        Permission::REF,
+        "bounding token must NOT satisfy ClosedRequired; in-class → REF"
     );
 }
 
@@ -414,10 +415,11 @@ fn invalid_bounding_token_provides_no_support() {
         let mut ctx_copy = ctx.clone();
         ctx_copy.tokens = vec![tok];
         let j = compile(ctx_copy).unwrap();
+        // Dead bounding token → gap stays Open → REF (in-class, profile defined)
         assert_eq!(
             j.permission,
-            Permission::OOC,
-            "{bad_status:?} bounding token must provide no gap support"
+            Permission::REF,
+            "{bad_status:?} bounding token must provide no gap support; in-class → REF"
         );
     }
 }
