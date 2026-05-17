@@ -1,0 +1,207 @@
+/// Expiry types and the LiveJudgment wrapper.
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+use crate::compiler::Judgment;
+use crate::context::ProofContext;
+use crate::permission::Permission;
+
+/// The expiry constraint on a judgment (`ε` in `Γ ⊢ z : p until ε`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expiry {
+    /// Hard deadline.  A `None` deadline never expires.
+    pub deadline: Option<DateTime<Utc>>,
+    /// Human-readable reason for the expiry (for audit).
+    pub reason: Option<String>,
+}
+
+impl Expiry {
+    /// An expiry that never fires.
+    pub fn never() -> Self {
+        Self { deadline: None, reason: None }
+    }
+
+    /// An expiry that fires at `deadline`.
+    pub fn at(deadline: DateTime<Utc>) -> Self {
+        Self { deadline: Some(deadline), reason: None }
+    }
+
+    /// An expiry that fires at `deadline` with an audit reason.
+    pub fn at_with_reason(deadline: DateTime<Utc>, reason: impl Into<String>) -> Self {
+        Self { deadline: Some(deadline), reason: Some(reason.into()) }
+    }
+
+    /// Returns `true` iff the expiry deadline has been reached or passed at `now`.
+    pub fn fired(&self, now: DateTime<Utc>) -> bool {
+        match self.deadline {
+            Some(deadline) => now >= deadline,
+            None => false,
+        }
+    }
+
+    /// Minimum expiry: the one that fires earliest.
+    pub fn min(self, other: Self) -> Self {
+        match (self.deadline, other.deadline) {
+            (Some(a), Some(b)) => {
+                if a <= b {
+                    Self { deadline: Some(a), reason: self.reason }
+                } else {
+                    Self { deadline: Some(b), reason: other.reason }
+                }
+            }
+            (Some(a), None) => Self { deadline: Some(a), reason: self.reason },
+            (None, Some(b)) => Self { deadline: Some(b), reason: other.reason },
+            (None, None) => Self::never(),
+        }
+    }
+}
+
+/// Runtime context for evaluating whether a judgment is still live.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuntimeContext {
+    /// Current wall-clock time for expiry evaluation.
+    pub now: DateTime<Utc>,
+    /// Runtime fingerprint for revalidation (must match the context fingerprint
+    /// the judgment was compiled against).
+    pub context_fingerprint: String,
+}
+
+impl RuntimeContext {
+    pub fn new(now: DateTime<Utc>, context_fingerprint: impl Into<String>) -> Self {
+        Self { now, context_fingerprint: context_fingerprint.into() }
+    }
+
+    /// Check that this runtime context matches the context the judgment was
+    /// compiled against (fingerprint equality).
+    pub fn satisfies(&self, ctx: &ProofContext) -> bool {
+        self.context_fingerprint == ctx.context_fingerprint
+    }
+}
+
+/// A live judgment: a compiled judgment bound to a runtime context.
+///
+/// The lifetime `'ctx` ties the `LiveJudgment` to the `RuntimeContext` it was
+/// created from, preventing stale-read attacks at the type-system level.
+///
+/// The only way to read `permission()` is to hold a live reference to the
+/// `RuntimeContext`; if that context is dropped or mutated, the borrow checker
+/// prevents the read.
+pub struct LiveJudgment<'ctx> {
+    pub inner: Judgment,
+    pub runtime: &'ctx RuntimeContext,
+}
+
+impl<'ctx> LiveJudgment<'ctx> {
+    pub fn new(inner: Judgment, runtime: &'ctx RuntimeContext) -> Self {
+        Self { inner, runtime }
+    }
+
+    /// Read the effective permission at this instant.
+    ///
+    /// Returns `Permission::EXP` if the judgment has expired or if the runtime
+    /// context does not match the compile-time context.
+    pub fn permission(&self) -> Permission {
+        if self.inner.expiry.fired(self.runtime.now) {
+            return Permission::EXP;
+        }
+        if !self.runtime.satisfies(&self.inner.context) {
+            return Permission::EXP;
+        }
+        self.inner.permission
+    }
+
+    /// Expiry deadline, if any.
+    pub fn deadline(&self) -> Option<DateTime<Utc>> {
+        self.inner.expiry.deadline
+    }
+
+    /// Underlying judgment (for audit / serialization).
+    pub fn judgment(&self) -> &Judgment {
+        &self.inner
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Duration;
+
+    fn dummy_ctx() -> ProofContext {
+        crate::context::ProofContext {
+            claim_id: "c".into(),
+            candidate_id: "z".into(),
+            context_id: "ctx".into(),
+            context_fingerprint: "fp".into(),
+            allowed_use: "use".into(),
+            disallowed_uses: vec![],
+            scope: crate::context::Scope::default(),
+            gaps: vec![],
+            profiles: vec![],
+            tokens: vec![],
+            expiry: Expiry::never(),
+            authority_ceiling: Permission::AAA,
+            membership: crate::context::Membership::InClass,
+        }
+    }
+
+    #[test]
+    fn expiry_fires_at_deadline() {
+        let t = Utc::now();
+        let exp = Expiry::at(t);
+        assert!(exp.fired(t));
+        assert!(exp.fired(t + Duration::nanoseconds(1)));
+        assert!(!exp.fired(t - Duration::nanoseconds(1)));
+    }
+
+    #[test]
+    fn live_judgment_returns_exp_when_expired() {
+        let now = Utc::now();
+        let rt = RuntimeContext::new(now + Duration::seconds(10), "fp");
+        let judgment = Judgment {
+            context: dummy_ctx(),
+            permission: Permission::DIA,
+            expiry: Expiry::at(now + Duration::seconds(5)),
+            derivation: crate::audit::Derivation::default(),
+        };
+        let live = LiveJudgment::new(judgment, &rt);
+        assert_eq!(live.permission(), Permission::EXP);
+    }
+
+    #[test]
+    fn live_judgment_returns_exp_on_fingerprint_mismatch() {
+        let now = Utc::now();
+        let rt = RuntimeContext::new(now, "wrong-fp");
+        let judgment = Judgment {
+            context: dummy_ctx(),
+            permission: Permission::DIA,
+            expiry: Expiry::never(),
+            derivation: crate::audit::Derivation::default(),
+        };
+        let live = LiveJudgment::new(judgment, &rt);
+        assert_eq!(live.permission(), Permission::EXP);
+    }
+
+    #[test]
+    fn live_judgment_returns_permission_when_valid() {
+        let now = Utc::now();
+        let rt = RuntimeContext::new(now, "fp");
+        let judgment = Judgment {
+            context: dummy_ctx(),
+            permission: Permission::DIA,
+            expiry: Expiry::never(),
+            derivation: crate::audit::Derivation::default(),
+        };
+        let live = LiveJudgment::new(judgment, &rt);
+        assert_eq!(live.permission(), Permission::DIA);
+    }
+
+    #[test]
+    fn expiry_min_picks_earliest() {
+        let t1 = Utc::now();
+        let t2 = t1 + Duration::seconds(100);
+        let e1 = Expiry::at(t1);
+        let e2 = Expiry::at(t2);
+        assert_eq!(e1.clone().min(e2.clone()).deadline, Some(t1));
+        assert_eq!(e2.min(e1).deadline, Some(t1));
+    }
+}

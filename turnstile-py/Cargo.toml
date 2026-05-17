@@ -1,0 +1,20 @@
+[package]
+name = "turnstile-py"
+version = "0.1.0"
+edition = "2021"
+description = "Python bindings for turnstile-core via PyO3"
+license = "Apache-2.0"
+
+[lib]
+name = "_turnstile"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+turnstile-core = { path = "../turnstile-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+pyo3 = { workspace = true }
+
+[features]
+extension-module = ["pyo3/extension-module"]

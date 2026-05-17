@@ -1,0 +1,30 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "turnstile"
+version = "0.1.0"
+description = "Admissibility compiler: Γ ⊢ z : p until ε"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+readme = "README.md"
+keywords = ["admissibility", "permission", "formal-methods", "safety"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+module-name = "turnstile._turnstile"
+python-source = "python"
+manifest-path = "turnstile-py/Cargo.toml"

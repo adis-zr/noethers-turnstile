@@ -1,0 +1,34 @@
+[package]
+name = "turnstile-tests"
+version = "0.1.0"
+edition = "2021"
+description = "Property-based tests for turnstile-core"
+license = "Apache-2.0"
+
+[lib]
+name = "turnstile_tests"
+path = "src/lib.rs"
+
+[[test]]
+name = "proptest_composition"
+path = "src/proptest_composition.rs"
+
+[[test]]
+name = "proptest_provenance"
+path = "src/proptest_provenance.rs"
+
+[[test]]
+name = "proptest_expiry"
+path = "src/proptest_expiry.rs"
+
+[[test]]
+name = "proptest_monotonicity"
+path = "src/proptest_monotonicity.rs"
+
+[dependencies]
+turnstile-core = { path = "../turnstile-core" }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
