@@ -84,8 +84,10 @@ pub fn compose(g1: ProofContext, g2: ProofContext) -> Result<ProofContext, Compo
 fn compose_membership(m1: &Membership, m2: &Membership) -> Membership {
     if m1.is_in_class() && m2.is_in_class() {
         Membership::InClass
+    } else if m1.is_in_class() {
+        // m2 is out-of-class; take the worse one.
+        m2.clone()
     } else {
-        // Take the "worse" membership (non-InClass takes priority).
         m1.clone()
     }
 }
@@ -251,6 +253,7 @@ mod tests {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }
     }
 

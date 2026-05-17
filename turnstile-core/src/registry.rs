@@ -40,7 +40,10 @@ impl SchemaRegistry {
     /// Register a new schema entry.  Returns an error if the (schema_id, version)
     /// pair already exists (versions are immutable).
     pub fn register(&self, entry: SchemaEntry) -> Result<(), String> {
-        let mut inner = self.inner.write().unwrap();
+        let mut inner = match self.inner.write() {
+            Ok(g) => g,
+            Err(p) => p.into_inner(),
+        };
         let key = (entry.schema_id.clone(), entry.version.clone());
         if inner.entries.contains_key(&key) {
             return Err(format!(
@@ -55,19 +58,28 @@ impl SchemaRegistry {
 
     /// Look up a schema by id and version.
     pub fn get(&self, schema_id: &str, version: &str) -> Option<SchemaEntry> {
-        let inner = self.inner.read().unwrap();
+        let inner = match self.inner.read() {
+            Ok(g) => g,
+            Err(p) => p.into_inner(),
+        };
         inner.entries.get(&(schema_id.to_owned(), version.to_owned())).cloned()
     }
 
     /// Current version of a schema.
     pub fn current_version(&self, schema_id: &str) -> Option<String> {
-        let inner = self.inner.read().unwrap();
+        let inner = match self.inner.read() {
+            Ok(g) => g,
+            Err(p) => p.into_inner(),
+        };
         inner.current_versions.get(schema_id).cloned()
     }
 
     /// All registered entries (for audit).
     pub fn all_entries(&self) -> Vec<SchemaEntry> {
-        let inner = self.inner.read().unwrap();
+        let inner = match self.inner.read() {
+            Ok(g) => g,
+            Err(p) => p.into_inner(),
+        };
         inner.entries.values().cloned().collect()
     }
 }

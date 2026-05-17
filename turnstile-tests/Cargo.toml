@@ -101,6 +101,42 @@ path = "src/ec003m_evidence_monotonicity.rs"
 name = "ec003n_certifier_interface"
 path = "src/ec003n_certifier_interface.rs"
 
+[[test]]
+name = "ec003o_negative_control_liveness"
+path = "src/ec003o_negative_control_liveness.rs"
+
+[[test]]
+name = "ec003p_time_adversarial_runtime"
+path = "src/ec003p_time_adversarial_runtime.rs"
+
+[[test]]
+name = "ec003q_fingerprint_sensitivity"
+path = "src/ec003q_fingerprint_sensitivity.rs"
+
+[[test]]
+name = "ec003r_large_n_composition"
+path = "src/ec003r_large_n_composition.rs"
+
+[[test]]
+name = "ec003s_bounded_gap_semantics"
+path = "src/ec003s_bounded_gap_semantics.rs"
+
+[[test]]
+name = "ec003t_scope_containment"
+path = "src/ec003t_scope_containment.rs"
+
+[[test]]
+name = "ec003u_provenance_field_absorption"
+path = "src/ec003u_provenance_field_absorption.rs"
+
+[[test]]
+name = "proptest_derivation_audit"
+path = "src/proptest_derivation_audit.rs"
+
+[[test]]
+name = "proptest_permission_ceiling"
+path = "src/proptest_permission_ceiling.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }

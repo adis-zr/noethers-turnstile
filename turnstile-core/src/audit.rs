@@ -75,10 +75,16 @@ pub struct InMemoryAuditStore {
 
 impl AuditStore for InMemoryAuditStore {
     fn record(&self, entry: AuditEntry) {
-        self.entries.lock().unwrap().push(entry);
+        match self.entries.lock() {
+            Ok(mut guard) => guard.push(entry),
+            Err(poisoned) => poisoned.into_inner().push(entry),
+        }
     }
 
     fn entries(&self) -> Vec<AuditEntry> {
-        self.entries.lock().unwrap().clone()
+        match self.entries.lock() {
+            Ok(guard) => guard.clone(),
+            Err(poisoned) => poisoned.into_inner().clone(),
+        }
     }
 }
