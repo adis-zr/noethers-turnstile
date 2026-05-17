@@ -13,3 +13,4 @@ hex = "0.4"
 pyo3 = { version = "0.21", features = ["chrono"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+pyo3-log = "0.11"

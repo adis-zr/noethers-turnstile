@@ -1007,18 +1007,16 @@ impl PyLiveJudgment {
 
 // ── Tracing ───────────────────────────────────────────────────────────────────
 
-/// Initialize the tracing subscriber so Rust `debug!` / `warn!` events are
-/// emitted to stderr.  Reads `RUST_LOG` for the filter directive (e.g.
-/// `RUST_LOG=turnstile=debug`).  Safe to call multiple times; subsequent calls
-/// are no-ops.
+/// Route Rust tracing events into Python's `logging` hierarchy.
+///
+/// After calling this, `debug!` / `info!` / `warn!` / `error!` events emitted
+/// by turnstile-core appear as records on the `turnstile` Python logger at the
+/// corresponding level.  Safe to call multiple times; subsequent calls are
+/// no-ops.
 #[pyfunction]
-#[pyo3(signature = (default_directive = "warn"))]
-fn init_tracing(default_directive: &str) -> PyResult<()> {
-    use tracing_subscriber::{fmt, EnvFilter};
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(default_directive));
-    // try_init returns Err if a subscriber is already set — that's fine.
-    let _ = fmt().with_env_filter(filter).with_writer(std::io::stderr).try_init();
+fn init_tracing() -> PyResult<()> {
+    // ResetHandle::reset() is a no-op if the subscriber is already set.
+    let _ = pyo3_log::try_init();
     Ok(())
 }
 
