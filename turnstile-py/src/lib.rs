@@ -6,6 +6,7 @@ use pyo3::exceptions::{PyException, PyValueError};
 use pyo3::prelude::*;
 
 use turnstile_core::{
+    audit::{Derivation as RustDerivation, DerivationStep as RustDerivationStep},
     compile as rust_compile,
     compiler::Judgment as RustJudgment,
     compose as rust_compose,
@@ -24,7 +25,6 @@ use turnstile_core::{
         NegativeControlStatus as RustNegativeControlStatus, ProofToken as RustProofToken,
         TokenStatus as RustTokenStatus,
     },
-    audit::{Derivation as RustDerivation, DerivationStep as RustDerivationStep},
 };
 
 // ── Python exceptions ─────────────────────────────────────────────────────────
@@ -66,19 +66,27 @@ pub struct PyNegativeControlStatus {
 impl PyNegativeControlStatus {
     #[classattr]
     fn Live() -> Self {
-        Self { inner: RustNegativeControlStatus::Live }
+        Self {
+            inner: RustNegativeControlStatus::Live,
+        }
     }
     #[classattr]
     fn Stale() -> Self {
-        Self { inner: RustNegativeControlStatus::Stale }
+        Self {
+            inner: RustNegativeControlStatus::Stale,
+        }
     }
     #[classattr]
     fn Failed() -> Self {
-        Self { inner: RustNegativeControlStatus::Failed }
+        Self {
+            inner: RustNegativeControlStatus::Failed,
+        }
     }
     #[classattr]
     fn Missing() -> Self {
-        Self { inner: RustNegativeControlStatus::Missing }
+        Self {
+            inner: RustNegativeControlStatus::Missing,
+        }
     }
 
     fn __repr__(&self) -> &str {
@@ -120,7 +128,9 @@ impl PyDerivationStep {
     }
     #[getter]
     fn permission_after(&self) -> PyPermission {
-        PyPermission { inner: self.inner.permission_after }
+        PyPermission {
+            inner: self.inner.permission_after,
+        }
     }
     #[getter]
     fn note(&self) -> &str {
@@ -134,9 +144,7 @@ impl PyDerivationStep {
     fn __repr__(&self) -> String {
         format!(
             "DerivationStep(phase={:?}, permission_after={}, note={:?})",
-            self.inner.phase,
-            self.inner.permission_after,
-            self.inner.note,
+            self.inner.phase, self.inner.permission_after, self.inner.note,
         )
     }
 }
@@ -153,7 +161,11 @@ pub struct PyDerivation {
 impl PyDerivation {
     #[getter]
     fn steps(&self) -> Vec<PyDerivationStep> {
-        self.inner.steps.iter().map(|s| PyDerivationStep { inner: s.clone() }).collect()
+        self.inner
+            .steps
+            .iter()
+            .map(|s| PyDerivationStep { inner: s.clone() })
+            .collect()
     }
     #[getter]
     fn provenance_hash(&self) -> &str {
@@ -165,7 +177,11 @@ impl PyDerivation {
     }
 
     fn __repr__(&self) -> String {
-        format!("Derivation(steps={}, provenance_hash={:?})", self.inner.steps.len(), self.inner.provenance_hash)
+        format!(
+            "Derivation(steps={}, provenance_hash={:?})",
+            self.inner.steps.len(),
+            self.inner.provenance_hash
+        )
     }
 }
 
@@ -584,9 +600,8 @@ impl PyProofToken {
             expires_at.and_then(|ts| chrono::DateTime::from_timestamp(ts as i64, 0));
 
         let details_value = match details {
-            Some(s) => serde_json::from_str(s).map_err(|e| {
-                PyValueError::new_err(format!("Invalid JSON for details: {}", e))
-            })?,
+            Some(s) => serde_json::from_str(s)
+                .map_err(|e| PyValueError::new_err(format!("Invalid JSON for details: {}", e)))?,
             None => serde_json::Value::Null,
         };
 
@@ -901,7 +916,9 @@ impl PyJudgment {
 
     #[getter]
     fn derivation(&self) -> PyDerivation {
-        PyDerivation { inner: self.inner.derivation.clone() }
+        PyDerivation {
+            inner: self.inner.derivation.clone(),
+        }
     }
 
     fn __repr__(&self) -> String {
@@ -946,7 +963,12 @@ impl PyRuntimeContext {
             .map(|(k, v)| (k, v.inner))
             .collect();
         Self {
-            inner: RustRuntimeContext::with_nc_states(now, context_fingerprint, nc_states, strict_mode),
+            inner: RustRuntimeContext::with_nc_states(
+                now,
+                context_fingerprint,
+                nc_states,
+                strict_mode,
+            ),
         }
     }
 

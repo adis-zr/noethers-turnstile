@@ -58,14 +58,8 @@ fn meet_table_non_promotion_144_pairs() {
     for &p in &ALL_PERMISSIONS {
         for &q in &ALL_PERMISSIONS {
             let m = p.meet(q);
-            assert!(
-                m <= p,
-                "meet({p}, {q}) = {m} violates m ≤ p"
-            );
-            assert!(
-                m <= q,
-                "meet({p}, {q}) = {m} violates m ≤ q"
-            );
+            assert!(m <= p, "meet({p}, {q}) = {m} violates m ≤ p");
+            assert!(m <= q, "meet({p}, {q}) = {m} violates m ≤ q");
         }
     }
 }
@@ -74,11 +68,7 @@ fn meet_table_non_promotion_144_pairs() {
 fn meet_table_commutativity_144_pairs() {
     for &p in &ALL_PERMISSIONS {
         for &q in &ALL_PERMISSIONS {
-            assert_eq!(
-                p.meet(q),
-                q.meet(p),
-                "meet({p}, {q}) ≠ meet({q}, {p})"
-            );
+            assert_eq!(p.meet(q), q.meet(p), "meet({p}, {q}) ≠ meet({q}, {p})");
         }
     }
 }
@@ -101,8 +91,16 @@ fn meet_table_identity_aaa() {
 #[test]
 fn meet_table_absorbing_ooc() {
     for &p in &ALL_PERMISSIONS {
-        assert_eq!(p.meet(Permission::OOC), Permission::OOC, "meet({p}, OOC) ≠ OOC");
-        assert_eq!(Permission::OOC.meet(p), Permission::OOC, "meet(OOC, {p}) ≠ OOC");
+        assert_eq!(
+            p.meet(Permission::OOC),
+            Permission::OOC,
+            "meet({p}, OOC) ≠ OOC"
+        );
+        assert_eq!(
+            Permission::OOC.meet(p),
+            Permission::OOC,
+            "meet(OOC, {p}) ≠ OOC"
+        );
     }
 }
 
@@ -146,13 +144,15 @@ fn meet_antisymmetry_exhaustive() {
         for &q in &ALL_PERMISSIONS {
             if p <= q {
                 assert_eq!(
-                    p.meet(q), p,
+                    p.meet(q),
+                    p,
                     "antisymmetry: {p} ≤ {q} but meet({p},{q}) = {} ≠ {p}",
                     p.meet(q)
                 );
             } else {
                 assert_eq!(
-                    p.meet(q), q,
+                    p.meet(q),
+                    q,
                     "antisymmetry: {p} > {q} but meet({p},{q}) = {} ≠ {q}",
                     p.meet(q)
                 );

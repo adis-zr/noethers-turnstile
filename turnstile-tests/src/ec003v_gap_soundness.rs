@@ -230,15 +230,19 @@ fn t5_emitted_permission_implies_all_required_gaps_satisfied() {
             GapRecord::open("g1", "calibration_gap"),
             GapRecord::open("g2", "freshness_gap"),
         ],
-        profiles: vec![
-            Profile {
-                permission: Permission::DIA,
-                required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
-                ],
-            },
-        ],
+        profiles: vec![Profile {
+            permission: Permission::DIA,
+            required_gaps: vec![
+                GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g2".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+            ],
+        }],
         tokens: vec![ProofToken {
             token_id: "tok-t5-sat".into(),
             token_type: "CLOSE".into(),
@@ -259,7 +263,11 @@ fn t5_emitted_permission_implies_all_required_gaps_satisfied() {
     };
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "both gaps closed → DIA emitted");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "both gaps closed → DIA emitted"
+    );
 }
 
 #[test]
@@ -288,15 +296,22 @@ fn t5_partial_gap_satisfaction_falls_to_lower_profile() {
             Profile {
                 permission: Permission::AAA,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement {
+                        gap_id: "g1".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
+                    GapRequirement {
+                        gap_id: "g2".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
                 ],
             },
             Profile {
                 permission: Permission::DIA,
-                required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                ],
+                required_gaps: vec![GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                }],
             },
         ],
         tokens: vec![ProofToken {
@@ -461,23 +476,39 @@ fn greatest_satisfiable_permission_is_emitted() {
             Profile {
                 permission: Permission::AAA,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g3".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement {
+                        gap_id: "g1".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
+                    GapRequirement {
+                        gap_id: "g2".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
+                    GapRequirement {
+                        gap_id: "g3".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
                 ],
             },
             Profile {
                 permission: Permission::AEX,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement {
+                        gap_id: "g1".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
+                    GapRequirement {
+                        gap_id: "g2".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
                 ],
             },
             Profile {
                 permission: Permission::DIA,
-                required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                ],
+                required_gaps: vec![GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                }],
             },
         ],
         // Token only closes g1 and g2.

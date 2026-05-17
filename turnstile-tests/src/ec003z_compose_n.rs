@@ -213,13 +213,16 @@ fn compose_n_takes_minimum_expiry() {
     let mut c2 = base_ctx("exp-2");
     let mut c3 = base_ctx("exp-3");
     c1.expiry = Expiry::at(now + Duration::seconds(300));
-    c2.expiry = Expiry::at(now + Duration::seconds(60));   // shortest
+    c2.expiry = Expiry::at(now + Duration::seconds(60)); // shortest
     c3.expiry = Expiry::at(now + Duration::seconds(180));
 
     let composed = compose_n(vec![c1, c2, c3]).unwrap();
     let deadline = composed.expiry.deadline.expect("must have deadline");
     assert!(
-        (deadline - (now + Duration::seconds(60))).num_milliseconds().abs() < 100,
+        (deadline - (now + Duration::seconds(60)))
+            .num_milliseconds()
+            .abs()
+            < 100,
         "compose_n must take minimum expiry; expected ~60s got {deadline}"
     );
 }

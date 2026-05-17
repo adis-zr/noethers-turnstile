@@ -50,14 +50,8 @@ fn t8_meet_never_exceeds_either_operand_exhaustive() {
     for &p in &all {
         for &q in &all {
             let m = p.meet(q);
-            assert!(
-                m <= p,
-                "T8 violated: meet({p}, {q}) = {m} > {p}"
-            );
-            assert!(
-                m <= q,
-                "T8 violated: meet({p}, {q}) = {m} > {q}"
-            );
+            assert!(m <= p, "T8 violated: meet({p}, {q}) = {m} > {p}");
+            assert!(m <= q, "T8 violated: meet({p}, {q}) = {m} > {q}");
         }
     }
 }
@@ -67,11 +61,7 @@ fn t8_meet_is_commutative_exhaustive() {
     let all: Vec<Permission> = Permission::descending().collect();
     for &p in &all {
         for &q in &all {
-            assert_eq!(
-                p.meet(q),
-                q.meet(p),
-                "T8: meet({p}, {q}) ≠ meet({q}, {p})"
-            );
+            assert_eq!(p.meet(q), q.meet(p), "T8: meet({p}, {q}) ≠ meet({q}, {p})");
         }
     }
 }
@@ -102,16 +92,32 @@ fn t8_meet_idempotent_exhaustive() {
 #[test]
 fn t8_meet_aaa_is_identity() {
     for p in Permission::descending() {
-        assert_eq!(p.meet(Permission::AAA), p, "T8: meet({p}, AAA) should be {p}");
-        assert_eq!(Permission::AAA.meet(p), p, "T8: meet(AAA, {p}) should be {p}");
+        assert_eq!(
+            p.meet(Permission::AAA),
+            p,
+            "T8: meet({p}, AAA) should be {p}"
+        );
+        assert_eq!(
+            Permission::AAA.meet(p),
+            p,
+            "T8: meet(AAA, {p}) should be {p}"
+        );
     }
 }
 
 #[test]
 fn t8_meet_ooc_is_absorbing() {
     for p in Permission::descending() {
-        assert_eq!(p.meet(Permission::OOC), Permission::OOC, "T8: meet({p}, OOC) should be OOC");
-        assert_eq!(Permission::OOC.meet(p), Permission::OOC, "T8: meet(OOC, {p}) should be OOC");
+        assert_eq!(
+            p.meet(Permission::OOC),
+            Permission::OOC,
+            "T8: meet({p}, OOC) should be OOC"
+        );
+        assert_eq!(
+            Permission::OOC.meet(p),
+            Permission::OOC,
+            "T8: meet(OOC, {p}) should be OOC"
+        );
     }
 }
 
@@ -221,15 +227,22 @@ fn t11_dia_ceiling_prevents_action_permission() {
             Profile {
                 permission: Permission::AAA,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement {
+                        gap_id: "g1".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
+                    GapRequirement {
+                        gap_id: "g2".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
                 ],
             },
             Profile {
                 permission: Permission::DIA,
-                required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                ],
+                required_gaps: vec![GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                }],
             },
         ],
         tokens: vec![ProofToken {
@@ -320,8 +333,16 @@ fn t11_compose_dia_ceiling_with_aaa_stays_at_dia() {
 
     let p_base = compile(base.clone()).unwrap().permission;
     let p_uncapped = compile(uncapped.clone()).unwrap().permission;
-    assert_eq!(p_base, Permission::DIA, "setup: capped context compiles to DIA");
-    assert_eq!(p_uncapped, Permission::AAA, "setup: uncapped context compiles to AAA");
+    assert_eq!(
+        p_base,
+        Permission::DIA,
+        "setup: capped context compiles to DIA"
+    );
+    assert_eq!(
+        p_uncapped,
+        Permission::AAA,
+        "setup: uncapped context compiles to AAA"
+    );
 
     // Composition: meet of ceilings = meet(DIA, AAA) = DIA.
     let composed = compose(base, uncapped).unwrap();

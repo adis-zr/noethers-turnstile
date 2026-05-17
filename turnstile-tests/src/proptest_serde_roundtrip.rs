@@ -62,14 +62,24 @@ fn base_ctx(suffix: &str, permission: Permission) -> ProofContext {
         },
         gaps: vec![
             GapRecord::closed("g1", "calibration_gap"),
-            GapRecord::bounded("g2", "freshness_gap", Bound::numeric_with_units(0.05, "nats")),
+            GapRecord::bounded(
+                "g2",
+                "freshness_gap",
+                Bound::numeric_with_units(0.05, "nats"),
+            ),
             GapRecord::open("g3", "model_specification_gap"),
         ],
         profiles: vec![Profile {
             permission,
             required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::BoundedRequired },
+                GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g2".into(),
+                    minimum_status: RequiredStatus::BoundedRequired,
+                },
             ],
         }],
         tokens: vec![ProofToken {
@@ -115,7 +125,10 @@ fn proof_context_json_roundtrip_preserves_all_fields() {
     assert_eq!(recovered.profiles.len(), ctx.profiles.len());
     assert_eq!(recovered.tokens.len(), ctx.tokens.len());
     assert_eq!(recovered.tokens[0].token_id, ctx.tokens[0].token_id);
-    assert_eq!(recovered.tokens[0].provenance_hash, ctx.tokens[0].provenance_hash);
+    assert_eq!(
+        recovered.tokens[0].provenance_hash,
+        ctx.tokens[0].provenance_hash
+    );
     assert_eq!(recovered.tokens[0].issuer, ctx.tokens[0].issuer);
     assert_eq!(recovered.tokens[0].details, ctx.tokens[0].details);
     assert_eq!(recovered.expiry.deadline, ctx.expiry.deadline);
@@ -135,7 +148,10 @@ fn judgment_json_roundtrip_preserves_permission() {
     assert_eq!(recovered.permission, j.permission);
     assert_eq!(recovered.expiry.deadline, j.expiry.deadline);
     assert_eq!(recovered.context.claim_id, j.context.claim_id);
-    assert_eq!(recovered.derivation.provenance_hash, j.derivation.provenance_hash);
+    assert_eq!(
+        recovered.derivation.provenance_hash,
+        j.derivation.provenance_hash
+    );
     assert_eq!(recovered.derivation.steps.len(), j.derivation.steps.len());
 }
 

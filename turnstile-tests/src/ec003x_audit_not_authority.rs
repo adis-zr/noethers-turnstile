@@ -75,7 +75,11 @@ fn t18_audit_store_not_consulted_by_compiler() {
         emitted_at: Utc::now(),
     };
     store.record(fake_entry);
-    assert_eq!(store.entries().len(), 1, "setup: one audit entry pre-recorded");
+    assert_eq!(
+        store.entries().len(),
+        1,
+        "setup: one audit entry pre-recorded"
+    );
 
     // Now compile the same context WITHOUT any actual proof tokens.
     // The store has a DIA record but the compiler must not use it.

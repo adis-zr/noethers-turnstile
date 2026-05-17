@@ -70,32 +70,37 @@ fn maximally_permissive_ctx(membership: Membership, ceiling: Permission) -> Proo
             GapRecord::closed("g2", "freshness_gap"),
             GapRecord::closed("g3", "authority_gap"),
         ],
-        profiles: vec![
-            Profile {
-                permission: Permission::AAA,
-                required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g3".into(), minimum_status: RequiredStatus::ClosedRequired },
-                ],
-            },
-        ],
-        tokens: vec![
-            ProofToken {
-                token_id: "tok-ooc-1".into(),
-                token_type: "CLOSE".into(),
-                schema_version: "0.1".into(),
-                status: TokenStatus::Valid,
-                closes_gaps: vec!["g1".into(), "g2".into(), "g3".into()],
-                bounds_gaps: vec![],
-                provenance_hash: hash.clone(),
-                issued_at: Utc::now(),
-                expires_at: None,
-                issuer: "ooc-test".into(),
-                details: serde_json::Value::Null,
-                is_negative_control: false,
-            },
-        ],
+        profiles: vec![Profile {
+            permission: Permission::AAA,
+            required_gaps: vec![
+                GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g2".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g3".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+            ],
+        }],
+        tokens: vec![ProofToken {
+            token_id: "tok-ooc-1".into(),
+            token_type: "CLOSE".into(),
+            schema_version: "0.1".into(),
+            status: TokenStatus::Valid,
+            closes_gaps: vec!["g1".into(), "g2".into(), "g3".into()],
+            bounds_gaps: vec![],
+            provenance_hash: hash.clone(),
+            issued_at: Utc::now(),
+            expires_at: None,
+            issuer: "ooc-test".into(),
+            details: serde_json::Value::Null,
+            is_negative_control: false,
+        }],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
         membership,
@@ -121,10 +126,7 @@ fn out_of_class_deterministic_write_always_ooc() {
 
 #[test]
 fn out_of_class_no_consequential_use_always_ooc() {
-    let ctx = maximally_permissive_ctx(
-        Membership::OutOfClassNoConsequentialUse,
-        Permission::AAA,
-    );
+    let ctx = maximally_permissive_ctx(Membership::OutOfClassNoConsequentialUse, Permission::AAA);
     assert_eq!(compile(ctx).unwrap().permission, Permission::OOC);
 }
 
@@ -213,7 +215,11 @@ fn ooc_membership_gates_before_gap_evidence() {
     let ctx = maximally_permissive_ctx(Membership::OutOfClassExact, Permission::AAA);
     let j = compile(ctx).unwrap();
     // The derivation must show membership_check as the first step.
-    let first_step = j.derivation.steps.first().expect("must have at least one step");
+    let first_step = j
+        .derivation
+        .steps
+        .first()
+        .expect("must have at least one step");
     assert_eq!(first_step.phase, "membership_check");
     assert_eq!(j.permission, Permission::OOC);
 }
