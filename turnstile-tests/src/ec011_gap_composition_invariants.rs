@@ -49,7 +49,11 @@ fn min_status_rank_closed_with_bounded_gives_bounded() {
     let closed = GapStatus::Closed;
 
     let result = closed.clone().min_status(bounded.clone());
-    assert_eq!(result.rank(), 1, "Closed.min_status(Bounded) must have rank 1 (Bounded)");
+    assert_eq!(
+        result.rank(),
+        1,
+        "Closed.min_status(Bounded) must have rank 1 (Bounded)"
+    );
     assert!(matches!(result, GapStatus::Bounded(_)));
 
     let result2 = bounded.clone().min_status(closed);
@@ -74,7 +78,11 @@ fn min_status_bounded_bounded_is_bounded() {
     let b1 = GapStatus::Bounded(Bound::numeric(0.1));
     let b2 = GapStatus::Bounded(Bound::numeric(0.9));
     let result = b1.min_status(b2);
-    assert_eq!(result.rank(), 1, "Bounded.min_status(Bounded) must be Bounded");
+    assert_eq!(
+        result.rank(),
+        1,
+        "Bounded.min_status(Bounded) must be Bounded"
+    );
     assert!(matches!(result, GapStatus::Bounded(_)));
 }
 

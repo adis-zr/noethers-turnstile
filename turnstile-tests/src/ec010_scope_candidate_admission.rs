@@ -1,3 +1,4 @@
+use chrono::Utc;
 /// EC-010 — Scope candidate admission (rule [ADMISSIBLE]).
 ///
 /// EC-001 §24 rule [ADMISSIBLE]:
@@ -32,7 +33,6 @@ use turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
-use chrono::Utc;
 
 // ── Scope candidate validator ────────────────────────────────────────────────
 
@@ -44,10 +44,7 @@ pub fn validate_candidate_in_scope(scope: &Scope, candidate_id: &str) -> bool {
     if scope.allowed_candidates.is_empty() {
         return true;
     }
-    scope
-        .allowed_candidates
-        .iter()
-        .any(|c| c == candidate_id)
+    scope.allowed_candidates.iter().any(|c| c == candidate_id)
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -132,8 +129,14 @@ fn scope_candidate_check_is_case_sensitive() {
         ..Default::default()
     };
     assert!(validate_candidate_in_scope(&scope, "Z-1"));
-    assert!(!validate_candidate_in_scope(&scope, "z-1"), "must be case-sensitive");
-    assert!(!validate_candidate_in_scope(&scope, "Z-1 "), "trailing space must not match");
+    assert!(
+        !validate_candidate_in_scope(&scope, "z-1"),
+        "must be case-sensitive"
+    );
+    assert!(
+        !validate_candidate_in_scope(&scope, "Z-1 "),
+        "trailing space must not match"
+    );
 }
 
 #[test]

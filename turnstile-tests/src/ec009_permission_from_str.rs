@@ -79,7 +79,11 @@ fn mixed_case_parses_correctly() {
 
 #[test]
 fn empty_string_returns_none() {
-    assert_eq!(Permission::from_str(""), None, "empty string must return None");
+    assert_eq!(
+        Permission::from_str(""),
+        None,
+        "empty string must return None"
+    );
 }
 
 #[test]
@@ -92,9 +96,8 @@ fn whitespace_returns_none() {
 #[test]
 fn near_miss_codes_return_none() {
     let near_misses = [
-        "DIAA", "DI", "D I A", "DAIA", "DIAZ",
-        "EXPP", "EX", "OOCS", "AAAA", "AA",
-        "ALR1", "1ALR", "0OC",
+        "DIAA", "DI", "D I A", "DAIA", "DIAZ", "EXPP", "EX", "OOCS", "AAAA", "AA", "ALR1", "1ALR",
+        "0OC",
     ];
     for s in near_misses {
         assert_eq!(

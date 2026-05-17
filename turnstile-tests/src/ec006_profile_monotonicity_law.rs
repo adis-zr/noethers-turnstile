@@ -159,10 +159,7 @@ fn non_monotone_profile_violation_detected() {
         },
     ];
     let violation = validate_profile_monotonicity(&profiles);
-    assert!(
-        violation.is_some(),
-        "non-monotone profile must be detected"
-    );
+    assert!(violation.is_some(), "non-monotone profile must be detected");
     let v = violation.unwrap();
     assert_eq!(v.gap_id, "g1");
     assert_eq!(v.high_permission, Permission::AAA);

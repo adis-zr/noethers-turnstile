@@ -189,6 +189,42 @@ path = "src/ec010_scope_candidate_admission.rs"
 name = "ec011_gap_composition_invariants"
 path = "src/ec011_gap_composition_invariants.rs"
 
+[[test]]
+name = "ec012_priority_tier_dominance"
+path = "src/ec012_priority_tier_dominance.rs"
+
+[[test]]
+name = "ec013_composition_fail_closed"
+path = "src/ec013_composition_fail_closed.rs"
+
+[[test]]
+name = "ec014_schema_registry_invariants"
+path = "src/ec014_schema_registry_invariants.rs"
+
+[[test]]
+name = "ec015_disallowed_use_accumulation"
+path = "src/ec015_disallowed_use_accumulation.rs"
+
+[[test]]
+name = "ec016_compile_determinism"
+path = "src/ec016_compile_determinism.rs"
+
+[[test]]
+name = "ec017_error_coverage"
+path = "src/ec017_error_coverage.rs"
+
+[[test]]
+name = "ec018_large_context_stress"
+path = "src/ec018_large_context_stress.rs"
+
+[[test]]
+name = "ec019_t11_diagnostic_action_separation"
+path = "src/ec019_t11_diagnostic_action_separation.rs"
+
+[[test]]
+name = "ec020_token_expiry_edge_cases"
+path = "src/ec020_token_expiry_edge_cases.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }

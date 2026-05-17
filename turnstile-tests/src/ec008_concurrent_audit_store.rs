@@ -46,7 +46,11 @@ fn sequential_record_and_retrieve() {
         store.record(make_entry(i));
     }
     let entries = store.entries();
-    assert_eq!(entries.len(), 10, "sequential: all 10 entries must be present");
+    assert_eq!(
+        entries.len(),
+        10,
+        "sequential: all 10 entries must be present"
+    );
 }
 
 // ── Concurrent writes: no data loss ─────────────────────────────────────────

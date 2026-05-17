@@ -171,7 +171,7 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p turnstile-tests
 ```
 
-**562 tests across 46 files.** Every test passes on every commit (ubuntu + macos CI matrix).
+**656 tests across 55 files.** Every test passes on every commit (ubuntu + macos CI matrix).
 
 ---
 
@@ -348,6 +348,15 @@ turnstile-tests/         Structural and property-based tests
   ec009_*                Permission::from_str exhaustive coverage
   ec010_*                Scope candidate admission (rule [ADMISSIBLE])
   ec011_*                GapStatus min_status algebra invariants
+  ec012_*                Priority tier dominance (T8, T10)
+  ec013_*                Composition fail-closed on all conflict types
+  ec014_*                SchemaRegistry append-only invariants R1–R7
+  ec015_*                Disallowed-use accumulation (T13)
+  ec016_*                Compile determinism (sequential + concurrent)
+  ec017_*                Error type coverage (all variants reachable)
+  ec018_*                Large-context stress (100–500 gaps, 200 tokens)
+  ec019_*                T11 diagnostic/action separation (exhaustive)
+  ec020_*                Token and context expiry edge cases
   proptest_*/            Property-based tests for the 4 structural guarantees
   step11_assembler       Assembler integration tests
 ```
