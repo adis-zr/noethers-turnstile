@@ -7,6 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- **Formatting: `assert_eq!` line-length violations in EC-003j and EC-049** — split two
+  over-length `assert_eq!` calls into multi-line form so `cargo fmt --check` passes cleanly.
+
 ### Changed
 
 - **Compiler: early context-expiry check (spec §14 step 4)** — `compile()` now checks

@@ -97,7 +97,11 @@ fn three_gap_profile_requires_all_closed() {
 
     let j = compile(ctx).unwrap();
     // Missing g3 → profile not satisfied → REF (in-class, profile defined)
-    assert_eq!(j.permission, Permission::REF, "missing g3 must block DIA; in-class → REF not OOC");
+    assert_eq!(
+        j.permission,
+        Permission::REF,
+        "missing g3 must block DIA; in-class → REF not OOC"
+    );
 }
 
 #[test]

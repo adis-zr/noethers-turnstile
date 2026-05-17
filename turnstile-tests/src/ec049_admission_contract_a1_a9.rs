@@ -511,7 +511,11 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
     let start = Instant::now();
     let j = compile(ctx).unwrap();
     let elapsed = start.elapsed();
-    assert_eq!(j.permission, Permission::REF, "A9-3: all gaps open → REF (InClass, profiles defined but unmet)");
+    assert_eq!(
+        j.permission,
+        Permission::REF,
+        "A9-3: all gaps open → REF (InClass, profiles defined but unmet)"
+    );
     assert!(
         elapsed.as_secs() < 5,
         "A9-3: must complete in <5s (took {elapsed:?})"
