@@ -137,6 +137,34 @@ path = "src/proptest_derivation_audit.rs"
 name = "proptest_permission_ceiling"
 path = "src/proptest_permission_ceiling.rs"
 
+[[test]]
+name = "proptest_ooc_projection"
+path = "src/proptest_ooc_projection.rs"
+
+[[test]]
+name = "proptest_serde_roundtrip"
+path = "src/proptest_serde_roundtrip.rs"
+
+[[test]]
+name = "proptest_meet_lattice"
+path = "src/proptest_meet_lattice.rs"
+
+[[test]]
+name = "ec003v_gap_soundness"
+path = "src/ec003v_gap_soundness.rs"
+
+[[test]]
+name = "ec003w_meet_and_diagnostic_separation"
+path = "src/ec003w_meet_and_diagnostic_separation.rs"
+
+[[test]]
+name = "ec003x_audit_not_authority"
+path = "src/ec003x_audit_not_authority.rs"
+
+[[test]]
+name = "ec003z_compose_n"
+path = "src/ec003z_compose_n.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }

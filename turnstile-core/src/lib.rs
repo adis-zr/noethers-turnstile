@@ -55,7 +55,7 @@ pub mod token;
 
 // Re-export the most commonly used types at the crate root.
 pub use compiler::{compile, Judgment};
-pub use composition::compose;
+pub use composition::{compose, compose_n};
 pub use context::ProofContext;
 pub use expiry::{Expiry, LiveJudgment, RuntimeContext};
 pub use permission::Permission;

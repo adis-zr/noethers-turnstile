@@ -206,6 +206,21 @@ fn merge_profile_requirements(target: &mut Profile, source: &Profile) {
     }
 }
 
+/// Compose an iterator of proof contexts into one (N-ary composition).
+///
+/// Returns `Err(CompositionError::EmptyComposition)` if the iterator is empty.
+/// Otherwise folds left using `compose()`, failing closed on any conflict.
+///
+/// Theorem T9: N-ary composition is non-promoting.
+///   compile(compose_n([Γ₁, …, Γₙ])).permission ≤ compile(Γᵢ).permission for all i.
+pub fn compose_n(
+    contexts: impl IntoIterator<Item = ProofContext>,
+) -> Result<ProofContext, CompositionError> {
+    let mut iter = contexts.into_iter();
+    let first = iter.next().ok_or(CompositionError::EmptyComposition)?;
+    iter.try_fold(first, compose)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
