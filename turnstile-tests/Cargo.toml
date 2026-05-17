@@ -265,6 +265,46 @@ path = "src/ec029_poisoned_mutex_recovery.rs"
 name = "ec030_compile_never_panics"
 path = "src/ec030_compile_never_panics.rs"
 
+[[test]]
+name = "ec031_adversarial_families"
+path = "src/ec031_adversarial_families.rs"
+
+[[test]]
+name = "ec032_positive_families"
+path = "src/ec032_positive_families.rs"
+
+[[test]]
+name = "ec033_negative_families"
+path = "src/ec033_negative_families.rs"
+
+[[test]]
+name = "ec034_permission_tier_semantics"
+path = "src/ec034_permission_tier_semantics.rs"
+
+[[test]]
+name = "ec035_multi_profile_descending_search"
+path = "src/ec035_multi_profile_descending_search.rs"
+
+[[test]]
+name = "ec036_token_liveness_and_freshness"
+path = "src/ec036_token_liveness_and_freshness.rs"
+
+[[test]]
+name = "ec037_serde_and_wire_format"
+path = "src/ec037_serde_and_wire_format.rs"
+
+[[test]]
+name = "ec038_scope_intersection_semantics"
+path = "src/ec038_scope_intersection_semantics.rs"
+
+[[test]]
+name = "ec039_derivation_and_audit_trail"
+path = "src/ec039_derivation_and_audit_trail.rs"
+
+[[test]]
+name = "ec040_composition_identity_laws"
+path = "src/ec040_composition_identity_laws.rs"
+
 [dependencies]
 turnstile-core = { path = "../turnstile-core" }
 serde_json = { workspace = true }

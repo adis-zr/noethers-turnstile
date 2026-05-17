@@ -9,6 +9,66 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **EC-031** (`ec031_adversarial_families`): Adversarial families A1–A10 from EC-001 §34 —
+  systematically tests all ten named laundering paths: fake-token promotion (A1), diagnostic
+  promoted into action (A2), stale context laundering (A3), provenance mismatch (A4), parent-scope
+  laundering (A5), proxy-to-objective laundering (A6), coupling omission (A7), negative-control
+  ritualization (A8), authority-gap laundering (A9), domain-certifier overreach (A10). Uses
+  call-the-shots pre-registration discipline. 18 tests.
+
+- **EC-032** (`ec032_positive_families`): Positive families P1–P10 from EC-001 §34 — end-to-end
+  scenarios for all ten named in-class domains: approximate probabilistic inference (P1), OPE/causal
+  inference (P2), marketplace allocation (P3), medical triage (P4), fraud and trust (P5),
+  cybersecurity response (P6), trading risk (P7), LLM agent deployment (P8), scientific surrogate
+  modeling (P9), resource-constrained planning (P10). Each family calls its expected outcome before
+  constructing the scenario. 12 tests.
+
+- **EC-033** (`ec033_negative_families`): Negative families N1–N10 from EC-001 §34 — confirms that
+  all ten out-of-class exact-deterministic computations produce OOC even when fake proof tokens are
+  attached: sorting (N1), exact SQL (N2), file hash verification (N3), unit conversion (N4),
+  field validation (N5), static rendering (N6), CRUD updates (N7), regex matching (N8), feature
+  flags (N9), cache lookups (N10). Also verifies OOC early exit produces exactly one derivation
+  step. 14 tests.
+
+- **EC-034** (`ec034_permission_tier_semantics`): Permission tier semantics and action-set
+  interpretation from EC-001 §16–20 — verifies the five-tier priority table, OOC absorption,
+  EXP domination, approval chain meet semantics, DIA as the action/non-action boundary, all
+  144 pairwise meet non-promotion cases, commutativity, associativity, and idempotence. 16 tests.
+
+- **EC-035** (`ec035_multi_profile_descending_search`): Multi-profile descending search and
+  strongest-admissible selection from EC-001 §30 — verifies that the compiler selects the
+  strongest satisfied profile (S1), skips unsatisfied profiles (S2), falls through to OOC (S3),
+  is unaffected by profile ordering (S7), handles empty required_gaps (S10), rejects duplicate
+  permission levels (S11), and can target all 12 permission levels via profiles (S12). 14 tests.
+
+- **EC-036** (`ec036_token_liveness_and_freshness`): Token liveness and freshness semantics from
+  EC-001 §11, §15, T2, T7 — exhaustively tests all five token status variants (Valid, Invalid,
+  Expired, Revoked, Malformed) for gap contribution and EXP floor triggering, expiry boundary
+  conditions, mixed token sets, context expiry vs token expiry interaction. 15 tests.
+
+- **EC-037** (`ec037_serde_and_wire_format`): Serde round-trip and wire-format stability — verifies
+  that Judgment, ProofContext, ProofToken, GapRecord, Expiry, RuntimeContext, and Derivation all
+  round-trip through `serde_json` correctly; Permission serializes as UPPERCASE tags; TokenStatus
+  and NegativeControlStatus serialize as SCREAMING_SNAKE_CASE; all 12 permission values survice
+  JSON round-trip. 15 tests.
+
+- **EC-038** (`ec038_scope_intersection_semantics`): Scope intersection semantics from EC-001 §22,
+  T14 — verifies all four scope fields (candidates, paths, tools, resources), top semantics (empty
+  list = unconstrained), commutativity, associativity, N-ary intersection equivalence, T14
+  containment guarantee, and the monotone-narrowing invariant. 12 tests.
+
+- **EC-039** (`ec039_derivation_and_audit_trail`): Derivation trail integrity and audit correctness
+  from EC-001 §23, T18 — verifies that each compiler phase records the correct derivation step
+  (D1–D6), steps are non-increasing in permission_after (D7), the final step matches the emitted
+  permission (D8), `compiled_at` is set (D9), provenance hash matches context (D10), T18 holds
+  (audit writes do not alter permission, D11), and derivation token_ids are accurate (D12). 12 tests.
+
+- **EC-040** (`ec040_composition_identity_laws`): Composition identity laws and lax monoidal
+  structure from EC-001 §24 — verifies compose-with-self idempotence (CI1–CI4), associativity of
+  authority_ceiling, expiry, and disallowed_uses (CI5–CI7), left-fold equivalence with compose_n
+  (CI8), right-associative equivalence (CI9), fail-closed behavior on UseConflict and TokenConflict
+  (CI10–CI11), single-element compose_n identity (CI12), and end-to-end non-promotion. 14 tests.
+
 - **EC-021** (`ec021_malformed_context_validation`): `MalformedContext` validation — V1–V8
   covering all four pre-flight rejection conditions: empty `allowed_use`, duplicate `gap_id`s,
   profile referencing an unknown `gap_id`, and duplicate permission levels in profiles.

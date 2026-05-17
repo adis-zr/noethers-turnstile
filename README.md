@@ -171,7 +171,7 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p turnstile-tests
 ```
 
-**865 tests total — 765 Rust (65 files) + 100 Python (8 files).** Every test passes on every commit (ubuntu + macos CI matrix).
+**973 tests total — 873 Rust (75 files) + 100 Python (8 files).** Every test passes on every commit (ubuntu + macos CI matrix).
 
 ---
 
@@ -341,7 +341,7 @@ turnstile-core/          Pure Rust library (no PyO3 dependency)
 turnstile-py/            PyO3 bindings (thin wrapper over turnstile-core)
   src/lib.rs             #[pymodule] + all #[pyclass] wrappers
 
-turnstile-tests/         Structural and property-based tests (765 Rust tests)
+turnstile-tests/         Structural and property-based tests (873 Rust tests)
   ec003*/                EC-003 theorem suite (composition algebra,
                          provenance, expiry, token status, OOC variants, …)
   ec004_*/               EC-004 profile well-formedness
@@ -371,6 +371,16 @@ turnstile-tests/         Structural and property-based tests (765 Rust tests)
   ec028_*                Provenance hash unicode and large inputs
   ec029_*                Poisoned-mutex recovery (SchemaRegistry + AuditStore)
   ec030_*                compile()/compose() never panic (adversarial inputs)
+  ec031_*                Adversarial families A1–A10 (EC-001 §34)
+  ec032_*                Positive families P1–P10 (EC-001 §34, in-class domains)
+  ec033_*                Negative families N1–N10 (EC-001 §34, OOC exact)
+  ec034_*                Permission tier semantics (T8, exhaustive 144-pair meet)
+  ec035_*                Multi-profile descending search (determinism, S7–S12)
+  ec036_*                Token liveness and freshness (L1–L15, EXP floor)
+  ec037_*                Serde round-trip and wire-format stability (W1–W12)
+  ec038_*                Scope intersection semantics (SI1–SI10, T14)
+  ec039_*                Derivation and audit trail integrity (D1–D12, T18)
+  ec040_*                Composition identity laws (CI1–CI8, T6 end-to-end)
   proptest_*/            Property-based tests for the 4 structural guarantees
   step11_assembler       Assembler integration tests
 
