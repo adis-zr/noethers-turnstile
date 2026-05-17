@@ -67,6 +67,7 @@ fn base_ctx() -> ProofContext {
             expires_at: None,
             issuer: "domain-certifier".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -80,7 +81,10 @@ fn base_ctx() -> ProofContext {
 fn a1_clean_base_passes() {
     let ctx = base_ctx();
     assert!(!ctx.claim_id.is_empty(), "claim_id must be non-empty");
-    assert!(!ctx.candidate_id.is_empty(), "candidate_id must be non-empty");
+    assert!(
+        !ctx.candidate_id.is_empty(),
+        "candidate_id must be non-empty"
+    );
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::DIA);
 }
@@ -127,6 +131,7 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
             expires_at: None,
             issuer: "domain-certifier".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -134,7 +139,11 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
     };
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "token issued for different identity must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "token issued for different identity must not close gap"
+    );
 }
 
 #[test]
@@ -174,6 +183,7 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
             expires_at: None,
             issuer: "domain-certifier".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -181,7 +191,11 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
     };
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "token issued for different candidate must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "token issued for different candidate must not close gap"
+    );
 }
 
 // ── A2: Adapter determinism ───────────────────────────────────────────────────
@@ -203,10 +217,14 @@ fn a3_duplicate_gap_ids_use_first_found() {
     let mut ctx = base_ctx();
     // Duplicate gap_id: second one is ignored (find_gap returns first match)
     ctx.gaps.push(GapRecord::open("g1", "calibration_gap")); // duplicate
-    // The first record is Closed, second is Open;
-    // profile_satisfied uses ctx.find_gap which returns the first match → Closed
+                                                             // The first record is Closed, second is Open;
+                                                             // profile_satisfied uses ctx.find_gap which returns the first match → Closed
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "duplicate gap: first (Closed) should win");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "duplicate gap: first (Closed) should win"
+    );
 }
 
 // ── A4: Profile wellformedness ────────────────────────────────────────────────
@@ -244,7 +262,10 @@ fn a4_profile_referencing_missing_gap_not_satisfied() {
 fn a5_empty_schema_version_token_still_checked_for_provenance() {
     let mut ctx = base_ctx();
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ctx.tokens[0] = ProofToken {
         token_id: "tok-no-schema".into(),
@@ -258,6 +279,7 @@ fn a5_empty_schema_version_token_still_checked_for_provenance() {
         expires_at: None,
         issuer: "domain-certifier".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     };
     // Schema version is not currently checked by the compiler (certifier responsibility)
     // but the token is still valid if provenance matches.
@@ -272,7 +294,10 @@ fn a6_explicit_ceiling_limits_outcome() {
     let mut ctx = base_ctx();
     ctx.authority_ceiling = Permission::ROL;
     let j = compile(ctx).unwrap();
-    assert!(j.permission <= Permission::ROL, "authority_ceiling should limit outcome");
+    assert!(
+        j.permission <= Permission::ROL,
+        "authority_ceiling should limit outcome"
+    );
 }
 
 #[test]
@@ -339,14 +364,21 @@ fn a9_large_profile_compiles_in_finite_time() {
         allowed_use: allowed_use.into(),
         disallowed_uses: vec![],
         scope: Scope::default(),
-        gaps: (0..gap_count).map(|i| GapRecord::closed(format!("g{i}"), "t")).collect(),
-        profiles: Permission::descending().zip(0..gap_count).map(|(perm, i)| Profile {
-            permission: perm,
-            required_gaps: (0..=i).map(|j| GapRequirement {
-                gap_id: format!("g{j}"),
-                minimum_status: RequiredStatus::ClosedRequired,
-            }).collect(),
-        }).collect(),
+        gaps: (0..gap_count)
+            .map(|i| GapRecord::closed(format!("g{i}"), "t"))
+            .collect(),
+        profiles: Permission::descending()
+            .zip(0..gap_count)
+            .map(|(perm, i)| Profile {
+                permission: perm,
+                required_gaps: (0..=i)
+                    .map(|j| GapRequirement {
+                        gap_id: format!("g{j}"),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    })
+                    .collect(),
+            })
+            .collect(),
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -367,6 +399,7 @@ fn a9_large_profile_compiles_in_finite_time() {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         });
     }
 

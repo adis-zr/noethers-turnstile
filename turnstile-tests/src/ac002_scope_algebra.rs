@@ -13,9 +13,7 @@
 ///               if one side constrained → use it;
 ///               both constrained → set intersection.
 use proptest::prelude::*;
-use turnstile_core::{
-    context::Scope,
-};
+use turnstile_core::context::Scope;
 
 fn scope_with_tools(tools: Vec<&str>) -> Scope {
     Scope {
@@ -96,7 +94,10 @@ fn sc_a04_intersection_disjoint_tools_empty() {
     let a = scope_with_tools(vec!["hammer"]);
     let b = scope_with_tools(vec!["saw"]);
     let result = a.intersect(b);
-    assert!(result.allowed_tools.is_empty(), "disjoint intersection should be empty");
+    assert!(
+        result.allowed_tools.is_empty(),
+        "disjoint intersection should be empty"
+    );
 }
 
 // ── SC-A05: intersection with TOP (empty) gives the constrained side ──────────
@@ -239,10 +240,16 @@ fn sc_a13_intersection_associative() {
 fn arb_tool_set() -> impl Strategy<Value = Vec<String>> {
     prop::collection::hash_set(
         prop_oneof![
-            Just("hammer"), Just("drill"), Just("saw"), Just("wrench"), Just("file")
-        ].prop_map(str::to_owned),
+            Just("hammer"),
+            Just("drill"),
+            Just("saw"),
+            Just("wrench"),
+            Just("file")
+        ]
+        .prop_map(str::to_owned),
         0..=5,
-    ).prop_map(|s| {
+    )
+    .prop_map(|s| {
         let mut v: Vec<String> = s.into_iter().collect();
         v.sort();
         v

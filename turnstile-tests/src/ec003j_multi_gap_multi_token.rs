@@ -24,7 +24,10 @@ use turnstile_core::{
 
 fn make_token(gap_ids: &[&str], bounds_gap_ids: &[&str], ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: format!("tok-{}", gap_ids.join("+")),
@@ -38,6 +41,7 @@ fn make_token(gap_ids: &[&str], bounds_gap_ids: &[&str], ctx: &ProofContext) -> 
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     }
 }
 
@@ -72,9 +76,18 @@ fn three_gap_profile_requires_all_closed() {
     ctx.profiles = vec![Profile {
         permission: Permission::DIA,
         required_gaps: vec![
-            GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-            GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
-            GapRequirement { gap_id: "g3".into(), minimum_status: RequiredStatus::ClosedRequired },
+            GapRequirement {
+                gap_id: "g1".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
+            GapRequirement {
+                gap_id: "g2".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
+            GapRequirement {
+                gap_id: "g3".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
         ],
     }];
 
@@ -97,9 +110,18 @@ fn three_gap_profile_all_closed_satisfies() {
     ctx.profiles = vec![Profile {
         permission: Permission::DIA,
         required_gaps: vec![
-            GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-            GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
-            GapRequirement { gap_id: "g3".into(), minimum_status: RequiredStatus::ClosedRequired },
+            GapRequirement {
+                gap_id: "g1".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
+            GapRequirement {
+                gap_id: "g2".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
+            GapRequirement {
+                gap_id: "g3".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
         ],
     }];
 
@@ -126,16 +148,26 @@ fn two_tier_profile_partial_evidence_lands_on_lower() {
         Profile {
             permission: Permission::REV, // requires all 3
             required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
-                GapRequirement { gap_id: "g3".into(), minimum_status: RequiredStatus::ClosedRequired },
+                GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g2".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g3".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
             ],
         },
         Profile {
             permission: Permission::DIA, // requires only g1
-            required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-            ],
+            required_gaps: vec![GapRequirement {
+                gap_id: "g1".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            }],
         },
     ];
 
@@ -143,7 +175,11 @@ fn two_tier_profile_partial_evidence_lands_on_lower() {
     ctx.tokens = vec![t1]; // only g1 closed
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "partial evidence → descending search lands on DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "partial evidence → descending search lands on DIA"
+    );
 }
 
 #[test]
@@ -158,16 +194,26 @@ fn two_tier_profile_full_evidence_lands_on_higher() {
         Profile {
             permission: Permission::REV,
             required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
-                GapRequirement { gap_id: "g3".into(), minimum_status: RequiredStatus::ClosedRequired },
+                GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g2".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g3".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
             ],
         },
         Profile {
             permission: Permission::DIA,
-            required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-            ],
+            required_gaps: vec![GapRequirement {
+                gap_id: "g1".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            }],
         },
     ];
 
@@ -177,7 +223,11 @@ fn two_tier_profile_full_evidence_lands_on_higher() {
     ctx.tokens = vec![t1, t2, t3];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REV, "full evidence → highest satisfied profile");
+    assert_eq!(
+        j.permission,
+        Permission::REV,
+        "full evidence → highest satisfied profile"
+    );
 }
 
 // ── BoundedRequired is satisfied by a bounding token ─────────────────────────
@@ -203,17 +253,25 @@ fn bounding_token_satisfies_bounded_required() {
         closes_gaps: vec![],
         bounds_gaps: vec![gap_id.into()], // bounds, not closes
         provenance_hash: compute_provenance_hash(
-            &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+            &ctx.claim_id,
+            &ctx.candidate_id,
+            &ctx.context_id,
+            &ctx.allowed_use,
         ),
         issued_at: Utc::now(),
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     };
     ctx.tokens = vec![t];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "bounding token must satisfy BoundedRequired");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "bounding token must satisfy BoundedRequired"
+    );
 }
 
 #[test]
@@ -237,17 +295,25 @@ fn bounding_token_does_not_satisfy_closed_required() {
         closes_gaps: vec![],
         bounds_gaps: vec![gap_id.into()], // only bounds, does not close
         provenance_hash: compute_provenance_hash(
-            &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+            &ctx.claim_id,
+            &ctx.candidate_id,
+            &ctx.context_id,
+            &ctx.allowed_use,
         ),
         issued_at: Utc::now(),
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     };
     ctx.tokens = vec![t];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "bounding token must not satisfy ClosedRequired");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "bounding token must not satisfy ClosedRequired"
+    );
 }
 
 // ── Single token closing multiple gaps ───────────────────────────────────────
@@ -255,15 +321,18 @@ fn bounding_token_does_not_satisfy_closed_required() {
 #[test]
 fn single_token_closing_multiple_gaps() {
     let mut ctx = base_ctx();
-    ctx.gaps = vec![
-        GapRecord::closed("g1", "t"),
-        GapRecord::closed("g2", "t"),
-    ];
+    ctx.gaps = vec![GapRecord::closed("g1", "t"), GapRecord::closed("g2", "t")];
     ctx.profiles = vec![Profile {
         permission: Permission::DIA,
         required_gaps: vec![
-            GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-            GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+            GapRequirement {
+                gap_id: "g1".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
+            GapRequirement {
+                gap_id: "g2".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            },
         ],
     }];
 
@@ -271,7 +340,11 @@ fn single_token_closing_multiple_gaps() {
     ctx.tokens = vec![t];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "single token closing multiple gaps must work");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "single token closing multiple gaps must work"
+    );
 }
 
 // ── Proptest: descending search returns the greatest satisfied permission ─────

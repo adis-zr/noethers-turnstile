@@ -1,6 +1,13 @@
 # Turnstile
 
-Turnstile is an admissibility compiler. It takes a proof context Γ and a candidate z, evaluates the gap profile against proof tokens, and emits the strongest permission the evidence supports. It enforces conservation, idempotence, provenance, scope, expiry, authority, and runtime non-upgrade.
+[![CI](https://github.com/adisriram/turnstile/actions/workflows/ci.yml/badge.svg)](https://github.com/adisriram/turnstile/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/turnstile-core)](https://crates.io/crates/turnstile-core)
+[![PyPI](https://img.shields.io/pypi/v/turnstile)](https://pypi.org/project/turnstile/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
+Turnstile is an **admissibility compiler** for approximate consequential systems. Given a proof context Γ — a set of gap records, profiles, proof tokens, and authority constraints — it produces the strongest permission `p` the evidence supports and a binding expiry `ε`. The answer is a judgment in a typed form that the Rust borrow checker prevents from being read after it expires.
+
+This library is for teams building systems where autonomous or consequential actions should be gated on structured evidence: calibration certificates, negative-control results, role assertions, scope restrictions. Turnstile handles the algebra; your domain supplies the certifiers.
 
 **Judgment form:** `Γ ⊢ z : p until ε`
 
@@ -65,6 +72,7 @@ let ctx = ProofContext {
         expires_at: None,
         issuer: "domain-certifier".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     }],
     expiry: Expiry::never(),
     authority_ceiling: Permission::AAA,
@@ -165,6 +173,59 @@ cargo test -p turnstile-tests
 
 ---
 
+## Implementing a Certifier
+
+The `Certifier` trait is the primary extension point. A certifier is the domain component that issues and validates proof tokens. Turnstile calls `validate()` at compile time; your domain layer calls `issue()`.
+
+```rust
+use turnstile_core::certifier::{Certifier, Evidence, IssueError, ValidationResult};
+use turnstile_core::context::ProofContext;
+use turnstile_core::token::{compute_provenance_hash, ProofToken, TokenStatus};
+use chrono::Utc;
+
+struct CalibrationCertifier;
+
+impl Certifier for CalibrationCertifier {
+    fn name(&self) -> &str { "calibration" }
+
+    fn issue(&self, evidence: Evidence) -> Result<ProofToken, IssueError> {
+        // Inspect evidence.payload, run domain checks, then emit a token.
+        let ctx_tuple = serde_json::from_value::<(String,String,String,String)>(
+            evidence.payload.clone()
+        ).map_err(|e| IssueError::Internal(e.to_string()))?;
+
+        Ok(ProofToken {
+            token_id: uuid::Uuid::new_v4().to_string(),
+            token_type: "CALIBRATION_CERT".into(),
+            schema_version: "0.1".into(),
+            status: TokenStatus::Valid,
+            closes_gaps: vec!["calibration-gap".into()],
+            bounds_gaps: vec![],
+            provenance_hash: compute_provenance_hash(
+                &ctx_tuple.0, &ctx_tuple.1, &ctx_tuple.2, &ctx_tuple.3,
+            ),
+            issued_at: Utc::now(),
+            expires_at: None,
+            issuer: "calibration-certifier".into(),
+            details: evidence.payload,
+            is_negative_control: false,
+        })
+    }
+
+    fn validate(&self, token: &ProofToken, _ctx: &ProofContext) -> ValidationResult {
+        if token.token_type == "CALIBRATION_CERT" {
+            ValidationResult::ok()
+        } else {
+            ValidationResult::fail("wrong token type")
+        }
+    }
+}
+```
+
+Turnstile's compiler does not call certifiers directly — it only inspects token provenance hashes and gap membership. Certifiers are called by your domain layer before tokens are placed in a `ProofContext`.
+
+---
+
 ## Building
 
 ### Rust
@@ -173,8 +234,9 @@ cargo test -p turnstile-tests
 # Build everything.
 cargo build
 
-# Run all tests (unit + property).
+# Run all tests (unit + structural + property).
 cargo test
+cargo test -p turnstile-tests
 
 # Run benchmarks.
 cargo bench -p turnstile-core
@@ -210,17 +272,19 @@ turnstile-core/          Pure Rust library (no PyO3 dependency)
   expiry.rs              Expiry, RuntimeContext, LiveJudgment<'ctx>
   error.rs               TurnstileError hierarchy
   registry.rs            Append-only schema registry
-  audit.rs               AuditTrail, Derivation
-  certifier.rs           Certifier trait
+  audit.rs               AuditEntry, Derivation, AuditStore trait
+  certifier.rs           Certifier trait (main extension point)
 
 turnstile-py/            PyO3 bindings (thin wrapper over turnstile-core)
   src/lib.rs             #[pymodule] + all #[pyclass] wrappers
 
-turnstile-tests/         Property-based tests (proptest)
-  proptest_composition   Non-promotion under composition
-  proptest_provenance    Provenance hash enforcement
-  proptest_expiry        Expiry fires at boundary
-  proptest_monotonicity  Adding closed token never lowers permission
+turnstile-tests/         Structural and property-based tests
+  ec003*/                EC-003 theorem suite (composition algebra,
+                         provenance, expiry, token status, OOC variants, …)
+  ec004_*/               EC-004 profile well-formedness
+  ec005_*/               EC-005 domain admission
+  proptest_*/            Property-based tests for the 4 structural guarantees
+  step11_assembler       Assembler integration tests
 ```
 
 ---

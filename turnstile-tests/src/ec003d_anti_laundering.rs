@@ -27,23 +27,6 @@ fn arb_id() -> impl Strategy<Value = String> {
     "[a-z]{4,8}"
 }
 
-fn arb_permission() -> impl Strategy<Value = Permission> {
-    prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
-    ]
-}
-
 fn ctx_with_token(
     claim_id: &str,
     candidate_id: &str,
@@ -80,6 +63,7 @@ fn ctx_with_token(
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -91,12 +75,15 @@ fn ctx_with_token(
 
 #[test]
 fn wrong_candidate_token_rejected() {
-    let correct_hash = compute_provenance_hash("claim", "z-correct", "ctx", "use");
     let wrong_hash = compute_provenance_hash("claim", "z-WRONG", "ctx", "use");
 
     let ctx = ctx_with_token("claim", "z-correct", "ctx", "use", &wrong_hash);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "wrong provenance token must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "wrong provenance token must not close gap"
+    );
 }
 
 #[test]
@@ -140,7 +127,11 @@ fn token_for_z1_does_not_license_z2() {
     // Present the z1 token against a z2 context
     let ctx = ctx_with_token("claim", "z-2", "ctx", "use", &hash_z1);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "token for z-1 must not license z-2");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "token for z-1 must not license z-2"
+    );
 }
 
 // ── T1: Invalid token status never promotes ───────────────────────────────────
@@ -177,13 +168,18 @@ fn invalid_token_does_not_close_gap() {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "invalid token must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "invalid token must not close gap"
+    );
 }
 
 #[test]
@@ -218,18 +214,23 @@ fn revoked_token_does_not_close_gap() {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "revoked token must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "revoked token must not close gap"
+    );
 }
 
 // ── T16: Heterogeneous anti-laundering — stale never upgrades, group-fold OK ──
 
-fn dia_ctx_with_fp(fp_issued: &str, fp_fingerprint: &str) -> ProofContext {
+fn dia_ctx_with_fp(fp_fingerprint: &str) -> ProofContext {
     let gap_id = "g1";
     let hash = compute_provenance_hash("claim-h", "z-h", "ctx-h", "use-h");
     ProofContext {
@@ -260,6 +261,7 @@ fn dia_ctx_with_fp(fp_issued: &str, fp_fingerprint: &str) -> ProofContext {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -269,20 +271,23 @@ fn dia_ctx_with_fp(fp_issued: &str, fp_fingerprint: &str) -> ProofContext {
 
 #[test]
 fn stale_context_fingerprint_downgrades_via_live_judgment() {
-    use turnstile_core::expiry::RuntimeContext;
-    let ctx = dia_ctx_with_fp("fp-old", "fp-old");
+    let ctx = dia_ctx_with_fp("fp-old");
     let judgment = compile(ctx).unwrap();
     // Live context has a different fingerprint
     let rt = turnstile_core::expiry::RuntimeContext::new(Utc::now(), "fp-new");
     let live = turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::EXP, "stale fp should downgrade to EXP");
+    assert_eq!(
+        live.permission(),
+        Permission::EXP,
+        "stale fp should downgrade to EXP"
+    );
 }
 
 #[test]
 fn two_contexts_order_independent_same_fp() {
-    let ctx1 = dia_ctx_with_fp("fp-live", "fp-live");
+    let ctx1 = dia_ctx_with_fp("fp-live");
     let ctx2 = {
-        let mut c = dia_ctx_with_fp("fp-live", "fp-live");
+        let mut c = dia_ctx_with_fp("fp-live");
         c.authority_ceiling = Permission::DIA;
         c
     };
@@ -295,12 +300,12 @@ fn two_contexts_order_independent_same_fp() {
 #[test]
 fn adding_stale_context_cannot_upgrade() {
     // fresh context compiles to DIA
-    let fresh = dia_ctx_with_fp("fp-live", "fp-live");
+    let fresh = dia_ctx_with_fp("fp-live");
     let p_fresh = compile(fresh.clone()).unwrap().permission;
 
     // add a stale context via composition
     let stale = {
-        let mut c = dia_ctx_with_fp("fp-old", "fp-old");
+        let mut c = dia_ctx_with_fp("fp-old");
         c.authority_ceiling = Permission::AAA;
         c
     };
@@ -308,7 +313,10 @@ fn adding_stale_context_cannot_upgrade() {
     // After composition the ceiling is still the meet
     if let Ok(composed) = compose(fresh, stale) {
         let p_composed = compile(composed).unwrap().permission;
-        assert!(p_composed <= p_fresh, "adding stale context must not upgrade permission");
+        assert!(
+            p_composed <= p_fresh,
+            "adding stale context must not upgrade permission"
+        );
     }
 }
 
@@ -372,6 +380,7 @@ proptest! {
                 expires_at: None,
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
+            is_negative_control: false,
             }],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,

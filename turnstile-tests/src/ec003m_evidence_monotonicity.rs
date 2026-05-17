@@ -32,9 +32,17 @@ fn base_ctx_with_gaps(gap_ids: &[&str], closed: &[bool]) -> ProofContext {
         allowed_use: allowed_use.into(),
         disallowed_uses: vec![],
         scope: Scope::default(),
-        gaps: gap_ids.iter().zip(closed.iter()).map(|(&id, &cl)| {
-            if cl { GapRecord::closed(id, "t") } else { GapRecord::open(id, "t") }
-        }).collect(),
+        gaps: gap_ids
+            .iter()
+            .zip(closed.iter())
+            .map(|(&id, &cl)| {
+                if cl {
+                    GapRecord::closed(id, "t")
+                } else {
+                    GapRecord::open(id, "t")
+                }
+            })
+            .collect(),
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
@@ -45,7 +53,10 @@ fn base_ctx_with_gaps(gap_ids: &[&str], closed: &[bool]) -> ProofContext {
 
 fn make_closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: format!("tok-{gap_id}"),
@@ -59,6 +70,7 @@ fn make_closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     }
 }
 
@@ -83,7 +95,10 @@ fn adding_closed_token_raises_permission_from_ooc() {
     ctx.tokens.push(tok);
 
     let p_after = compile(ctx).unwrap().permission;
-    assert!(p_after >= p_before, "adding evidence lowered permission: {p_before} → {p_after}");
+    assert!(
+        p_after >= p_before,
+        "adding evidence lowered permission: {p_before} → {p_after}"
+    );
     assert_eq!(p_after, Permission::DIA);
 }
 
@@ -96,15 +111,22 @@ fn adding_second_token_enables_higher_profile() {
         Profile {
             permission: Permission::REV,
             required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+                GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g2".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
             ],
         },
         Profile {
             permission: Permission::DIA,
-            required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-            ],
+            required_gaps: vec![GapRequirement {
+                gap_id: "g1".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            }],
         },
     ];
 
@@ -145,7 +167,10 @@ fn adding_disallowed_use_lowers_permission() {
     // Add a blocker
     ctx.disallowed_uses = vec!["write".into()];
     let p_blocked = compile(ctx).unwrap().permission;
-    assert!(p_blocked <= p_clean, "adding blocker must not raise permission");
+    assert!(
+        p_blocked <= p_clean,
+        "adding blocker must not raise permission"
+    );
     assert_eq!(p_blocked, Permission::ROL);
 }
 
@@ -184,17 +209,23 @@ fn closing_gaps_incrementally_never_lowers() {
     ctx.profiles = vec![
         Profile {
             permission: Permission::REV,
-            required_gaps: gap_ids.iter().map(|id| GapRequirement {
-                gap_id: id.to_string(),
-                minimum_status: RequiredStatus::ClosedRequired,
-            }).collect(),
+            required_gaps: gap_ids
+                .iter()
+                .map(|id| GapRequirement {
+                    gap_id: id.to_string(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                })
+                .collect(),
         },
         Profile {
             permission: Permission::DIA,
-            required_gaps: gap_ids[..2].iter().map(|id| GapRequirement {
-                gap_id: id.to_string(),
-                minimum_status: RequiredStatus::ClosedRequired,
-            }).collect(),
+            required_gaps: gap_ids[..2]
+                .iter()
+                .map(|id| GapRequirement {
+                    gap_id: id.to_string(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                })
+                .collect(),
         },
         Profile {
             permission: Permission::ROL,
@@ -280,6 +311,7 @@ proptest! {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         };
 
         let enhanced = ProofContext {
@@ -318,6 +350,7 @@ proptest! {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         };
 
         let clean_ctx = ProofContext {

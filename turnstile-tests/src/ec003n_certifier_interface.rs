@@ -32,7 +32,9 @@ struct CalibrationCertifier {
 
 impl CalibrationCertifier {
     fn for_gap(gap_id: impl Into<String>) -> Self {
-        Self { gap_id: gap_id.into() }
+        Self {
+            gap_id: gap_id.into(),
+        }
     }
 }
 
@@ -57,7 +59,9 @@ impl Certifier for CalibrationCertifier {
             .ok_or_else(|| IssueError::InsufficientEvidence("missing allowed_use".into()))?;
 
         if claim_id.is_empty() {
-            return Err(IssueError::InsufficientEvidence("claim_id must not be empty".into()));
+            return Err(IssueError::InsufficientEvidence(
+                "claim_id must not be empty".into(),
+            ));
         }
 
         let hash = compute_provenance_hash(claim_id, candidate_id, context_id, allowed_use);
@@ -74,6 +78,7 @@ impl Certifier for CalibrationCertifier {
             expires_at: None,
             issuer: "calibration-certifier".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         })
     }
 
@@ -94,7 +99,12 @@ impl Certifier for CalibrationCertifier {
     }
 }
 
-fn make_evidence(claim_id: &str, candidate_id: &str, context_id: &str, allowed_use: &str) -> Evidence {
+fn make_evidence(
+    claim_id: &str,
+    candidate_id: &str,
+    context_id: &str,
+    allowed_use: &str,
+) -> Evidence {
     Evidence {
         payload: json!({
             "claim_id": claim_id,
@@ -242,7 +252,11 @@ fn certifier_issued_token_accepted_by_compiler() {
     };
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "certifier-issued token must compile to DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "certifier-issued token must compile to DIA"
+    );
 }
 
 // ── End-to-end: token issued for z1 rejected for z2 ──────────────────────────
@@ -252,7 +266,9 @@ fn token_for_z1_not_accepted_for_z2_end_to_end() {
     let gap_id = "g1";
     let certifier = CalibrationCertifier::for_gap(gap_id);
 
-    let token_for_z1 = certifier.issue(make_evidence("claim", "z-1", "ctx", "use")).unwrap();
+    let token_for_z1 = certifier
+        .issue(make_evidence("claim", "z-1", "ctx", "use"))
+        .unwrap();
 
     let ctx_z2 = ProofContext {
         claim_id: "claim".into(),
@@ -277,7 +293,11 @@ fn token_for_z1_not_accepted_for_z2_end_to_end() {
     };
 
     let j = compile(ctx_z2).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "z1 token must not license z2");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "z1 token must not license z2"
+    );
 }
 
 // ── ValidationResult API ──────────────────────────────────────────────────────

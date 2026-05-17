@@ -24,19 +24,31 @@ pub struct Bound {
 
 impl Bound {
     pub fn numeric(value: f64) -> Self {
-        Self { kind: BoundKind::Numeric(value), units: None }
+        Self {
+            kind: BoundKind::Numeric(value),
+            units: None,
+        }
     }
 
     pub fn numeric_with_units(value: f64, units: impl Into<String>) -> Self {
-        Self { kind: BoundKind::Numeric(value), units: Some(units.into()) }
+        Self {
+            kind: BoundKind::Numeric(value),
+            units: Some(units.into()),
+        }
     }
 
     pub fn set_valued(values: Vec<String>) -> Self {
-        Self { kind: BoundKind::SetValued(values), units: None }
+        Self {
+            kind: BoundKind::SetValued(values),
+            units: None,
+        }
     }
 
     pub fn infinity() -> Self {
-        Self { kind: BoundKind::Infinity, units: None }
+        Self {
+            kind: BoundKind::Infinity,
+            units: None,
+        }
     }
 }
 
@@ -64,7 +76,11 @@ impl GapStatus {
 
     /// Returns the minimum status (worst-case when composing).
     pub fn min_status(self, other: Self) -> Self {
-        if self.rank() <= other.rank() { self } else { other }
+        if self.rank() <= other.rank() {
+            self
+        } else {
+            other
+        }
     }
 }
 
@@ -88,11 +104,7 @@ impl GapRecord {
         }
     }
 
-    pub fn bounded(
-        gap_id: impl Into<String>,
-        gap_type: impl Into<String>,
-        bound: Bound,
-    ) -> Self {
+    pub fn bounded(gap_id: impl Into<String>, gap_type: impl Into<String>, bound: Bound) -> Self {
         Self {
             gap_id: gap_id.into(),
             gap_type: gap_type.into(),
@@ -176,7 +188,9 @@ mod tests {
             GapStatus::Open.rank()
         );
         assert_eq!(
-            GapStatus::Closed.min_status(GapStatus::Bounded(Bound::numeric(1.0))).rank(),
+            GapStatus::Closed
+                .min_status(GapStatus::Bounded(Bound::numeric(1.0)))
+                .rank(),
             GapStatus::Bounded(Bound::numeric(1.0)).rank()
         );
     }

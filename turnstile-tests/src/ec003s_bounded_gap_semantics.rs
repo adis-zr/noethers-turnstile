@@ -47,7 +47,10 @@ fn base_ctx() -> ProofContext {
 
 fn closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: format!("tok-close-{gap_id}"),
@@ -67,7 +70,10 @@ fn closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
 
 fn bounding_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: format!("tok-bound-{gap_id}"),
@@ -122,7 +128,11 @@ fn bounded_required_profile_fails_with_no_token() {
     }];
     // No token.
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "no token → BoundedRequired not met");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "no token → BoundedRequired not met"
+    );
 }
 
 // ── ClosedRequired profile with only a bounding token ─────────────────────────
@@ -166,7 +176,11 @@ fn closing_token_satisfies_bounded_required() {
     ctx.tokens = vec![tok];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "closing token must satisfy BoundedRequired");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "closing token must satisfy BoundedRequired"
+    );
 }
 
 #[test]
@@ -184,7 +198,11 @@ fn closing_token_satisfies_closed_required() {
     ctx.tokens = vec![tok];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "closing token must satisfy ClosedRequired");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "closing token must satisfy ClosedRequired"
+    );
 }
 
 // ── GapRecord already bounded: no token needed for BoundedRequired ────────────
@@ -248,7 +266,11 @@ fn closing_wins_over_bounding_for_same_gap() {
     ctx.tokens = vec![bt, ct];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "closing token wins over bounding token");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "closing token wins over bounding token"
+    );
 }
 
 // ── Expired bounding token provides no support ────────────────────────────────
@@ -269,7 +291,10 @@ fn expired_bounding_token_provides_no_support() {
         }],
     }];
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     let expired_tok = ProofToken {
         token_id: "tok-expired-bound".into(),
@@ -292,7 +317,8 @@ fn expired_bounding_token_provides_no_support() {
     // OOC < EXP, so expiry blocker does not lower further. Result is OOC.
     assert!(
         j.permission <= Permission::EXP,
-        "expired bounding token must result in OOC or EXP, got {}", j.permission
+        "expired bounding token must result in OOC or EXP, got {}",
+        j.permission
     );
 }
 
@@ -313,7 +339,10 @@ fn expired_closing_token_floors_to_exp_when_profile_would_otherwise_pass() {
         }],
     }];
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     // Add an expired token (even though it's not needed for the gap since the
     // gap record is already closed). Its expiry still triggers the expiry blocker.
@@ -357,9 +386,16 @@ fn invalid_bounding_token_provides_no_support() {
             minimum_status: RequiredStatus::BoundedRequired,
         }],
     }];
-    for bad_status in [TokenStatus::Invalid, TokenStatus::Revoked, TokenStatus::Malformed] {
+    for bad_status in [
+        TokenStatus::Invalid,
+        TokenStatus::Revoked,
+        TokenStatus::Malformed,
+    ] {
         let hash = compute_provenance_hash(
-            &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+            &ctx.claim_id,
+            &ctx.candidate_id,
+            &ctx.context_id,
+            &ctx.allowed_use,
         );
         let tok = ProofToken {
             token_id: format!("tok-{bad_status:?}"),
@@ -391,19 +427,22 @@ fn invalid_bounding_token_provides_no_support() {
 #[test]
 fn numeric_bound_satisfies_bounded_required() {
     let bound = Bound::numeric(0.05);
-    assert!(RequiredStatus::BoundedRequired.satisfied_by(&turnstile_core::gap::GapStatus::Bounded(bound)));
+    assert!(RequiredStatus::BoundedRequired
+        .satisfied_by(&turnstile_core::gap::GapStatus::Bounded(bound)));
 }
 
 #[test]
 fn infinity_bound_satisfies_bounded_required() {
     let bound = Bound::infinity();
-    assert!(RequiredStatus::BoundedRequired.satisfied_by(&turnstile_core::gap::GapStatus::Bounded(bound)));
+    assert!(RequiredStatus::BoundedRequired
+        .satisfied_by(&turnstile_core::gap::GapStatus::Bounded(bound)));
 }
 
 #[test]
 fn set_valued_bound_satisfies_bounded_required() {
     let bound = Bound::set_valued(vec!["read".into(), "list".into()]);
-    assert!(RequiredStatus::BoundedRequired.satisfied_by(&turnstile_core::gap::GapStatus::Bounded(bound)));
+    assert!(RequiredStatus::BoundedRequired
+        .satisfied_by(&turnstile_core::gap::GapStatus::Bounded(bound)));
 }
 
 // ── Two-profile hierarchy: bounded admits DIA, closed admits REV ──────────────
@@ -434,7 +473,11 @@ fn two_profile_hierarchy_bounding_token_reaches_lower_permission_only() {
 
     let j = compile(ctx).unwrap();
     // Bounding satisfies DIA but not REV.
-    assert_eq!(j.permission, Permission::DIA, "bounding token reaches DIA but not REV");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "bounding token reaches DIA but not REV"
+    );
 }
 
 #[test]

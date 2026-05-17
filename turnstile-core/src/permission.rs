@@ -6,9 +6,7 @@
 /// Meet = min.  Composition is non-promoting (meet of components).
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Permission {
     /// Out-of-class — bottom of the lattice.
@@ -52,10 +50,14 @@ impl Permission {
     /// Iterator over all permission values from AAA down to OOC (descending order).
     pub fn descending() -> impl Iterator<Item = Self> {
         use Permission::*;
-        [AAA, ALR, AEX, REV, DIA, ROL, ESC, ETA, UNS, REF, EXP, OOC].iter().copied()
+        [AAA, ALR, AEX, REV, DIA, ROL, ESC, ETA, UNS, REF, EXP, OOC]
+            .iter()
+            .copied()
     }
 
-    /// Parse from a string (case-insensitive for the 3-letter codes).
+    /// Parse from a string (case-insensitive for the 3-letter codes).  Returns
+    /// `None` for unknown strings.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         match s.to_uppercase().as_str() {
             "OOC" => Some(Permission::OOC),

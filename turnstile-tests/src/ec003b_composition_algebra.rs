@@ -19,7 +19,7 @@ use turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,
-    gap::{Bound, GapRecord, GapRequirement, Profile, RequiredStatus},
+    gap::{Bound, GapRecord},
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
@@ -64,9 +64,18 @@ pub fn minimal_ctx(ceiling: Permission, suffix: &str) -> ProofContext {
 #[test]
 fn compose_authority_ceiling_is_meet_all_pairs() {
     const ALL: [Permission; 12] = [
-        Permission::OOC, Permission::EXP, Permission::REF, Permission::UNS,
-        Permission::ETA, Permission::ESC, Permission::ROL, Permission::DIA,
-        Permission::REV, Permission::AEX, Permission::ALR, Permission::AAA,
+        Permission::OOC,
+        Permission::EXP,
+        Permission::REF,
+        Permission::UNS,
+        Permission::ETA,
+        Permission::ESC,
+        Permission::ROL,
+        Permission::DIA,
+        Permission::REV,
+        Permission::AEX,
+        Permission::ALR,
+        Permission::AAA,
     ];
     for p1 in ALL {
         for p2 in ALL {
@@ -76,7 +85,8 @@ fn compose_authority_ceiling_is_meet_all_pairs() {
             assert_eq!(
                 composed.authority_ceiling,
                 p1.meet(p2),
-                "authority ceiling: compose({p1},{p2}) should be {}", p1.meet(p2)
+                "authority ceiling: compose({p1},{p2}) should be {}",
+                p1.meet(p2)
             );
         }
     }
@@ -87,9 +97,18 @@ fn compose_authority_ceiling_is_meet_all_pairs() {
 #[test]
 fn compose_authority_commutative_all_pairs() {
     const ALL: [Permission; 12] = [
-        Permission::OOC, Permission::EXP, Permission::REF, Permission::UNS,
-        Permission::ETA, Permission::ESC, Permission::ROL, Permission::DIA,
-        Permission::REV, Permission::AEX, Permission::ALR, Permission::AAA,
+        Permission::OOC,
+        Permission::EXP,
+        Permission::REF,
+        Permission::UNS,
+        Permission::ETA,
+        Permission::ESC,
+        Permission::ROL,
+        Permission::DIA,
+        Permission::REV,
+        Permission::AEX,
+        Permission::ALR,
+        Permission::AAA,
     ];
     for p1 in ALL {
         for p2 in ALL {
@@ -156,7 +175,14 @@ fn compose_disallowed_uses_dedup() {
     g1.disallowed_uses = vec!["x".into()];
     g2.disallowed_uses = vec!["x".into()];
     let composed = compose(g1, g2).unwrap();
-    assert_eq!(composed.disallowed_uses.iter().filter(|u| *u == "x").count(), 1);
+    assert_eq!(
+        composed
+            .disallowed_uses
+            .iter()
+            .filter(|u| *u == "x")
+            .count(),
+        1
+    );
 }
 
 // ── Allowed-use conflict fails closed (T12) ───────────────────────────────────
@@ -167,7 +193,10 @@ fn compose_use_conflict_fails_closed() {
     let mut g2 = minimal_ctx(Permission::AAA, "2");
     g2.allowed_use = "different-use".into();
     let result = compose(g1, g2);
-    assert!(result.is_err(), "conflicting allowed_use should fail closed");
+    assert!(
+        result.is_err(),
+        "conflicting allowed_use should fail closed"
+    );
 }
 
 // ── Scope intersection (T14) ─────────────────────────────────────────────────
@@ -220,10 +249,14 @@ fn compose_gap_bounded_vs_closed_gives_bounded() {
     let mut g1 = minimal_ctx(Permission::AAA, "1");
     let mut g2 = minimal_ctx(Permission::AAA, "2");
     g1.gaps.push(GapRecord::closed("g1", "t"));
-    g2.gaps.push(GapRecord::bounded("g1", "t", Bound::numeric(0.05)));
+    g2.gaps
+        .push(GapRecord::bounded("g1", "t", Bound::numeric(0.05)));
     let composed = compose(g1, g2).unwrap();
     let gap = composed.find_gap("g1").unwrap();
-    assert!(matches!(gap.status, turnstile_core::gap::GapStatus::Bounded(_)));
+    assert!(matches!(
+        gap.status,
+        turnstile_core::gap::GapStatus::Bounded(_)
+    ));
 }
 
 // ── Expiry composition: minimum (EC-003 §23) ─────────────────────────────────
@@ -303,6 +336,7 @@ fn compose_token_conflict_fails_closed() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     };
     let t2 = ProofToken {
         token_id: "tok-1".into(), // same id, different content
@@ -316,10 +350,14 @@ fn compose_token_conflict_fails_closed() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     };
     g1.tokens.push(t1);
     g2.tokens.push(t2);
-    assert!(compose(g1, g2).is_err(), "token conflict should fail closed");
+    assert!(
+        compose(g1, g2).is_err(),
+        "token conflict should fail closed"
+    );
 }
 
 // ── Membership is conservative ────────────────────────────────────────────────

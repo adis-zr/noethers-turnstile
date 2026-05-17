@@ -195,7 +195,6 @@ fn fingerprint_mismatch_with_future_expiry_still_returns_exp() {
 #[test]
 fn composed_context_fingerprint_must_match_combined() {
     use turnstile_core::compose;
-    use turnstile_core::context::ProofContext;
 
     let fp1 = "fp-A";
     let fp2 = "fp-B";

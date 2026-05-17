@@ -6,7 +6,7 @@
 ///   3. Six-gap context, all closed, highest profile wins
 ///   4. Adversarial: token with wrong provenance (gap stays open)
 use chrono::Utc;
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -35,6 +35,7 @@ fn make_token(closes: Vec<String>, ctx: &ProofContext) -> ProofToken {
         expires_at: None,
         issuer: "bench".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     }
 }
 
@@ -94,7 +95,10 @@ fn base_ctx(n_gaps: usize, closed: bool, bad_provenance: bool) -> ProofContext {
         tok.provenance_hash = "00".repeat(32); // wrong
     }
 
-    ProofContext { tokens: vec![tok], ..ctx }
+    ProofContext {
+        tokens: vec![tok],
+        ..ctx
+    }
 }
 
 fn bench_compile(c: &mut Criterion) {

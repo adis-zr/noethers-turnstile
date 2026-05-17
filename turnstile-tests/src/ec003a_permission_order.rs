@@ -66,7 +66,11 @@ fn aaa_is_maximum() {
 #[test]
 fn total_order_correct() {
     // OOC < EXP < REF < UNS < ETA < ESC < ROL < DIA < REV < AEX < ALR < AAA
-    let chain: Vec<Permission> = Permission::descending().collect::<Vec<_>>().into_iter().rev().collect();
+    let chain: Vec<Permission> = Permission::descending()
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
     for i in 0..chain.len() {
         for j in 0..chain.len() {
             if i < j {
@@ -101,7 +105,10 @@ fn antisymmetry_exhaustive() {
     for a in ALL {
         for b in ALL {
             if a <= b && b <= a {
-                assert_eq!(a, b, "antisymmetry failed: {a} ≤ {b} and {b} ≤ {a} but {a} ≠ {b}");
+                assert_eq!(
+                    a, b,
+                    "antisymmetry failed: {a} ≤ {b} and {b} ≤ {a} but {a} ≠ {b}"
+                );
             }
         }
     }
@@ -156,7 +163,10 @@ fn meet_all_144_pairs() {
             // Greatest lower bound
             for x in ALL {
                 if x <= a && x <= b {
-                    assert!(x <= m, "{x} is a lower bound of ({a},{b}) but {x} ≰ meet={m}");
+                    assert!(
+                        x <= m,
+                        "{x} is a lower bound of ({a},{b}) but {x} ≰ meet={m}"
+                    );
                 }
             }
         }
@@ -241,19 +251,22 @@ fn meet_n_empty_is_none() {
 
 #[test]
 fn meet_n_all_ooc_gives_ooc() {
-    let result = Permission::meet_n(std::iter::repeat(Permission::OOC).take(10));
+    let result = Permission::meet_n(std::iter::repeat_n(Permission::OOC, 10));
     assert_eq!(result, Some(Permission::OOC));
 }
 
 #[test]
 fn meet_n_all_aaa_gives_aaa() {
-    let result = Permission::meet_n(std::iter::repeat(Permission::AAA).take(10));
+    let result = Permission::meet_n(std::iter::repeat_n(Permission::AAA, 10));
     assert_eq!(result, Some(Permission::AAA));
 }
 
 #[test]
 fn meet_n_single_ooc_dominates() {
-    let xs: Vec<Permission> = (0..9).map(|_| Permission::AAA).chain(std::iter::once(Permission::OOC)).collect();
+    let xs: Vec<Permission> = (0..9)
+        .map(|_| Permission::AAA)
+        .chain(std::iter::once(Permission::OOC))
+        .collect();
     assert_eq!(Permission::meet_n(xs.into_iter()), Some(Permission::OOC));
 }
 

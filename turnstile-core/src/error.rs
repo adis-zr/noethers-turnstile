@@ -23,9 +23,7 @@ pub enum TurnstileError {
     #[error("composition failed: {0}")]
     Composition(#[from] CompositionError),
 
-    #[error(
-        "provenance mismatch: token '{token_id}' expected '{expected}' got '{actual}'"
-    )]
+    #[error("provenance mismatch: token '{token_id}' expected '{expected}' got '{actual}'")]
     ProvenanceMismatch {
         token_id: String,
         expected: String,

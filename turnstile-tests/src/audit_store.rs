@@ -58,7 +58,11 @@ fn recording_aaa_in_audit_does_not_grant_aaa() {
     };
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "audit record must not grant permission");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "audit record must not grant permission"
+    );
 }
 
 #[test]
@@ -124,8 +128,6 @@ fn audit_multiple_candidates_independent() {
 
 #[test]
 fn derivation_records_steps_in_order() {
-    use turnstile_core::audit::DerivationStep;
-
     let ctx = ProofContext {
         claim_id: "c".into(),
         candidate_id: "z".into(),
@@ -193,6 +195,7 @@ fn derivation_permission_after_is_non_increasing() {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -206,7 +209,8 @@ fn derivation_permission_after_is_non_increasing() {
         assert!(
             step.permission_after <= prev,
             "derivation step raised permission: {} → {}",
-            prev, step.permission_after
+            prev,
+            step.permission_after
         );
         prev = step.permission_after;
     }

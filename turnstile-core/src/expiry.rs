@@ -1,10 +1,13 @@
 /// Expiry types and the LiveJudgment wrapper.
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::Judgment;
 use crate::context::ProofContext;
 use crate::permission::Permission;
+use crate::token::NegativeControlStatus;
 
 /// The expiry constraint on a judgment (`ε` in `Γ ⊢ z : p until ε`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,17 +21,26 @@ pub struct Expiry {
 impl Expiry {
     /// An expiry that never fires.
     pub fn never() -> Self {
-        Self { deadline: None, reason: None }
+        Self {
+            deadline: None,
+            reason: None,
+        }
     }
 
     /// An expiry that fires at `deadline`.
     pub fn at(deadline: DateTime<Utc>) -> Self {
-        Self { deadline: Some(deadline), reason: None }
+        Self {
+            deadline: Some(deadline),
+            reason: None,
+        }
     }
 
     /// An expiry that fires at `deadline` with an audit reason.
     pub fn at_with_reason(deadline: DateTime<Utc>, reason: impl Into<String>) -> Self {
-        Self { deadline: Some(deadline), reason: Some(reason.into()) }
+        Self {
+            deadline: Some(deadline),
+            reason: Some(reason.into()),
+        }
     }
 
     /// Returns `true` iff the expiry deadline has been reached or passed at `now`.
@@ -44,13 +56,25 @@ impl Expiry {
         match (self.deadline, other.deadline) {
             (Some(a), Some(b)) => {
                 if a <= b {
-                    Self { deadline: Some(a), reason: self.reason }
+                    Self {
+                        deadline: Some(a),
+                        reason: self.reason,
+                    }
                 } else {
-                    Self { deadline: Some(b), reason: other.reason }
+                    Self {
+                        deadline: Some(b),
+                        reason: other.reason,
+                    }
                 }
             }
-            (Some(a), None) => Self { deadline: Some(a), reason: self.reason },
-            (None, Some(b)) => Self { deadline: Some(b), reason: other.reason },
+            (Some(a), None) => Self {
+                deadline: Some(a),
+                reason: self.reason,
+            },
+            (None, Some(b)) => Self {
+                deadline: Some(b),
+                reason: other.reason,
+            },
             (None, None) => Self::never(),
         }
     }
@@ -64,17 +88,80 @@ pub struct RuntimeContext {
     /// Runtime fingerprint for revalidation (must match the context fingerprint
     /// the judgment was compiled against).
     pub context_fingerprint: String,
+    /// Live negative-control state map, keyed by token_id (T17).
+    ///
+    /// Only consulted when `strict_mode` is `true`.  Tokens absent from this
+    /// map are treated as `Missing` in strict mode.
+    #[serde(default)]
+    pub negative_control_states: HashMap<String, NegativeControlStatus>,
+    /// When `true`, every negative-control token in the compiled judgment must
+    /// appear as `Live` in `negative_control_states`.  Any other state (or
+    /// absence) floors the live permission to `REF` (T17).
+    ///
+    /// Defaults to `true`: strict mode is the safe default.
+    #[serde(default = "default_strict_mode")]
+    pub strict_mode: bool,
+}
+
+fn default_strict_mode() -> bool {
+    true
 }
 
 impl RuntimeContext {
+    /// Construct a runtime context with strict mode enabled and no NC state.
     pub fn new(now: DateTime<Utc>, context_fingerprint: impl Into<String>) -> Self {
-        Self { now, context_fingerprint: context_fingerprint.into() }
+        Self {
+            now,
+            context_fingerprint: context_fingerprint.into(),
+            negative_control_states: HashMap::new(),
+            strict_mode: true,
+        }
+    }
+
+    /// Construct a runtime context with an explicit strict-mode flag and NC state map.
+    pub fn with_nc_states(
+        now: DateTime<Utc>,
+        context_fingerprint: impl Into<String>,
+        negative_control_states: HashMap<String, NegativeControlStatus>,
+        strict_mode: bool,
+    ) -> Self {
+        Self {
+            now,
+            context_fingerprint: context_fingerprint.into(),
+            negative_control_states,
+            strict_mode,
+        }
     }
 
     /// Check that this runtime context matches the context the judgment was
     /// compiled against (fingerprint equality).
     pub fn satisfies(&self, ctx: &ProofContext) -> bool {
         self.context_fingerprint == ctx.context_fingerprint
+    }
+
+    /// Check negative-control liveness for a set of token IDs (T17).
+    ///
+    /// Returns `Ok(())` if all NC tokens are live, or `Err(token_id)` for the
+    /// first token that fails the liveness check.  In non-strict mode always
+    /// returns `Ok(())`.
+    pub fn check_negative_controls<'a>(
+        &self,
+        nc_token_ids: impl Iterator<Item = &'a str>,
+    ) -> Result<(), String> {
+        if !self.strict_mode {
+            return Ok(());
+        }
+        for token_id in nc_token_ids {
+            let state = self
+                .negative_control_states
+                .get(token_id)
+                .copied()
+                .unwrap_or(NegativeControlStatus::Missing);
+            if state != NegativeControlStatus::Live {
+                return Err(token_id.to_owned());
+            }
+        }
+        Ok(())
     }
 }
 
@@ -99,13 +186,28 @@ impl<'ctx> LiveJudgment<'ctx> {
     /// Read the effective permission at this instant.
     ///
     /// Returns `Permission::EXP` if the judgment has expired or if the runtime
-    /// context does not match the compile-time context.
+    /// context fingerprint does not match the compile-time context.
+    ///
+    /// Returns `Permission::REF` if strict mode is enabled and any
+    /// negative-control token in the judgment is not `Live` in the runtime
+    /// context's NC state map (T17).
     pub fn permission(&self) -> Permission {
         if self.inner.expiry.fired(self.runtime.now) {
             return Permission::EXP;
         }
         if !self.runtime.satisfies(&self.inner.context) {
             return Permission::EXP;
+        }
+        // T17: negative-control liveness check.
+        let nc_ids = self
+            .inner
+            .context
+            .tokens
+            .iter()
+            .filter(|t| t.is_negative_control)
+            .map(|t| t.token_id.as_str());
+        if self.runtime.check_negative_controls(nc_ids).is_err() {
+            return Permission::REF;
         }
         self.inner.permission
     }

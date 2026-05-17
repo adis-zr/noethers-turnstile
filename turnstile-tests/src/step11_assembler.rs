@@ -23,9 +23,18 @@ use turnstile_core::{
 };
 
 const ALL: [Permission; 12] = [
-    Permission::OOC, Permission::EXP, Permission::REF, Permission::UNS,
-    Permission::ETA, Permission::ESC, Permission::ROL, Permission::DIA,
-    Permission::REV, Permission::AEX, Permission::ALR, Permission::AAA,
+    Permission::OOC,
+    Permission::EXP,
+    Permission::REF,
+    Permission::UNS,
+    Permission::ETA,
+    Permission::ESC,
+    Permission::ROL,
+    Permission::DIA,
+    Permission::REV,
+    Permission::AEX,
+    Permission::ALR,
+    Permission::AAA,
 ];
 
 fn ctx_for_permission(target_permission: Permission) -> ProofContext {
@@ -64,6 +73,7 @@ fn ctx_for_permission(target_permission: Permission) -> ProofContext {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -76,7 +86,9 @@ fn ctx_for_permission(target_permission: Permission) -> ProofContext {
 #[test]
 fn final_permission_equals_profile_when_no_blockers() {
     for p in ALL {
-        if p == Permission::OOC { continue; } // OOC = no profile
+        if p == Permission::OOC {
+            continue;
+        } // OOC = no profile
         let ctx = ctx_for_permission(p);
         let j = compile(ctx).unwrap();
         assert_eq!(j.permission, p, "expected {p}, got {}", j.permission);
@@ -87,7 +99,9 @@ fn final_permission_equals_profile_when_no_blockers() {
 fn authority_ceiling_meet_all_pairs() {
     // For each (profile_p, ceiling_p): result = meet(profile_p, ceiling_p)
     for profile_p in ALL {
-        if profile_p == Permission::OOC { continue; }
+        if profile_p == Permission::OOC {
+            continue;
+        }
         for ceiling_p in ALL {
             let mut ctx = ctx_for_permission(profile_p);
             ctx.authority_ceiling = ceiling_p;
@@ -95,7 +109,8 @@ fn authority_ceiling_meet_all_pairs() {
             let expected = profile_p.meet(ceiling_p);
             assert_eq!(
                 j.permission, expected,
-                "profile={profile_p} ceiling={ceiling_p}: expected meet={expected}, got {}", j.permission
+                "profile={profile_p} ceiling={ceiling_p}: expected meet={expected}, got {}",
+                j.permission
             );
         }
     }
@@ -105,7 +120,7 @@ fn authority_ceiling_meet_all_pairs() {
 fn disallowed_uses_ceiling_dangerous_combinations() {
     // From EC-003F: "dangerous combinations" — high evidence + disallowed use
     let dangerous_pairs = [
-        (Permission::AAA, Permission::AAA),   // AAA profile + disallowed → ROL
+        (Permission::AAA, Permission::AAA), // AAA profile + disallowed → ROL
         (Permission::ALR, Permission::AAA),
         (Permission::AEX, Permission::AAA),
         (Permission::REV, Permission::AAA),
@@ -121,7 +136,8 @@ fn disallowed_uses_ceiling_dangerous_combinations() {
         let expected = profile_p.meet(ceiling_p).meet(Permission::ROL);
         assert_eq!(
             j.permission, expected,
-            "dangerous: profile={profile_p} ceiling={ceiling_p}: expected {expected}, got {}", j.permission
+            "dangerous: profile={profile_p} ceiling={ceiling_p}: expected {expected}, got {}",
+            j.permission
         );
     }
 }
@@ -140,13 +156,18 @@ fn safe_combinations_no_disallowed_use_effect() {
     ];
 
     for p in safe_perms {
-        if p == Permission::OOC { continue; }
+        if p == Permission::OOC {
+            continue;
+        }
         let mut ctx = ctx_for_permission(p);
         ctx.disallowed_uses = vec!["something".into()];
 
         let j = compile(ctx).unwrap();
         // p ≤ ROL, so disallowed_uses cap at ROL doesn't lower it further
-        assert_eq!(j.permission, p, "safe permission {p} should not be affected by disallowed_uses");
+        assert_eq!(
+            j.permission, p,
+            "safe permission {p} should not be affected by disallowed_uses"
+        );
     }
 }
 
@@ -156,7 +177,9 @@ fn safe_combinations_no_disallowed_use_effect() {
 fn membership_gate_runs_before_evidence() {
     // Even with a fully satisfied profile, OOC membership → OOC result
     for p in ALL {
-        if p == Permission::OOC { continue; }
+        if p == Permission::OOC {
+            continue;
+        }
         let mut ctx = ctx_for_permission(p);
         ctx.membership = Membership::OutOfClassExact;
 
@@ -174,7 +197,9 @@ fn membership_gate_runs_before_evidence() {
 #[test]
 fn derivation_phases_are_non_increasing_all_permissions() {
     for p in ALL {
-        if p == Permission::OOC { continue; }
+        if p == Permission::OOC {
+            continue;
+        }
         let ctx = ctx_for_permission(p);
         let j = compile(ctx).unwrap();
 
@@ -182,7 +207,9 @@ fn derivation_phases_are_non_increasing_all_permissions() {
         for step in &j.derivation.steps {
             assert!(
                 step.permission_after <= prev,
-                "permission raised in step '{}': {prev} → {}", step.phase, step.permission_after
+                "permission raised in step '{}': {prev} → {}",
+                step.phase,
+                step.permission_after
             );
             prev = step.permission_after;
         }

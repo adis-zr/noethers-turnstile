@@ -19,6 +19,7 @@
 ///   - N=1000 terminates in reasonable time
 ///   - Proptest: N random envelopes monotonicity
 use chrono::Utc;
+use proptest::prelude::*;
 use turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
@@ -27,7 +28,6 @@ use turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
-use proptest::prelude::*;
 
 fn dia_ctx(suffix: &str) -> ProofContext {
     let claim_id = "claim-ln";
@@ -141,7 +141,11 @@ fn adding_ooc_envelope_absorbs_to_ooc() {
 
     let composed = compose(strong, ooc_ctx).unwrap();
     let p_composed = compile(composed).unwrap().permission;
-    assert_eq!(p_composed, Permission::OOC, "OOC membership must absorb to OOC");
+    assert_eq!(
+        p_composed,
+        Permission::OOC,
+        "OOC membership must absorb to OOC"
+    );
 }
 
 // ── N=100 monotonicity ────────────────────────────────────────────────────────
@@ -163,13 +167,12 @@ fn compose_100_same_contexts_is_monotone() {
 #[test]
 fn compose_100_monotone_with_one_weaker() {
     // 99 strong envelopes + 1 weak envelope: result must equal weak.
-    let ceilings: Vec<Permission> = (0..99).map(|_| Permission::DIA).collect();
     let mut base = dia_ctx("mono100-0");
-    base.authority_ceiling = ceilings[0];
+    base.authority_ceiling = Permission::DIA;
 
-    for i in 1..99 {
+    for i in 1..99usize {
         let mut next = dia_ctx(&format!("mono100-{i}"));
-        next.authority_ceiling = ceilings[i];
+        next.authority_ceiling = Permission::DIA;
         base = compose(base, next).unwrap();
     }
 
@@ -186,10 +189,7 @@ fn compose_100_monotone_with_one_weaker() {
         p_after <= p_before_weak,
         "adding weak envelope must not increase permission: {p_after} > {p_before_weak}"
     );
-    assert!(
-        p_after <= weak_p,
-        "composed must be ≤ weak {weak_p}"
-    );
+    assert!(p_after <= weak_p, "composed must be ≤ weak {weak_p}");
 }
 
 // ── N=1000 terminates ────────────────────────────────────────────────────────
@@ -210,8 +210,12 @@ fn compose_1000_terminates() {
 #[test]
 fn composed_permission_equals_meet_n_of_individuals() {
     let ceilings = [
-        Permission::AAA, Permission::DIA, Permission::REV,
-        Permission::AEX, Permission::ROL, Permission::ESC,
+        Permission::AAA,
+        Permission::DIA,
+        Permission::REV,
+        Permission::AEX,
+        Permission::ROL,
+        Permission::ESC,
     ];
     let individual_perms: Vec<Permission> = ceilings
         .iter()

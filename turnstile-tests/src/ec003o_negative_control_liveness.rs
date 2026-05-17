@@ -23,13 +23,13 @@ use std::collections::HashMap;
 use chrono::Utc;
 use proptest::prelude::*;
 use turnstile_core::{
-    NegativeControlStatus,
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
+    NegativeControlStatus,
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -168,7 +168,11 @@ fn nc_token_missing_state_explicit_floors_to_ref() {
     let judgment = compile(ctx).unwrap();
     let rt = runtime_with_nc_state(&tok_id, NegativeControlStatus::Missing, true);
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::REF, "explicit Missing NC → REF");
+    assert_eq!(
+        live.permission(),
+        Permission::REF,
+        "explicit Missing NC → REF"
+    );
 }
 
 // ── Non-strict mode skips NC check ───────────────────────────────────────────

@@ -18,10 +18,7 @@ use turnstile_core::{
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
 
-fn make_ctx_with_permission(
-    target: Permission,
-    suffix: &str,
-) -> ProofContext {
+fn make_ctx_with_permission(target: Permission, suffix: &str) -> ProofContext {
     let claim_id = "claim-nary";
     let candidate_id = "z-nary";
     let context_id = "ctx-nary";
@@ -56,6 +53,7 @@ fn make_ctx_with_permission(
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: target,
@@ -188,9 +186,18 @@ fn self_composition_non_promoting() {
 #[test]
 fn compile_compose_exhaustive_permission_pairs() {
     const ALL: [Permission; 12] = [
-        Permission::OOC, Permission::EXP, Permission::REF, Permission::UNS,
-        Permission::ETA, Permission::ESC, Permission::ROL, Permission::DIA,
-        Permission::REV, Permission::AEX, Permission::ALR, Permission::AAA,
+        Permission::OOC,
+        Permission::EXP,
+        Permission::REF,
+        Permission::UNS,
+        Permission::ETA,
+        Permission::ESC,
+        Permission::ROL,
+        Permission::DIA,
+        Permission::REV,
+        Permission::AEX,
+        Permission::ALR,
+        Permission::AAA,
     ];
     for p1 in ALL {
         for p2 in ALL {

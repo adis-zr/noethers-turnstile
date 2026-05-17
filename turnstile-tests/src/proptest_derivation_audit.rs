@@ -93,14 +93,21 @@ fn build_ctx(ceiling: Permission, membership: Membership, with_token: bool) -> P
 fn derivation_has_at_least_one_step() {
     let ctx = build_ctx(Permission::AAA, Membership::InClass, true);
     let j = compile(ctx).unwrap();
-    assert!(!j.derivation.steps.is_empty(), "derivation must have at least one step");
+    assert!(
+        !j.derivation.steps.is_empty(),
+        "derivation must have at least one step"
+    );
 }
 
 #[test]
 fn ooc_derivation_has_membership_step() {
     let ctx = build_ctx(Permission::AAA, Membership::OutOfClassExact, false);
     let j = compile(ctx).unwrap();
-    let has_membership = j.derivation.steps.iter().any(|s| s.phase == "membership_check");
+    let has_membership = j
+        .derivation
+        .steps
+        .iter()
+        .any(|s| s.phase == "membership_check");
     assert!(has_membership, "OOC path must have membership_check step");
 }
 
@@ -110,8 +117,7 @@ fn final_step_permission_equals_judgment_permission_inclass() {
     let j = compile(ctx).unwrap();
     let last = j.derivation.steps.last().expect("must have last step");
     assert_eq!(
-        last.permission_after,
-        j.permission,
+        last.permission_after, j.permission,
         "last derivation step must equal judgment permission"
     );
 }
@@ -141,12 +147,18 @@ fn derivation_provenance_hash_matches_context() {
 fn derivation_steps_are_non_increasing() {
     let ctx = build_ctx(Permission::DIA, Membership::InClass, true);
     let j = compile(ctx).unwrap();
-    let perms: Vec<Permission> = j.derivation.steps.iter().map(|s| s.permission_after).collect();
+    let perms: Vec<Permission> = j
+        .derivation
+        .steps
+        .iter()
+        .map(|s| s.permission_after)
+        .collect();
     for w in perms.windows(2) {
         assert!(
             w[1] <= w[0],
             "derivation steps must be non-increasing: {} > {}",
-            w[1], w[0]
+            w[1],
+            w[0]
         );
     }
 }
@@ -157,15 +169,26 @@ fn authority_ceiling_step_recorded_when_it_fires() {
     let ctx = build_ctx(Permission::ETA, Membership::InClass, true);
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::ETA);
-    let has_ceiling = j.derivation.steps.iter().any(|s| s.phase == "authority_ceiling");
-    assert!(has_ceiling, "authority_ceiling step must appear when ceiling fires");
+    let has_ceiling = j
+        .derivation
+        .steps
+        .iter()
+        .any(|s| s.phase == "authority_ceiling");
+    assert!(
+        has_ceiling,
+        "authority_ceiling step must appear when ceiling fires"
+    );
 }
 
 #[test]
 fn descending_search_step_always_present_for_inclass() {
     let ctx = build_ctx(Permission::AAA, Membership::InClass, true);
     let j = compile(ctx).unwrap();
-    let has_search = j.derivation.steps.iter().any(|s| s.phase == "descending_search");
+    let has_search = j
+        .derivation
+        .steps
+        .iter()
+        .any(|s| s.phase == "descending_search");
     assert!(has_search, "in-class path must have descending_search step");
 }
 

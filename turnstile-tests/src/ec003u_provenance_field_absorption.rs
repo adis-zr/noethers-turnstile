@@ -1,3 +1,5 @@
+use chrono::Utc;
+use proptest::prelude::*;
 /// EC-003U — Provenance field absorption prevention (T3, T4).
 ///
 /// The provenance hash is SHA-256 of:
@@ -21,8 +23,6 @@
 ///   - Swapping fields produces different hashes
 ///   - Proptest: any single-field change produces a different hash
 use turnstile_core::token::{compute_provenance_hash, verify_provenance, ProofToken, TokenStatus};
-use chrono::Utc;
-use proptest::prelude::*;
 
 fn make_token_with_hash(hash: &str) -> ProofToken {
     ProofToken {
@@ -133,7 +133,10 @@ fn empty_field_variants_are_distinct() {
     ];
     for i in 0..hashes.len() {
         for j in (i + 1)..hashes.len() {
-            assert_ne!(hashes[i], hashes[j], "empty-field variants {i} and {j} must be distinct");
+            assert_ne!(
+                hashes[i], hashes[j],
+                "empty-field variants {i} and {j} must be distinct"
+            );
         }
     }
 }
@@ -162,7 +165,10 @@ fn null_byte_in_candidate_field_differs_from_shifted_split() {
     // must produce different hashes.
     let h1 = compute_provenance_hash("claim", "a\x00b", "ctx", "use");
     let h2 = compute_provenance_hash("claim", "a", "b-ctx", "use");
-    assert_ne!(h1, h2, "null byte in candidate must not match non-null split");
+    assert_ne!(
+        h1, h2,
+        "null byte in candidate must not match non-null split"
+    );
 }
 
 #[test]
@@ -232,7 +238,10 @@ fn verify_hex_case_matters() {
     let upper = hash.to_uppercase();
     let tok = make_token_with_hash(&upper);
     // SHA-256 hex from hex::encode is lowercase; uppercase won't match.
-    assert!(!verify_provenance(&tok, "c", "z", "ctx", "u"), "hash comparison must be case-sensitive");
+    assert!(
+        !verify_provenance(&tok, "c", "z", "ctx", "u"),
+        "hash comparison must be case-sensitive"
+    );
 }
 
 // ── Proptest: single-field mutation always changes hash ───────────────────────

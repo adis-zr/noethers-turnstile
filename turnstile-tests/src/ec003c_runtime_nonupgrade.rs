@@ -72,6 +72,7 @@ fn build_dia_ctx(expiry: Expiry) -> ProofContext {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry,
         authority_ceiling: Permission::AAA,
@@ -82,17 +83,22 @@ fn build_dia_ctx(expiry: Expiry) -> ProofContext {
 // ── Runtime non-upgrade: live.permission() ≤ compiled.permission ─────────────
 
 const OPERATIONAL: [Permission; 10] = [
-    Permission::REF, Permission::UNS, Permission::ETA, Permission::ESC,
-    Permission::ROL, Permission::DIA, Permission::REV, Permission::AEX,
-    Permission::ALR, Permission::AAA,
+    Permission::REF,
+    Permission::UNS,
+    Permission::ETA,
+    Permission::ESC,
+    Permission::ROL,
+    Permission::DIA,
+    Permission::REV,
+    Permission::AEX,
+    Permission::ALR,
+    Permission::AAA,
 ];
 
 #[test]
 fn runtime_matching_fp_never_upgrades_all_operational() {
     for p in OPERATIONAL {
-        let ctx = build_dia_ctx(Expiry::never());
-        let ceiling = ctx.authority_ceiling;
-        let mut ctx = ctx;
+        let mut ctx = build_dia_ctx(Expiry::never());
         ctx.authority_ceiling = p; // cap at p
         let judgment = compile(ctx).unwrap();
         let compiled_p = judgment.permission;
@@ -101,7 +107,8 @@ fn runtime_matching_fp_never_upgrades_all_operational() {
         let live = LiveJudgment::new(judgment, &rt);
         assert!(
             live.permission() <= compiled_p,
-            "runtime upgraded: live={} > compiled={compiled_p}", live.permission()
+            "runtime upgraded: live={} > compiled={compiled_p}",
+            live.permission()
         );
     }
 }
@@ -202,6 +209,7 @@ fn expired_token_floors_to_exp_during_compile() {
             expires_at: Some(past), // already expired
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,

@@ -147,6 +147,27 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         outcome = Permission::EXP;
     }
 
+    // Step 6: record negative-control token IDs in the derivation.
+    // Liveness is checked at runtime in LiveJudgment::permission() (T17).
+    // We record them here so the derivation is self-contained for audit.
+    let nc_token_ids: Vec<String> = ctx
+        .tokens
+        .iter()
+        .filter(|t| t.is_negative_control)
+        .map(|t| t.token_id.clone())
+        .collect();
+    if !nc_token_ids.is_empty() {
+        derivation.push(DerivationStep {
+            phase: "negative_control_registration".into(),
+            permission_after: outcome,
+            note: format!(
+                "{} negative-control token(s) registered; liveness checked at runtime",
+                nc_token_ids.len()
+            ),
+            token_ids: nc_token_ids,
+        });
+    }
+
     Ok(Judgment {
         permission: outcome,
         expiry: ctx.expiry.clone(),
@@ -260,15 +281,15 @@ fn effective_gap_status(
 }
 
 /// Ordering for GapStatus (for comparison in effective_gap_status).
-impl PartialOrd for GapStatus {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.rank().cmp(&other.rank()))
-    }
-}
-
 impl Ord for GapStatus {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.rank().cmp(&other.rank())
+    }
+}
+
+impl PartialOrd for GapStatus {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -342,6 +363,7 @@ mod tests {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }
     }
 
@@ -418,6 +440,7 @@ mod tests {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         };
         ctx.tokens.push(bad_token);
         let j = compile(ctx).unwrap();

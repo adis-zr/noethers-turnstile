@@ -199,7 +199,11 @@ fn time_skew_exactly_at_deadline_is_expired() {
 
     let rt = RuntimeContext::new(deadline, "fp-time");
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::EXP, "exactly at deadline must be EXP");
+    assert_eq!(
+        live.permission(),
+        Permission::EXP,
+        "exactly at deadline must be EXP"
+    );
 }
 
 #[test]
@@ -211,7 +215,11 @@ fn time_skew_1ns_past_deadline_is_expired() {
     let just_after = deadline + Duration::nanoseconds(1);
     let rt = RuntimeContext::new(just_after, "fp-time");
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::EXP, "1ns past deadline must be EXP");
+    assert_eq!(
+        live.permission(),
+        Permission::EXP,
+        "1ns past deadline must be EXP"
+    );
 }
 
 // ── No-expiry context: time has no effect on permission ──────────────────────

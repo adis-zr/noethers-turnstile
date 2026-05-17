@@ -51,7 +51,9 @@ impl SchemaRegistry {
                 entry.schema_id, entry.version
             ));
         }
-        inner.current_versions.insert(entry.schema_id.clone(), entry.version.clone());
+        inner
+            .current_versions
+            .insert(entry.schema_id.clone(), entry.version.clone());
         inner.entries.insert(key, entry);
         Ok(())
     }
@@ -62,7 +64,10 @@ impl SchemaRegistry {
             Ok(g) => g,
             Err(p) => p.into_inner(),
         };
-        inner.entries.get(&(schema_id.to_owned(), version.to_owned())).cloned()
+        inner
+            .entries
+            .get(&(schema_id.to_owned(), version.to_owned()))
+            .cloned()
     }
 
     /// Current version of a schema.

@@ -31,7 +31,10 @@ fn register_same_version_twice_fails() {
     let reg = SchemaRegistry::new();
     reg.register(entry("s1", "1.0")).unwrap();
     let result = reg.register(entry("s1", "1.0"));
-    assert!(result.is_err(), "duplicate (schema_id, version) must be rejected");
+    assert!(
+        result.is_err(),
+        "duplicate (schema_id, version) must be rejected"
+    );
 }
 
 #[test]
@@ -39,7 +42,10 @@ fn register_different_versions_both_succeed() {
     let reg = SchemaRegistry::new();
     reg.register(entry("s1", "1.0")).unwrap();
     reg.register(entry("s1", "2.0")).unwrap();
-    assert!(reg.get("s1", "1.0").is_some(), "v1.0 must survive after v2.0 is registered");
+    assert!(
+        reg.get("s1", "1.0").is_some(),
+        "v1.0 must survive after v2.0 is registered"
+    );
     assert!(reg.get("s1", "2.0").is_some(), "v2.0 must be queryable");
 }
 
@@ -168,7 +174,10 @@ fn registering_v2_does_not_mutate_v1_description() {
     .unwrap();
 
     let v1 = reg.get("s6", "1.0").unwrap();
-    assert_eq!(v1.description, "original description", "v1 content must not change after v2 registration");
+    assert_eq!(
+        v1.description, "original description",
+        "v1 content must not change after v2 registration"
+    );
 }
 
 // ── Missing version returns None ──────────────────────────────────────────────
@@ -177,8 +186,14 @@ fn registering_v2_does_not_mutate_v1_description() {
 fn get_nonexistent_version_returns_none() {
     let reg = SchemaRegistry::new();
     reg.register(entry("s7", "1.0")).unwrap();
-    assert!(reg.get("s7", "9.9").is_none(), "nonexistent version must return None");
-    assert!(reg.get("s8", "1.0").is_none(), "nonexistent schema must return None");
+    assert!(
+        reg.get("s7", "9.9").is_none(),
+        "nonexistent version must return None"
+    );
+    assert!(
+        reg.get("s8", "1.0").is_none(),
+        "nonexistent schema must return None"
+    );
 }
 
 // ── Registering over a deleted/nonexistent entry is OK ────────────────────────

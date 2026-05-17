@@ -2,7 +2,7 @@
 ///
 /// For any judgment with `expires_at = T`,
 /// `LiveJudgment::permission()` at `now >= T` returns `EXP`.
-use chrono::{DateTime, Duration, Utc};
+use chrono::{Duration, Utc};
 use proptest::prelude::*;
 use turnstile_core::{
     compile,
@@ -50,6 +50,7 @@ fn build_dia_ctx_with_expiry(expiry: Expiry) -> ProofContext {
             expires_at: None, // token itself does not expire
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry,
         authority_ceiling: Permission::AAA,

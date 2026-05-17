@@ -40,7 +40,9 @@ fn intersect_list(a: Vec<String>, b: Vec<String>) -> Vec<String> {
         return a;
     }
     let b_set: std::collections::HashSet<&str> = b.iter().map(|s| s.as_str()).collect();
-    a.into_iter().filter(|s| b_set.contains(s.as_str())).collect()
+    a.into_iter()
+        .filter(|s| b_set.contains(s.as_str()))
+        .collect()
 }
 
 /// Whether the candidate is a member of the class this compiler handles.
@@ -102,8 +104,7 @@ impl ProofContext {
     /// Look up all tokens that close or bound a given gap_id.
     pub fn tokens_for_gap<'a>(&'a self, gap_id: &'a str) -> impl Iterator<Item = &'a ProofToken> {
         self.tokens.iter().filter(move |t| {
-            t.closes_gaps.iter().any(|g| g == gap_id)
-                || t.bounds_gaps.iter().any(|g| g == gap_id)
+            t.closes_gaps.iter().any(|g| g == gap_id) || t.bounds_gaps.iter().any(|g| g == gap_id)
         })
     }
 
@@ -124,16 +125,28 @@ mod tests {
 
     #[test]
     fn scope_intersect_empty_means_unconstrained() {
-        let a = Scope { allowed_tools: vec![], ..Default::default() };
-        let b = Scope { allowed_tools: vec!["hammer".into()], ..Default::default() };
+        let a = Scope {
+            allowed_tools: vec![],
+            ..Default::default()
+        };
+        let b = Scope {
+            allowed_tools: vec!["hammer".into()],
+            ..Default::default()
+        };
         let result = a.intersect(b);
         assert_eq!(result.allowed_tools, vec!["hammer"]);
     }
 
     #[test]
     fn scope_intersect_non_empty() {
-        let a = Scope { allowed_tools: vec!["a".into(), "b".into()], ..Default::default() };
-        let b = Scope { allowed_tools: vec!["b".into(), "c".into()], ..Default::default() };
+        let a = Scope {
+            allowed_tools: vec!["a".into(), "b".into()],
+            ..Default::default()
+        };
+        let b = Scope {
+            allowed_tools: vec!["b".into(), "c".into()],
+            ..Default::default()
+        };
         let result = a.intersect(b);
         assert_eq!(result.allowed_tools, vec!["b"]);
     }

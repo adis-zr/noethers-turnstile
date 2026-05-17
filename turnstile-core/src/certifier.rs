@@ -27,11 +27,17 @@ pub struct ValidationResult {
 
 impl ValidationResult {
     pub fn ok() -> Self {
-        Self { valid: true, reason: None }
+        Self {
+            valid: true,
+            reason: None,
+        }
     }
 
     pub fn fail(reason: impl Into<String>) -> Self {
-        Self { valid: false, reason: Some(reason.into()) }
+        Self {
+            valid: false,
+            reason: Some(reason.into()),
+        }
     }
 }
 

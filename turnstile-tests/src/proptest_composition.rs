@@ -33,6 +33,7 @@ fn arb_permission() -> impl Strategy<Value = Permission> {
     ]
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_ctx(
     ceiling: Permission,
     gap_statuses: &[u8],
@@ -89,6 +90,7 @@ fn build_ctx(
             expires_at: None,
             issuer: "prop-test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         });
     }
 

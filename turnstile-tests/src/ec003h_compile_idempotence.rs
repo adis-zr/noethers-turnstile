@@ -55,6 +55,7 @@ fn make_ctx(target: Permission) -> ProofContext {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: target,
@@ -90,7 +91,8 @@ fn compile_idempotent_all_permissions() {
         let j2 = compile(ctx).unwrap();
         assert_eq!(
             j1.permission, j2.permission,
-            "idempotence failed at {p}: {}/{}", j1.permission, j2.permission
+            "idempotence failed at {p}: {}/{}",
+            j1.permission, j2.permission
         );
     }
 }
@@ -103,7 +105,10 @@ fn compile_idempotent_with_structural_blockers() {
     ctx.disallowed_uses = vec!["write".into()];
     let j1 = compile(ctx.clone()).unwrap();
     let j2 = compile(ctx).unwrap();
-    assert_eq!(j1.permission, j2.permission, "idempotence broken by structural blockers");
+    assert_eq!(
+        j1.permission, j2.permission,
+        "idempotence broken by structural blockers"
+    );
 }
 
 // ── Idempotence: OOC membership ──────────────────────────────────────────────
@@ -126,7 +131,10 @@ fn compile_idempotent_expired_context() {
     ctx.expiry = Expiry::at(Utc::now() - Duration::seconds(1));
     let j1 = compile(ctx.clone()).unwrap();
     let j2 = compile(ctx).unwrap();
-    assert_eq!(j1.permission, j2.permission, "idempotence broken by expired context");
+    assert_eq!(
+        j1.permission, j2.permission,
+        "idempotence broken by expired context"
+    );
     assert_eq!(j1.permission, Permission::EXP);
 }
 
@@ -138,7 +146,10 @@ fn compile_deterministic_100_iterations() {
     let baseline = compile(ctx.clone()).unwrap().permission;
     for _ in 0..99 {
         let p = compile(ctx.clone()).unwrap().permission;
-        assert_eq!(p, baseline, "compile produced different result on repeated call");
+        assert_eq!(
+            p, baseline,
+            "compile produced different result on repeated call"
+        );
     }
 }
 
@@ -153,7 +164,10 @@ fn compile_result_unaffected_by_other_compilations() {
     let _p_b = compile(ctx_b).unwrap().permission;
     let p_a2 = compile(ctx_a).unwrap().permission;
 
-    assert_eq!(p_a1, p_a2, "compilation of another context affected this one");
+    assert_eq!(
+        p_a1, p_a2,
+        "compilation of another context affected this one"
+    );
 }
 
 // ── Proptest: idempotence ────────────────────────────────────────────────────

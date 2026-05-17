@@ -1,3 +1,4 @@
+use chrono::Utc;
 /// EC-004 — Profile wellformedness: monotonicity, greatest-satisfiable-permission.
 ///
 /// Ported from:
@@ -20,7 +21,6 @@ use turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
-use chrono::Utc;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
@@ -39,15 +39,12 @@ fn arb_permission() -> impl Strategy<Value = Permission> {
     ]
 }
 
-const ALL: [Permission; 12] = [
-    Permission::OOC, Permission::EXP, Permission::REF, Permission::UNS,
-    Permission::ETA, Permission::ESC, Permission::ROL, Permission::DIA,
-    Permission::REV, Permission::AEX, Permission::ALR, Permission::AAA,
-];
-
 fn make_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: format!("tok-{gap_id}"),
@@ -61,6 +58,7 @@ fn make_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     }
 }
 
@@ -83,23 +81,27 @@ fn descending_search_returns_highest_satisfied_profile() {
         allowed_use: allowed_use.into(),
         disallowed_uses: vec![],
         scope: Scope::default(),
-        gaps: vec![
-            GapRecord::closed("g1", "t"),
-            GapRecord::open("g2", "t"),
-        ],
+        gaps: vec![GapRecord::closed("g1", "t"), GapRecord::open("g2", "t")],
         profiles: vec![
             Profile {
                 permission: Permission::AAA,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement {
+                        gap_id: "g1".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
+                    GapRequirement {
+                        gap_id: "g2".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
                 ],
             },
             Profile {
                 permission: Permission::DIA,
-                required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                ],
+                required_gaps: vec![GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                }],
             },
         ],
         tokens: vec![],
@@ -132,23 +134,27 @@ fn both_gaps_closed_satisfies_highest_profile() {
         allowed_use: allowed_use.into(),
         disallowed_uses: vec![],
         scope: Scope::default(),
-        gaps: vec![
-            GapRecord::closed("g1", "t"),
-            GapRecord::closed("g2", "t"),
-        ],
+        gaps: vec![GapRecord::closed("g1", "t"), GapRecord::closed("g2", "t")],
         profiles: vec![
             Profile {
                 permission: Permission::REV,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement {
+                        gap_id: "g1".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
+                    GapRequirement {
+                        gap_id: "g2".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    },
                 ],
             },
             Profile {
                 permission: Permission::DIA,
-                required_gaps: vec![
-                    GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                ],
+                required_gaps: vec![GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                }],
             },
         ],
         tokens: vec![],
@@ -208,7 +214,10 @@ fn adding_evidence_never_lowers_permission_ordered_profiles() {
     ctx.tokens.push(tok);
 
     let p_after = compile(ctx).unwrap().permission;
-    assert!(p_after >= p_before, "adding evidence lowered permission: {p_before} → {p_after}");
+    assert!(
+        p_after >= p_before,
+        "adding evidence lowered permission: {p_before} → {p_after}"
+    );
     assert_eq!(p_after, Permission::DIA);
 }
 
@@ -244,21 +253,28 @@ fn multi_level_profile_descending_search_exhaustive() {
             scope: Scope::default(),
             gaps: vec![
                 GapRecord::closed("g_low", "t"),
-                GapRecord::open("g_high", "t"),  // not satisfied
+                GapRecord::open("g_high", "t"), // not satisfied
             ],
             profiles: vec![
                 Profile {
                     permission: p_high,
                     required_gaps: vec![
-                        GapRequirement { gap_id: "g_low".into(), minimum_status: RequiredStatus::ClosedRequired },
-                        GapRequirement { gap_id: "g_high".into(), minimum_status: RequiredStatus::ClosedRequired },
+                        GapRequirement {
+                            gap_id: "g_low".into(),
+                            minimum_status: RequiredStatus::ClosedRequired,
+                        },
+                        GapRequirement {
+                            gap_id: "g_high".into(),
+                            minimum_status: RequiredStatus::ClosedRequired,
+                        },
                     ],
                 },
                 Profile {
                     permission: p_low,
-                    required_gaps: vec![
-                        GapRequirement { gap_id: "g_low".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    ],
+                    required_gaps: vec![GapRequirement {
+                        gap_id: "g_low".into(),
+                        minimum_status: RequiredStatus::ClosedRequired,
+                    }],
                 },
             ],
             tokens: vec![],

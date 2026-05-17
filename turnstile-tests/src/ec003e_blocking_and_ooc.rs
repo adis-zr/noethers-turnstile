@@ -9,7 +9,7 @@
 ///   T6  — No proof, no license: missing evidence → blocked, not promoted
 ///   T2  — Token validity soundness: only Valid tokens contribute
 ///   T11 — Diagnostic/action separation: disallowed_uses cap at ROL
-use chrono::{Duration, Utc};
+use chrono::Utc;
 use proptest::prelude::*;
 use turnstile_core::{
     compile,
@@ -107,7 +107,11 @@ fn open_gap_blocks_profile() {
 #[test]
 fn bounded_gap_satisfies_bounded_required() {
     let mut ctx = minimal_ctx();
-    ctx.gaps.push(GapRecord::bounded("g1", "t", turnstile_core::gap::Bound::numeric(0.05)));
+    ctx.gaps.push(GapRecord::bounded(
+        "g1",
+        "t",
+        turnstile_core::gap::Bound::numeric(0.05),
+    ));
     ctx.profiles.push(Profile {
         permission: Permission::DIA,
         required_gaps: vec![GapRequirement {
@@ -129,7 +133,11 @@ fn bounded_gap_satisfies_bounded_required() {
 #[test]
 fn bounded_gap_does_not_satisfy_closed_required() {
     let mut ctx = minimal_ctx();
-    ctx.gaps.push(GapRecord::bounded("g1", "t", turnstile_core::gap::Bound::numeric(0.05)));
+    ctx.gaps.push(GapRecord::bounded(
+        "g1",
+        "t",
+        turnstile_core::gap::Bound::numeric(0.05),
+    ));
     ctx.profiles.push(Profile {
         permission: Permission::DIA,
         required_gaps: vec![GapRequirement {
@@ -168,6 +176,7 @@ fn malformed_token_does_not_satisfy_profile() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     });
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::OOC);
@@ -201,6 +210,7 @@ fn out_of_class_exact_gives_ooc() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     });
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::OOC);
@@ -248,11 +258,15 @@ fn disallowed_uses_caps_at_rol() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     });
     ctx.disallowed_uses = vec!["production-write".into()];
 
     let j = compile(ctx).unwrap();
-    assert!(j.permission <= Permission::ROL, "disallowed_uses must cap at ROL");
+    assert!(
+        j.permission <= Permission::ROL,
+        "disallowed_uses must cap at ROL"
+    );
 }
 
 #[test]
@@ -279,6 +293,7 @@ fn disallowed_uses_only_cap_if_above_rol() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     });
     ctx.disallowed_uses = vec!["something".into()];
 
@@ -313,6 +328,7 @@ fn authority_ceiling_hard_caps_outcome() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     });
     ctx.authority_ceiling = Permission::DIA;
 
@@ -380,6 +396,7 @@ proptest! {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         });
         ctx.disallowed_uses = (0..n).map(|i| format!("use-{i}")).collect();
         let j = compile(ctx).unwrap();

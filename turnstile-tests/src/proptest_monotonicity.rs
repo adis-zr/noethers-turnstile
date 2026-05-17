@@ -52,9 +52,9 @@ proptest! {
         prop_assume!(actual_gap_count > 0);
 
         let mut gaps = vec![];
-        for i in 0..actual_gap_count {
+        for (i, &sk) in gap_statuses[..actual_gap_count].iter().enumerate() {
             let gap_id = format!("gap-{}", i);
-            let gap = match gap_statuses[i] {
+            let gap = match sk {
                 0 => GapRecord::open(gap_id.clone(), "t"),
                 1 => GapRecord::bounded(gap_id.clone(), "t", turnstile_core::gap::Bound::numeric(1.0)),
                 _ => GapRecord::closed(gap_id.clone(), "t"),
@@ -108,6 +108,7 @@ proptest! {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         };
 
         // Also update the gap record to Closed (the token attests to closure).
@@ -179,9 +180,13 @@ fn wrong_provenance_token_does_not_lower_permission() {
         expires_at: None,
         issuer: "test".into(),
         details: serde_json::Value::Null,
+        is_negative_control: false,
     };
 
-    let ctx_with_bad = ProofContext { tokens: vec![bad_token], ..base_ctx };
+    let ctx_with_bad = ProofContext {
+        tokens: vec![bad_token],
+        ..base_ctx
+    };
     let p_after = compile(ctx_with_bad).unwrap().permission;
 
     // Must not lower (already at OOC, must stay at OOC or above).

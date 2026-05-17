@@ -14,6 +14,23 @@ pub enum TokenStatus {
     Malformed,
 }
 
+/// Live state of a negative-control token in the runtime context (T17).
+///
+/// In strict mode the compiler checks every NC token against this map.
+/// Any state other than `Live` causes the outcome to be floored to `REF`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum NegativeControlStatus {
+    /// NC passed and is currently live.
+    Live,
+    /// NC was live but has become stale (e.g. context changed since issue).
+    Stale,
+    /// NC was explicitly checked and failed.
+    Failed,
+    /// NC token is expected but absent from the live-state map.
+    Missing,
+}
+
 impl TokenStatus {
     pub fn is_usable(self) -> bool {
         matches!(self, TokenStatus::Valid)
@@ -41,6 +58,18 @@ pub struct ProofToken {
     pub expires_at: Option<DateTime<Utc>>,
     pub issuer: String,
     pub details: serde_json::Value,
+    /// Whether this token is a negative control.
+    ///
+    /// A negative control token attests that a control experiment ran and
+    /// passed.  In strict mode, the compiler checks that every negative-control
+    /// token present in the context is live in the runtime's
+    /// `negative_control_states` map.  A missing, stale, or failed NC token
+    /// causes the compiler to floor the outcome to `REF` (T17).
+    ///
+    /// `false` (the default) means "not a negative control" and the token is
+    /// treated identically to the existing gap-closing / gap-bounding logic.
+    #[serde(default)]
+    pub is_negative_control: bool,
 }
 
 impl ProofToken {
@@ -146,8 +175,11 @@ mod tests {
             expires_at: None,
             issuer: "test-issuer".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         };
         assert!(verify_provenance(&token, "claim", "cand", "ctx", "allowed"));
-        assert!(!verify_provenance(&token, "claim", "OTHER", "ctx", "allowed"));
+        assert!(!verify_provenance(
+            &token, "claim", "OTHER", "ctx", "allowed"
+        ));
     }
 }

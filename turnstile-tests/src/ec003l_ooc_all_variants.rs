@@ -54,6 +54,7 @@ fn saturated_ctx(membership: Membership) -> ProofContext {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -71,7 +72,10 @@ fn out_of_class_exact_gives_ooc() {
 
 #[test]
 fn out_of_class_authorized_deterministic_write_gives_ooc() {
-    let j = compile(saturated_ctx(Membership::OutOfClassAuthorizedDeterministicWrite)).unwrap();
+    let j = compile(saturated_ctx(
+        Membership::OutOfClassAuthorizedDeterministicWrite,
+    ))
+    .unwrap();
     assert_eq!(j.permission, Permission::OOC);
 }
 
@@ -83,7 +87,10 @@ fn out_of_class_no_consequential_use_gives_ooc() {
 
 #[test]
 fn out_of_class_other_gives_ooc() {
-    let j = compile(saturated_ctx(Membership::OutOfClassOther("adversarial reason".into()))).unwrap();
+    let j = compile(saturated_ctx(Membership::OutOfClassOther(
+        "adversarial reason".into(),
+    )))
+    .unwrap();
     assert_eq!(j.permission, Permission::OOC);
 }
 

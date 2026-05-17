@@ -126,9 +126,18 @@ fn ceiling_ref_caps_to_ref() {
 #[test]
 fn lower_ceiling_always_reduces_or_preserves_permission() {
     let ceilings = [
-        Permission::AAA, Permission::ALR, Permission::AEX, Permission::REV,
-        Permission::DIA, Permission::ROL, Permission::ESC, Permission::ETA,
-        Permission::UNS, Permission::REF, Permission::EXP, Permission::OOC,
+        Permission::AAA,
+        Permission::ALR,
+        Permission::AEX,
+        Permission::REV,
+        Permission::DIA,
+        Permission::ROL,
+        Permission::ESC,
+        Permission::ETA,
+        Permission::UNS,
+        Permission::REF,
+        Permission::EXP,
+        Permission::OOC,
     ];
     let mut prev = compile(full_ctx(ceilings[0])).unwrap().permission;
     for &c in &ceilings[1..] {

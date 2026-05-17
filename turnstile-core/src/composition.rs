@@ -19,7 +19,7 @@ use crate::token::ProofToken;
 /// Fails closed on any conflict:
 /// - `UseConflict` if `allowed_use` differs between contexts.
 /// - `TokenConflict` if the same `token_id` appears in both contexts with
-///    different content.
+///   different content.
 pub fn compose(g1: ProofContext, g2: ProofContext) -> Result<ProofContext, CompositionError> {
     // Allowed use must be identical (provenance hash would diverge otherwise).
     if g1.allowed_use != g2.allowed_use {
@@ -262,7 +262,10 @@ mod tests {
         let g1 = base_ctx("1");
         let mut g2 = base_ctx("2");
         g2.allowed_use = "other-use".into();
-        assert!(matches!(compose(g1, g2), Err(CompositionError::UseConflict)));
+        assert!(matches!(
+            compose(g1, g2),
+            Err(CompositionError::UseConflict)
+        ));
     }
 
     #[test]
@@ -277,7 +280,10 @@ mod tests {
         let mut g2 = g2;
         g1.tokens.push(t1);
         g2.tokens.push(t2);
-        assert!(matches!(compose(g1, g2), Err(CompositionError::TokenConflict { .. })));
+        assert!(matches!(
+            compose(g1, g2),
+            Err(CompositionError::TokenConflict { .. })
+        ));
     }
 
     #[test]
@@ -287,7 +293,10 @@ mod tests {
         g1.gaps.push(GapRecord::closed("g1", "calibration_gap"));
         g2.gaps.push(GapRecord::open("g1", "calibration_gap"));
         let composed = compose(g1, g2).unwrap();
-        assert!(matches!(composed.find_gap("g1").unwrap().status, GapStatus::Open));
+        assert!(matches!(
+            composed.find_gap("g1").unwrap().status,
+            GapStatus::Open
+        ));
     }
 
     #[test]

@@ -56,6 +56,7 @@ fn ctx_with_status(status: TokenStatus) -> ProofContext {
             expires_at: None,
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
@@ -77,25 +78,41 @@ fn valid_token_closes_gap() {
 #[test]
 fn invalid_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Invalid)).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "Invalid token must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "Invalid token must not close gap"
+    );
 }
 
 #[test]
 fn expired_status_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Expired)).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "Expired status token must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "Expired status token must not close gap"
+    );
 }
 
 #[test]
 fn revoked_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Revoked)).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "Revoked token must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "Revoked token must not close gap"
+    );
 }
 
 #[test]
 fn malformed_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Malformed)).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "Malformed token must not close gap");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "Malformed token must not close gap"
+    );
 }
 
 // ── Token-level expiry (expires_at): expired by timestamp → not live ─────────
@@ -137,13 +154,18 @@ fn token_expired_by_timestamp_gives_exp_at_compile() {
             expires_at: Some(past), // already expired
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP, "token expired by timestamp must floor to EXP");
+    assert_eq!(
+        j.permission,
+        Permission::EXP,
+        "token expired by timestamp must floor to EXP"
+    );
 }
 
 #[test]
@@ -183,13 +205,18 @@ fn token_not_yet_expired_contributes_normally() {
             expires_at: Some(future), // not expired yet
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "non-expired token must contribute");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "non-expired token must contribute"
+    );
 }
 
 // ── Context-level expiry vs token-level expiry: both independently floor to EXP ─
@@ -231,13 +258,18 @@ fn context_expiry_independent_of_token_expiry() {
             expires_at: Some(Utc::now() + Duration::seconds(3600)), // token not expired
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::at(Utc::now() - Duration::seconds(1)), // context expired
         authority_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP, "context-level expiry must floor to EXP");
+    assert_eq!(
+        j.permission,
+        Permission::EXP,
+        "context-level expiry must floor to EXP"
+    );
 }
 
 // ── Both token and context expired: still EXP (not double-counted) ────────────
@@ -279,6 +311,7 @@ fn both_token_and_context_expired_gives_exp() {
             expires_at: Some(past),
             issuer: "test".into(),
             details: serde_json::Value::Null,
+            is_negative_control: false,
         }],
         expiry: Expiry::at(past),
         authority_ceiling: Permission::AAA,
@@ -307,15 +340,18 @@ fn one_expired_token_among_many_floors_to_exp() {
         allowed_use: allowed_use.into(),
         disallowed_uses: vec![],
         scope: Scope::default(),
-        gaps: vec![
-            GapRecord::closed("g1", "t"),
-            GapRecord::closed("g2", "t"),
-        ],
+        gaps: vec![GapRecord::closed("g1", "t"), GapRecord::closed("g2", "t")],
         profiles: vec![Profile {
             permission: Permission::DIA,
             required_gaps: vec![
-                GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired },
-                GapRequirement { gap_id: "g2".into(), minimum_status: RequiredStatus::ClosedRequired },
+                GapRequirement {
+                    gap_id: "g1".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
+                GapRequirement {
+                    gap_id: "g2".into(),
+                    minimum_status: RequiredStatus::ClosedRequired,
+                },
             ],
         }],
         tokens: vec![
@@ -331,6 +367,7 @@ fn one_expired_token_among_many_floors_to_exp() {
                 expires_at: None, // live
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
+                is_negative_control: false,
             },
             ProofToken {
                 token_id: "tok-expired".into(),
@@ -344,6 +381,7 @@ fn one_expired_token_among_many_floors_to_exp() {
                 expires_at: Some(past), // expired
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
+                is_negative_control: false,
             },
         ],
         expiry: Expiry::never(),
@@ -352,7 +390,11 @@ fn one_expired_token_among_many_floors_to_exp() {
     };
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP, "any expired token must floor to EXP");
+    assert_eq!(
+        j.permission,
+        Permission::EXP,
+        "any expired token must floor to EXP"
+    );
 }
 
 // ── Proptest: any non-Valid status → gap stays Open, no promotion ─────────────

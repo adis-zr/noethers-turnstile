@@ -1,3 +1,4 @@
+use proptest::prelude::*;
 /// EC-003T — Scope containment: intersection is conservative (T14).
 ///
 /// Covers theorems:
@@ -18,9 +19,8 @@
 ///   - N-way intersection is monotonically narrowing
 ///   - All four scope fields (candidates, paths, tools, resources)
 ///   - Proptest: composed scope ⊆ each input scope
-use turnstile_core::context::{Scope, Membership, ProofContext};
-use turnstile_core::{compile, compose, expiry::Expiry, permission::Permission};
-use proptest::prelude::*;
+use turnstile_core::context::{Membership, ProofContext, Scope};
+use turnstile_core::{compose, expiry::Expiry, permission::Permission};
 
 fn scope_with_tools(tools: Vec<&str>) -> Scope {
     Scope {
@@ -71,8 +71,8 @@ fn ctx_with_scope(suffix: &str, scope: Scope) -> ProofContext {
 
 #[test]
 fn empty_scope_intersect_nonempty_returns_nonempty() {
-    let a = scope_with_tools(vec![]);              // unconstrained
-    let b = scope_with_tools(vec!["hammer"]);      // constrained
+    let a = scope_with_tools(vec![]); // unconstrained
+    let b = scope_with_tools(vec!["hammer"]); // constrained
     let result = a.intersect(b);
     assert_eq!(result.allowed_tools, vec!["hammer"]);
 }
@@ -215,12 +215,11 @@ fn disjoint_composed_scope_produces_empty_intersection() {
 // ── Proptest: composed scope is always a subset of each input ─────────────────
 
 fn arb_string_set(size: usize) -> impl Strategy<Value = Vec<String>> {
-    prop::collection::vec("[a-z]{1,4}", 0..=size)
-        .prop_map(|mut v| {
-            v.sort();
-            v.dedup();
-            v
-        })
+    prop::collection::vec("[a-z]{1,4}", 0..=size).prop_map(|mut v| {
+        v.sort();
+        v.dedup();
+        v
+    })
 }
 
 proptest! {

@@ -59,3 +59,4 @@ pub use composition::compose;
 pub use context::ProofContext;
 pub use expiry::{Expiry, LiveJudgment, RuntimeContext};
 pub use permission::Permission;
+pub use token::NegativeControlStatus;

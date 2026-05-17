@@ -36,7 +36,10 @@ fn min_status_open_bounded_gives_open() {
 #[test]
 fn min_status_bounded_closed_gives_bounded() {
     let result = GapStatus::Bounded(Bound::numeric(0.05)).min_status(GapStatus::Closed);
-    assert_eq!(result.rank(), GapStatus::Bounded(Bound::numeric(0.0)).rank());
+    assert_eq!(
+        result.rank(),
+        GapStatus::Bounded(Bound::numeric(0.0)).rank()
+    );
 }
 
 #[test]
@@ -57,8 +60,11 @@ fn min_status_commutative_all_pairs() {
             let ab = a.clone().min_status(b.clone());
             let ba = b.clone().min_status(a.clone());
             assert_eq!(
-                ab.rank(), ba.rank(),
-                "min_status not commutative: {:?} vs {:?}", a, b
+                ab.rank(),
+                ba.rank(),
+                "min_status not commutative: {:?} vs {:?}",
+                a,
+                b
             );
         }
     }
@@ -73,7 +79,12 @@ fn min_status_idempotent_all() {
     ];
     for s in &statuses {
         let result = s.clone().min_status(s.clone());
-        assert_eq!(result.rank(), s.rank(), "min_status not idempotent for {:?}", s);
+        assert_eq!(
+            result.rank(),
+            s.rank(),
+            "min_status not idempotent for {:?}",
+            s
+        );
     }
 }
 
@@ -110,7 +121,7 @@ fn bound_numeric_stores_value() {
 
 #[test]
 fn bound_numeric_with_units() {
-    let b = Bound::numeric_with_units(3.14, "radians");
+    let b = Bound::numeric_with_units(std::f64::consts::PI, "radians");
     assert!(matches!(b.kind, BoundKind::Numeric(_)));
     assert_eq!(b.units.as_deref(), Some("radians"));
 }
@@ -118,7 +129,9 @@ fn bound_numeric_with_units() {
 #[test]
 fn bound_set_valued_stores_values() {
     let b = Bound::set_valued(vec!["a".into(), "b".into()]);
-    assert!(matches!(b.kind, BoundKind::SetValued(ref v) if v == &vec!["a".to_string(), "b".to_string()]));
+    assert!(
+        matches!(b.kind, BoundKind::SetValued(ref v) if v == &vec!["a".to_string(), "b".to_string()])
+    );
 }
 
 #[test]
@@ -164,8 +177,12 @@ fn min_status_associative_all_triples() {
                 let left = a.clone().min_status(b.clone()).min_status(c.clone());
                 let right = a.clone().min_status(b.clone().min_status(c.clone()));
                 assert_eq!(
-                    left.rank(), right.rank(),
-                    "min_status not associative: {:?} {:?} {:?}", a, b, c
+                    left.rank(),
+                    right.rank(),
+                    "min_status not associative: {:?} {:?} {:?}",
+                    a,
+                    b,
+                    c
                 );
             }
         }
