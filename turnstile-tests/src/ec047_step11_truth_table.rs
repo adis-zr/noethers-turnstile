@@ -79,8 +79,7 @@ fn s4_aaa_plus_eta_is_eta() {
 
 #[test]
 fn s5_aaa_plus_ref_plus_eta_is_ref() {
-    let result =
-        Permission::meet_n([Permission::AAA, Permission::REF, Permission::ETA]).unwrap();
+    let result = Permission::meet_n([Permission::AAA, Permission::REF, Permission::ETA]).unwrap();
     assert_eq!(result, Permission::REF, "S5: AAA+REF+ETA must be REF");
 }
 

@@ -19,8 +19,8 @@
 ///   W12 — compose() round-trips: composed context serializes correctly
 use chrono::Utc;
 use turnstile_core::{
-    compile, compose,
     audit::{Derivation, DerivationStep},
+    compile, compose,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, RuntimeContext},
     gap::{Bound, GapRecord, GapRequirement, GapStatus, Profile, RequiredStatus},
@@ -49,7 +49,10 @@ fn base_ctx(id: &str) -> ProofContext {
 
 fn valid_token(id: &str, closes: Vec<&str>, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: id.into(),
@@ -107,7 +110,8 @@ fn w1_judgment_serde_roundtrip_all_permissions() {
 fn w2_proof_context_serde_roundtrip() {
     let mut ctx = base_ctx("w2");
     ctx.gaps.push(GapRecord::open("g1", "truth_gap"));
-    ctx.gaps.push(GapRecord::bounded("g2", "proxy_gap", Bound::numeric(0.05)));
+    ctx.gaps
+        .push(GapRecord::bounded("g2", "proxy_gap", Bound::numeric(0.05)));
     ctx.gaps.push(GapRecord::closed("g3", "support_gap"));
     ctx.disallowed_uses = vec!["write".into(), "production-action".into()];
     ctx.scope = Scope {
@@ -117,10 +121,7 @@ fn w2_proof_context_serde_roundtrip() {
         allowed_resources: vec!["read-only-db".into()],
     };
     ctx.authority_ceiling = Permission::DIA;
-    ctx.expiry = Expiry::at_with_reason(
-        Utc::now() + chrono::Duration::hours(1),
-        "session-expiry",
-    );
+    ctx.expiry = Expiry::at_with_reason(Utc::now() + chrono::Duration::hours(1), "session-expiry");
 
     let json = serde_json::to_string(&ctx).expect("ProofContext must serialize");
     let ctx2: ProofContext = serde_json::from_str(&json).expect("ProofContext must deserialize");
@@ -267,7 +268,10 @@ fn w7_permission_serializes_as_uppercase_tag() {
 
     for (perm, expected_json) in &cases {
         let json = serde_json::to_string(perm).expect("Permission must serialize");
-        assert_eq!(&json, expected_json, "W7: {perm:?} must serialize as {expected_json}");
+        assert_eq!(
+            &json, expected_json,
+            "W7: {perm:?} must serialize as {expected_json}"
+        );
     }
 }
 
@@ -300,7 +304,10 @@ fn w8_token_status_serializes_as_screaming_snake_case() {
 
     for (status, expected) in &cases {
         let json = serde_json::to_string(status).unwrap();
-        assert_eq!(&json, expected, "W8: {status:?} must serialize as {expected}");
+        assert_eq!(
+            &json, expected,
+            "W8: {status:?} must serialize as {expected}"
+        );
     }
 }
 
@@ -316,9 +323,18 @@ fn w9_gap_status_serializes_with_correct_tag() {
     let closed_json = serde_json::to_string(&closed).unwrap();
     let bounded_json = serde_json::to_string(&bounded).unwrap();
 
-    assert!(open_json.contains("Open") || open_json.contains("open"), "W9: Open must appear in JSON");
-    assert!(closed_json.contains("Closed") || closed_json.contains("closed"), "W9: Closed must appear in JSON");
-    assert!(bounded_json.contains("Bounded") || bounded_json.contains("bounded"), "W9: Bounded must appear in JSON");
+    assert!(
+        open_json.contains("Open") || open_json.contains("open"),
+        "W9: Open must appear in JSON"
+    );
+    assert!(
+        closed_json.contains("Closed") || closed_json.contains("closed"),
+        "W9: Closed must appear in JSON"
+    );
+    assert!(
+        bounded_json.contains("Bounded") || bounded_json.contains("bounded"),
+        "W9: Bounded must appear in JSON"
+    );
 }
 
 // ── W10: NegativeControlStatus SCREAMING_SNAKE_CASE ──────────────────────────
@@ -334,7 +350,10 @@ fn w10_nc_status_serializes_as_screaming_snake_case() {
 
     for (status, expected) in &cases {
         let json = serde_json::to_string(status).unwrap();
-        assert_eq!(&json, expected, "W10: {status:?} must serialize as {expected}");
+        assert_eq!(
+            &json, expected,
+            "W10: {status:?} must serialize as {expected}"
+        );
     }
 }
 
@@ -376,10 +395,18 @@ fn w12_composed_context_serde_roundtrip() {
     let ctx2_deser: ProofContext =
         serde_json::from_str(&json).expect("Composed context must deserialize");
 
-    assert_eq!(ctx2_deser.authority_ceiling, Permission::DIA, "W12: authority ceiling must survive round-trip");
+    assert_eq!(
+        ctx2_deser.authority_ceiling,
+        Permission::DIA,
+        "W12: authority ceiling must survive round-trip"
+    );
     assert!(
         ctx2_deser.disallowed_uses.contains(&"write".to_string()),
         "W12: disallowed_uses must survive round-trip"
     );
-    assert_eq!(ctx2_deser.gaps.len(), 2, "W12: both gaps must survive round-trip");
+    assert_eq!(
+        ctx2_deser.gaps.len(),
+        2,
+        "W12: both gaps must survive round-trip"
+    );
 }

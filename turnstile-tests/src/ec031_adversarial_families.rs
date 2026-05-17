@@ -239,7 +239,11 @@ fn a3_stale_runtime_fingerprint_blocks_via_live_judgment() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "compiled without expiry should be DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "compiled without expiry should be DIA"
+    );
 
     // Runtime fingerprint mismatch simulates stale context.
     let rt = RuntimeContext::new(Utc::now(), "fp-different");
@@ -354,16 +358,25 @@ fn a5_composed_scope_is_never_wider_than_inputs() {
 
     // z-alpha was in ctx1 but not ctx2; z-gamma was in ctx2 but not ctx1
     assert!(
-        !composed.scope.allowed_candidates.contains(&"z-alpha".to_string()),
+        !composed
+            .scope
+            .allowed_candidates
+            .contains(&"z-alpha".to_string()),
         "A5: z-alpha must not be in composed scope (not in ctx2)"
     );
     assert!(
-        !composed.scope.allowed_candidates.contains(&"z-gamma".to_string()),
+        !composed
+            .scope
+            .allowed_candidates
+            .contains(&"z-gamma".to_string()),
         "A5: z-gamma must not be in composed scope (not in ctx1)"
     );
     // z-beta is in both
     assert!(
-        composed.scope.allowed_candidates.contains(&"z-beta".to_string()),
+        composed
+            .scope
+            .allowed_candidates
+            .contains(&"z-beta".to_string()),
         "A5: z-beta must be in composed scope (in both)"
     );
 
@@ -421,14 +434,19 @@ fn a6_bounding_token_does_not_satisfy_closed_required() {
         }],
     });
 
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     // Token that only BOUNDS the gap, does not close it
     ctx.tokens.push(ProofToken {
         token_id: "tok-bound".into(),
         token_type: "TEST".into(),
         schema_version: "0.1".into(),
         status: TokenStatus::Valid,
-        closes_gaps: vec![],           // does not close
+        closes_gaps: vec![],            // does not close
         bounds_gaps: vec!["g1".into()], // only bounds
         provenance_hash: hash,
         issued_at: Utc::now(),
@@ -450,7 +468,8 @@ fn a6_bounding_token_does_not_satisfy_closed_required() {
 fn a6_bounding_token_satisfies_bounded_required() {
     // Same setup but profile only needs BOUNDED → should succeed.
     let mut ctx = base_ctx("a6b", "use");
-    ctx.gaps.push(GapRecord::bounded("g1", "proxy_gap", Bound::numeric(0.05)));
+    ctx.gaps
+        .push(GapRecord::bounded("g1", "proxy_gap", Bound::numeric(0.05)));
     ctx.profiles.push(Profile {
         permission: Permission::DIA,
         required_gaps: vec![GapRequirement {
@@ -459,7 +478,12 @@ fn a6_bounding_token_satisfies_bounded_required() {
         }],
     });
 
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     ctx.tokens.push(ProofToken {
         token_id: "tok-bound-ok".into(),
         token_type: "TEST".into(),
@@ -490,7 +514,8 @@ fn a6_bounding_token_satisfies_bounded_required() {
 #[test]
 fn a7_missing_required_coupling_gap_blocks_permission() {
     let mut ctx = base_ctx("a7", "use");
-    ctx.gaps.push(GapRecord::closed("g-calibration", "calibration_gap"));
+    ctx.gaps
+        .push(GapRecord::closed("g-calibration", "calibration_gap"));
     ctx.gaps.push(GapRecord::open("g-coupling", "coupling_gap")); // required but open
     ctx.profiles.push(Profile {
         permission: Permission::DIA,
@@ -505,7 +530,12 @@ fn a7_missing_required_coupling_gap_blocks_permission() {
             },
         ],
     });
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     // Token that closes calibration but not coupling
     ctx.tokens.push(ProofToken {
         token_id: "tok-a7".into(),
@@ -545,7 +575,12 @@ fn a8_stale_nc_token_floors_to_ref_in_strict_mode() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     let nc_tok = ProofToken {
         token_id: "nc-tok-a8".into(),
         token_type: "NEGATIVE_CONTROL".into(),
@@ -563,7 +598,11 @@ fn a8_stale_nc_token_floors_to_ref_in_strict_mode() {
     ctx.tokens.push(nc_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "compiles to DIA before runtime check");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "compiles to DIA before runtime check"
+    );
 
     // Strict mode: NC token is stale in runtime
     let mut nc_states = std::collections::HashMap::new();
@@ -588,7 +627,12 @@ fn a8_missing_nc_token_floors_to_ref_in_strict_mode() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     ctx.tokens.push(ProofToken {
         token_id: "nc-tok-a8m".into(),
         token_type: "NC".into(),
@@ -626,7 +670,12 @@ fn a8_nc_token_passes_when_live_in_strict_mode() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     ctx.tokens.push(ProofToken {
         token_id: "nc-tok-a8p".into(),
         token_type: "NC".into(),
@@ -690,7 +739,11 @@ fn a9_authority_ceiling_always_caps_after_composition() {
 
     let composed = compose(ctx1, ctx2).unwrap();
     // Composed authority ceiling must be meet(DIA, AAA) = DIA
-    assert_eq!(composed.authority_ceiling, Permission::DIA, "A9: composed ceiling is meet of inputs");
+    assert_eq!(
+        composed.authority_ceiling,
+        Permission::DIA,
+        "A9: composed ceiling is meet of inputs"
+    );
 
     let j = compile(composed).unwrap();
     assert!(
@@ -705,7 +758,12 @@ fn a9_authority_ceiling_always_caps_after_composition() {
 
 #[test]
 fn a9_n_contexts_ceiling_is_meet_of_all() {
-    let ceilings = [Permission::AEX, Permission::DIA, Permission::AAA, Permission::ROL];
+    let ceilings = [
+        Permission::AEX,
+        Permission::DIA,
+        Permission::AAA,
+        Permission::ROL,
+    ];
     let expected_meet = ceilings.iter().copied().min().unwrap();
 
     let contexts: Vec<ProofContext> = ceilings

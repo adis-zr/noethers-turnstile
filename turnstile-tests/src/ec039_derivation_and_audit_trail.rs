@@ -23,8 +23,8 @@
 ///   D12 — Derivation token_ids are accurate (consulted tokens appear)
 use chrono::{Duration, Utc};
 use turnstile_core::{
-    compile,
     audit::{AuditEntry, AuditStore, InMemoryAuditStore},
+    compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
@@ -52,7 +52,10 @@ fn base_ctx(id: &str) -> ProofContext {
 
 fn valid_token(id: &str, closes: Vec<&str>, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: id.into(),
@@ -79,10 +82,13 @@ fn d1_ooc_membership_produces_single_step() {
 
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::OOC);
-    assert_eq!(j.derivation.steps.len(), 1, "D1: OOC must produce exactly one step");
     assert_eq!(
-        j.derivation.steps[0].phase,
-        "membership_check",
+        j.derivation.steps.len(),
+        1,
+        "D1: OOC must produce exactly one step"
+    );
+    assert_eq!(
+        j.derivation.steps[0].phase, "membership_check",
         "D1: single step must be membership_check"
     );
     assert_eq!(
@@ -109,7 +115,12 @@ fn d2_satisfied_profile_produces_descending_search_step() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    let phases: Vec<&str> = j.derivation.steps.iter().map(|s| s.phase.as_str()).collect();
+    let phases: Vec<&str> = j
+        .derivation
+        .steps
+        .iter()
+        .map(|s| s.phase.as_str())
+        .collect();
     assert!(
         phases.contains(&"descending_search"),
         "D2: descending_search phase must appear in derivation"
@@ -136,7 +147,12 @@ fn d3_authority_ceiling_step_appears_when_active() {
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::DIA, "D3: ceiling must cap at DIA");
 
-    let phases: Vec<&str> = j.derivation.steps.iter().map(|s| s.phase.as_str()).collect();
+    let phases: Vec<&str> = j
+        .derivation
+        .steps
+        .iter()
+        .map(|s| s.phase.as_str())
+        .collect();
     assert!(
         phases.contains(&"authority_ceiling"),
         "D3: authority_ceiling phase must appear when ceiling is active"
@@ -157,7 +173,12 @@ fn d4_expiry_blocker_step_appears_when_token_expired() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     ctx.tokens.push(ProofToken {
         token_id: "tok-d4-expired".into(),
         token_type: "T".into(),
@@ -174,9 +195,18 @@ fn d4_expiry_blocker_step_appears_when_token_expired() {
     });
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP, "D4: expired token must floor to EXP");
+    assert_eq!(
+        j.permission,
+        Permission::EXP,
+        "D4: expired token must floor to EXP"
+    );
 
-    let phases: Vec<&str> = j.derivation.steps.iter().map(|s| s.phase.as_str()).collect();
+    let phases: Vec<&str> = j
+        .derivation
+        .steps
+        .iter()
+        .map(|s| s.phase.as_str())
+        .collect();
     assert!(
         phases.contains(&"expiry_blocker"),
         "D4: expiry_blocker phase must appear when token is expired"
@@ -201,9 +231,17 @@ fn d5_structural_blockers_step_appears_when_disallowed_uses_present() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert!(j.permission <= Permission::ROL, "D5: disallowed_uses must cap at ROL");
+    assert!(
+        j.permission <= Permission::ROL,
+        "D5: disallowed_uses must cap at ROL"
+    );
 
-    let phases: Vec<&str> = j.derivation.steps.iter().map(|s| s.phase.as_str()).collect();
+    let phases: Vec<&str> = j
+        .derivation
+        .steps
+        .iter()
+        .map(|s| s.phase.as_str())
+        .collect();
     assert!(
         phases.contains(&"structural_blockers"),
         "D5: structural_blockers phase must appear when disallowed_uses present"
@@ -223,7 +261,12 @@ fn d6_nc_registration_step_appears_when_nc_token_present() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     ctx.tokens.push(ProofToken {
         token_id: "nc-tok-d6".into(),
         token_type: "NC".into(),
@@ -240,7 +283,12 @@ fn d6_nc_registration_step_appears_when_nc_token_present() {
     });
 
     let j = compile(ctx).unwrap();
-    let phases: Vec<&str> = j.derivation.steps.iter().map(|s| s.phase.as_str()).collect();
+    let phases: Vec<&str> = j
+        .derivation
+        .steps
+        .iter()
+        .map(|s| s.phase.as_str())
+        .collect();
     assert!(
         phases.contains(&"negative_control_registration"),
         "D6: negative_control_registration step must appear when NC token present"
@@ -274,7 +322,8 @@ fn d7_derivation_steps_are_non_increasing() {
         assert!(
             later <= earlier,
             "D7: derivation step permission_after must be non-increasing: {} → {}",
-            earlier, later
+            earlier,
+            later
         );
     }
 }
@@ -350,13 +399,15 @@ fn d10_derivation_provenance_hash_matches_context() {
     ctx.tokens.push(tok);
 
     let expected_hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
 
     let j = compile(ctx).unwrap();
     assert_eq!(
-        j.derivation.provenance_hash,
-        expected_hash,
+        j.derivation.provenance_hash, expected_hash,
         "D10: derivation provenance_hash must match context provenance"
     );
 }
@@ -389,7 +440,12 @@ fn d11_t18_audit_record_does_not_alter_permission() {
         membership: format!("{:?}", j.context.membership),
         permission: j.permission,
         expiry_deadline: j.expiry.deadline,
-        token_ids: j.context.tokens.iter().map(|t| t.token_id.clone()).collect(),
+        token_ids: j
+            .context
+            .tokens
+            .iter()
+            .map(|t| t.token_id.clone())
+            .collect(),
         provenance_hash: j.derivation.provenance_hash.clone(),
         derivation: j.derivation.clone(),
         emitted_at: Utc::now(),
@@ -405,7 +461,10 @@ fn d11_t18_audit_record_does_not_alter_permission() {
     // Reading audit back must show the same permission
     let entries = store.entries();
     assert_eq!(entries.len(), 1);
-    assert_eq!(entries[0].permission, permission_before_audit, "D11/T18: audit entry must record original permission");
+    assert_eq!(
+        entries[0].permission, permission_before_audit,
+        "D11/T18: audit entry must record original permission"
+    );
 }
 
 // ── D12: Derivation token_ids reference tokens that were actually consulted ───
@@ -442,7 +501,12 @@ fn d12_derivation_token_ids_are_consulted_tokens() {
     );
 
     // All token_ids in derivation must reference tokens present in the context
-    let ctx_token_ids: Vec<&str> = j.context.tokens.iter().map(|t| t.token_id.as_str()).collect();
+    let ctx_token_ids: Vec<&str> = j
+        .context
+        .tokens
+        .iter()
+        .map(|t| t.token_id.as_str())
+        .collect();
     for tid in &all_token_ids {
         assert!(
             ctx_token_ids.contains(tid),

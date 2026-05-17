@@ -193,7 +193,10 @@ fn a5_duplicate_entries_same_result() {
     let ctx = ctx_needs_g1_closed();
     let p1 = compile(ctx.clone()).unwrap().permission;
     let p2 = compile(ctx.clone()).unwrap().permission;
-    assert_eq!(p1, p2, "A5: compiling same context twice must produce same result");
+    assert_eq!(
+        p1, p2,
+        "A5: compiling same context twice must produce same result"
+    );
     assert_eq!(p1, Permission::OOC);
 }
 

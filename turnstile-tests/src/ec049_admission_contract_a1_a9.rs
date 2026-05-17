@@ -90,7 +90,11 @@ fn clean_ctx() -> ProofContext {
 fn all_clean_context_passes() {
     let ctx = clean_ctx();
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "Clean context must compile to DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "Clean context must compile to DIA"
+    );
 }
 
 // ── A1: Duplicate gap_id → MalformedContext ───────────────────────────────────
@@ -209,7 +213,11 @@ fn a3_2_one_thousand_gaps_no_profiles_yields_ooc() {
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "A3-2: 1k gaps, no profiles → OOC");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "A3-2: 1k gaps, no profiles → OOC"
+    );
 }
 
 // ── A4: Duplicate permission level in profiles → MalformedContext ─────────────
@@ -286,8 +294,12 @@ fn a4_2_unique_permission_levels_accepted() {
 #[test]
 fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
     for (i, &ceiling) in ALL_PERMISSIONS.iter().enumerate() {
-        let hash =
-            compute_provenance_hash(&format!("c-{i}"), &format!("z-{i}"), &format!("x-{i}"), &format!("u-{i}"));
+        let hash = compute_provenance_hash(
+            &format!("c-{i}"),
+            &format!("z-{i}"),
+            &format!("x-{i}"),
+            &format!("u-{i}"),
+        );
         let ctx = ProofContext {
             claim_id: format!("c-{i}"),
             candidate_id: format!("z-{i}"),
@@ -364,8 +376,7 @@ fn a7_2_matching_fingerprint_preserves_permission() {
 #[test]
 fn a9_1_million_char_allowed_use_terminates() {
     let long_use: String = "x".repeat(1_000_000);
-    let hash =
-        compute_provenance_hash("claim-a9", "z-a9", "ctx-a9", &long_use);
+    let hash = compute_provenance_hash("claim-a9", "z-a9", "ctx-a9", &long_use);
     let ctx = ProofContext {
         claim_id: "claim-a9".into(),
         candidate_id: "z-a9".into(),
@@ -404,7 +415,10 @@ fn a9_1_million_char_allowed_use_terminates() {
     let result = compile(ctx);
     let elapsed = start.elapsed();
     assert!(result.is_ok(), "A9-1: 1M-char allowed_use must not error");
-    assert!(elapsed.as_secs() < 5, "A9-1: must complete in <5s (took {elapsed:?})");
+    assert!(
+        elapsed.as_secs() < 5,
+        "A9-1: must complete in <5s (took {elapsed:?})"
+    );
 }
 
 #[test]
@@ -432,7 +446,10 @@ fn a9_2_one_thousand_long_gap_ids_terminates() {
     let result = compile(ctx);
     let elapsed = start.elapsed();
     assert!(result.is_ok(), "A9-2: 1k long-id gaps must not error");
-    assert!(elapsed.as_secs() < 5, "A9-2: must complete in <5s (took {elapsed:?})");
+    assert!(
+        elapsed.as_secs() < 5,
+        "A9-2: must complete in <5s (took {elapsed:?})"
+    );
 }
 
 #[test]
@@ -495,5 +512,8 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
     let j = compile(ctx).unwrap();
     let elapsed = start.elapsed();
     assert_eq!(j.permission, Permission::OOC, "A9-3: all gaps open → OOC");
-    assert!(elapsed.as_secs() < 5, "A9-3: must complete in <5s (took {elapsed:?})");
+    assert!(
+        elapsed.as_secs() < 5,
+        "A9-3: must complete in <5s (took {elapsed:?})"
+    );
 }

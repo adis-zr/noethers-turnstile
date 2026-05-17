@@ -26,7 +26,7 @@ use turnstile_core::{
     context::{Membership, ProofContext, Scope},
     error::CompositionError,
     expiry::Expiry,
-    gap::{GapRecord, GapStatus, GapRequirement, Profile, RequiredStatus},
+    gap::{GapRecord, GapRequirement, GapStatus, Profile, RequiredStatus},
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
@@ -51,7 +51,10 @@ fn base_ctx(id: &str) -> ProofContext {
 
 fn valid_token(id: &str, closes: Vec<&str>, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: id.into(),
@@ -97,7 +100,10 @@ fn ci2_compose_self_disallowed_uses_idempotent() {
     let mut d2 = ctx.disallowed_uses.clone();
     d2.sort();
 
-    assert_eq!(d1, d2, "CI2: compose(ctx,ctx) disallowed_uses must not grow (dedup)");
+    assert_eq!(
+        d1, d2,
+        "CI2: compose(ctx,ctx) disallowed_uses must not grow (dedup)"
+    );
 }
 
 // ── CI3: compose(ctx, ctx) is idempotent for scope ───────────────────────────
@@ -114,8 +120,7 @@ fn ci3_compose_self_scope_idempotent() {
 
     let composed = compose(ctx.clone(), ctx.clone()).unwrap();
     assert_eq!(
-        composed.scope.allowed_candidates,
-        ctx.scope.allowed_candidates,
+        composed.scope.allowed_candidates, ctx.scope.allowed_candidates,
         "CI3: compose(ctx,ctx) scope must equal ctx's scope (intersection with self)"
     );
 }
@@ -240,8 +245,15 @@ fn ci7_disallowed_uses_is_associative() {
     lhs_uses.sort();
     rhs_uses.sort();
 
-    assert_eq!(lhs_uses, rhs_uses, "CI7: disallowed_uses composition must be associative");
-    assert_eq!(lhs_uses.len(), 3, "CI7: all three disallowed_uses must be present");
+    assert_eq!(
+        lhs_uses, rhs_uses,
+        "CI7: disallowed_uses composition must be associative"
+    );
+    assert_eq!(
+        lhs_uses.len(),
+        3,
+        "CI7: all three disallowed_uses must be present"
+    );
 }
 
 // ── CI8: compose_n([A,B,C]) = left-fold compose(compose(A,B),C) ──────────────
@@ -278,7 +290,10 @@ fn ci8_compose_n_equals_left_fold() {
     let mut na_uses = n_ary.disallowed_uses.clone();
     lf_uses.sort();
     na_uses.sort();
-    assert_eq!(lf_uses, na_uses, "CI8: compose_n disallowed_uses must equal left-fold");
+    assert_eq!(
+        lf_uses, na_uses,
+        "CI8: compose_n disallowed_uses must equal left-fold"
+    );
 }
 
 // ── CI9: A ∩ (B ∩ C) = compose_n([A,B,C]) for authority ceiling ──────────────
@@ -367,9 +382,19 @@ fn ci12_compose_n_single_element_identity() {
 
     let result = compose_n(vec![ctx.clone()]).unwrap();
 
-    assert_eq!(result.authority_ceiling, ctx.authority_ceiling, "CI12: single-element compose_n authority_ceiling");
-    assert_eq!(result.disallowed_uses, ctx.disallowed_uses, "CI12: single-element compose_n disallowed_uses");
-    assert_eq!(result.gaps.len(), ctx.gaps.len(), "CI12: single-element compose_n gaps");
+    assert_eq!(
+        result.authority_ceiling, ctx.authority_ceiling,
+        "CI12: single-element compose_n authority_ceiling"
+    );
+    assert_eq!(
+        result.disallowed_uses, ctx.disallowed_uses,
+        "CI12: single-element compose_n disallowed_uses"
+    );
+    assert_eq!(
+        result.gaps.len(),
+        ctx.gaps.len(),
+        "CI12: single-element compose_n gaps"
+    );
 }
 
 // ── Compile-then-compose non-promotion: end-to-end ────────────────────────────

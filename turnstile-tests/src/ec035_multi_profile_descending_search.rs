@@ -46,7 +46,10 @@ fn base_ctx(id: &str) -> ProofContext {
 
 fn closing_token(id: &str, closes: Vec<&str>, ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: id.into(),
@@ -98,7 +101,11 @@ fn s1_strongest_satisfied_profile_wins() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::AEX, "S1: must select AEX (strongest satisfied)");
+    assert_eq!(
+        j.permission,
+        Permission::AEX,
+        "S1: must select AEX (strongest satisfied)"
+    );
 }
 
 // ── S2: Skips unsatisfied profiles and continues ──────────────────────────────
@@ -136,7 +143,11 @@ fn s2_skips_unsatisfied_profiles() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "S2: must skip AEX and select DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "S2: must skip AEX and select DIA"
+    );
     assert!(j.permission < Permission::AEX, "S2: AEX must be skipped");
 }
 
@@ -156,7 +167,11 @@ fn s3_no_satisfied_profile_produces_ooc() {
     // No tokens → gap stays open → profile not satisfied
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "S3: no satisfied profile must produce OOC");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "S3: no satisfied profile must produce OOC"
+    );
 }
 
 // ── S4: With DIA+AEX profiles, full evidence compiles to AEX ─────────────────
@@ -192,7 +207,11 @@ fn s4_full_evidence_for_aex_compiles_to_aex() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::AEX, "S4: full evidence must reach AEX");
+    assert_eq!(
+        j.permission,
+        Permission::AEX,
+        "S4: full evidence must reach AEX"
+    );
 }
 
 // ── S5: Partial evidence compiles to DIA only ────────────────────────────────
@@ -228,7 +247,11 @@ fn s5_dia_evidence_only_compiles_to_dia() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "S5: partial evidence must compile to DIA, not AEX");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "S5: partial evidence must compile to DIA, not AEX"
+    );
 }
 
 // ── S6: Adding evidence can only raise or maintain permission ─────────────────
@@ -313,7 +336,11 @@ fn s7_profile_order_is_irrelevant_to_outcome() {
         j_a.permission, j_b.permission,
         "S7: profile order must not affect compiled permission"
     );
-    assert_eq!(j_a.permission, Permission::DIA, "S7: must compile to DIA (g2 open)");
+    assert_eq!(
+        j_a.permission,
+        Permission::DIA,
+        "S7: must compile to DIA (g2 open)"
+    );
 }
 
 // ── S8: OOC cannot be targeted via a profile ──────────────────────────────────
@@ -327,7 +354,11 @@ fn s8_profile_for_permission_below_ooc_does_not_exist() {
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     // No profiles → descending search finds nothing → OOC
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "S8: no profiles → OOC fallthrough");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "S8: no profiles → OOC fallthrough"
+    );
 }
 
 // ── S9: BOUNDED_REQUIRED satisfied by Closed but not Open ────────────────────
@@ -347,7 +378,11 @@ fn s9_bounded_required_satisfied_by_closed() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "S9: Closed must satisfy BoundedRequired");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "S9: Closed must satisfy BoundedRequired"
+    );
 }
 
 #[test]
@@ -363,13 +398,18 @@ fn s9_bounded_required_not_satisfied_by_open() {
     });
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "S9: Open must not satisfy BoundedRequired");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "S9: Open must not satisfy BoundedRequired"
+    );
 }
 
 #[test]
 fn s9_bounded_required_satisfied_by_bounded_status_with_token() {
     let mut ctx = base_ctx("s9b");
-    ctx.gaps.push(GapRecord::bounded("g1", "t", Bound::numeric(0.1)));
+    ctx.gaps
+        .push(GapRecord::bounded("g1", "t", Bound::numeric(0.1)));
     ctx.profiles.push(Profile {
         permission: Permission::DIA,
         required_gaps: vec![GapRequirement {
@@ -377,7 +417,12 @@ fn s9_bounded_required_satisfied_by_bounded_status_with_token() {
             minimum_status: RequiredStatus::BoundedRequired,
         }],
     });
-    let hash = compute_provenance_hash(&ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use);
+    let hash = compute_provenance_hash(
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
+    );
     ctx.tokens.push(ProofToken {
         token_id: "tok-s9b".into(),
         token_type: "BOUND_TOKEN".into(),
@@ -394,7 +439,11 @@ fn s9_bounded_required_satisfied_by_bounded_status_with_token() {
     });
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "S9: Bounded token must satisfy BoundedRequired");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "S9: Bounded token must satisfy BoundedRequired"
+    );
 }
 
 // ── S10: Empty required_gaps profile is always satisfied ─────────────────────
@@ -409,7 +458,11 @@ fn s10_profile_with_no_required_gaps_is_always_satisfied() {
     });
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "S10: empty required_gaps profile must be satisfied");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "S10: empty required_gaps profile must be satisfied"
+    );
 }
 
 // ── S11: Duplicate permission levels are MalformedContext ────────────────────
@@ -431,7 +484,10 @@ fn s11_duplicate_permission_levels_are_malformed() {
     });
 
     let result = compile(ctx);
-    assert!(result.is_err(), "S11: duplicate permission levels must be MalformedContext");
+    assert!(
+        result.is_err(),
+        "S11: duplicate permission levels must be MalformedContext"
+    );
     let err_msg = format!("{:?}", result.unwrap_err());
     assert!(
         err_msg.contains("duplicate") || err_msg.contains("Malformed"),

@@ -249,10 +249,8 @@ fn h9_highest_ceiling_plus_ooc_yields_ooc() {
 #[test]
 fn h10_inclass_compose_adw_yields_ooc() {
     let ctx1 = minimal_ctx_with_membership(Membership::InClass, "h10a");
-    let ctx2 = minimal_ctx_with_membership(
-        Membership::OutOfClassAuthorizedDeterministicWrite,
-        "h10b",
-    );
+    let ctx2 =
+        minimal_ctx_with_membership(Membership::OutOfClassAuthorizedDeterministicWrite, "h10b");
     let composed = compose(ctx1, ctx2).unwrap();
     let j = compile(composed).unwrap();
     assert_eq!(
@@ -278,8 +276,7 @@ fn h11_inclass_compose_exact_yields_ooc() {
 #[test]
 fn h12_inclass_compose_ncu_yields_ooc() {
     let ctx1 = minimal_ctx_with_membership(Membership::InClass, "h12a");
-    let ctx2 =
-        minimal_ctx_with_membership(Membership::OutOfClassNoConsequentialUse, "h12b");
+    let ctx2 = minimal_ctx_with_membership(Membership::OutOfClassNoConsequentialUse, "h12b");
     let composed = compose(ctx1, ctx2).unwrap();
     let j = compile(composed).unwrap();
     assert_eq!(
@@ -292,10 +289,8 @@ fn h12_inclass_compose_ncu_yields_ooc() {
 #[test]
 fn h13_exact_compose_adw_yields_ooc() {
     let ctx1 = minimal_ctx_with_membership(Membership::OutOfClassExact, "h13a");
-    let ctx2 = minimal_ctx_with_membership(
-        Membership::OutOfClassAuthorizedDeterministicWrite,
-        "h13b",
-    );
+    let ctx2 =
+        minimal_ctx_with_membership(Membership::OutOfClassAuthorizedDeterministicWrite, "h13b");
     let composed = compose(ctx1, ctx2).unwrap();
     let j = compile(composed).unwrap();
     assert_eq!(

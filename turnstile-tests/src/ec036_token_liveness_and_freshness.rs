@@ -64,7 +64,10 @@ fn token_with_status_and_expiry(
     ctx: &ProofContext,
 ) -> ProofToken {
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ProofToken {
         token_id: id.into(),
@@ -91,7 +94,11 @@ fn l1_valid_token_no_expiry_is_live() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "L1: valid token with no expiry must be live");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "L1: valid token with no expiry must be live"
+    );
 }
 
 // ── L2: Valid, future expiry → live ──────────────────────────────────────────
@@ -104,7 +111,11 @@ fn l2_valid_token_future_expiry_is_live() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "L2: valid token with future expiry must be live");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "L2: valid token with future expiry must be live"
+    );
 }
 
 // ── L3: Valid, past expiry → EXP floor ───────────────────────────────────────
@@ -122,7 +133,11 @@ fn l3_valid_token_past_expiry_triggers_exp() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP, "L3: expired valid token must floor permission to EXP");
+    assert_eq!(
+        j.permission,
+        Permission::EXP,
+        "L3: expired valid token must floor permission to EXP"
+    );
 }
 
 // ── L4: Invalid status → not live (does not close gap, does not trigger EXP) ─
@@ -136,8 +151,16 @@ fn l4_invalid_token_neither_closes_nor_triggers_exp() {
 
     let j = compile(ctx).unwrap();
     // Invalid token: gap not closed → OOC; and no EXP floor (dead token)
-    assert_eq!(j.permission, Permission::OOC, "L4: invalid token must not close gap");
-    assert_ne!(j.permission, Permission::EXP, "L4: invalid token must not trigger EXP floor");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "L4: invalid token must not close gap"
+    );
+    assert_ne!(
+        j.permission,
+        Permission::EXP,
+        "L4: invalid token must not trigger EXP floor"
+    );
 }
 
 // ── L5: Expired status → not live ────────────────────────────────────────────
@@ -150,8 +173,16 @@ fn l5_expired_status_token_neither_closes_nor_triggers_exp() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "L5: expired-status token must not close gap");
-    assert_ne!(j.permission, Permission::EXP, "L5: expired-status token must not trigger EXP floor");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "L5: expired-status token must not close gap"
+    );
+    assert_ne!(
+        j.permission,
+        Permission::EXP,
+        "L5: expired-status token must not trigger EXP floor"
+    );
 }
 
 // ── L6: Revoked status → not live ────────────────────────────────────────────
@@ -164,8 +195,16 @@ fn l6_revoked_token_neither_closes_nor_triggers_exp() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "L6: revoked token must not close gap");
-    assert_ne!(j.permission, Permission::EXP, "L6: revoked token must not trigger EXP floor");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "L6: revoked token must not close gap"
+    );
+    assert_ne!(
+        j.permission,
+        Permission::EXP,
+        "L6: revoked token must not trigger EXP floor"
+    );
 }
 
 // ── L7: Malformed status → not live ──────────────────────────────────────────
@@ -178,8 +217,16 @@ fn l7_malformed_token_neither_closes_nor_triggers_exp() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "L7: malformed token must not close gap");
-    assert_ne!(j.permission, Permission::EXP, "L7: malformed token must not trigger EXP floor");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "L7: malformed token must not close gap"
+    );
+    assert_ne!(
+        j.permission,
+        Permission::EXP,
+        "L7: malformed token must not trigger EXP floor"
+    );
 }
 
 // ── L8: Expiry at exact boundary (now == expires_at) → expired ───────────────
@@ -216,7 +263,11 @@ fn l9_token_one_second_before_expiry_is_live() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "L9: token expiring in 1s must still be live");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "L9: token expiring in 1s must still be live"
+    );
 }
 
 // ── L10: Mix of tokens; one expired Valid → EXP floor ────────────────────────
@@ -234,7 +285,10 @@ fn l10_one_expired_valid_token_triggers_exp_regardless_of_others() {
     });
 
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
 
     // Fresh valid token for g2
@@ -285,10 +339,18 @@ fn l11_only_dead_tokens_with_past_expiry_no_exp_floor() {
     let mut ctx = base_ctx("l11");
 
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
 
-    for status in [TokenStatus::Invalid, TokenStatus::Expired, TokenStatus::Revoked, TokenStatus::Malformed] {
+    for status in [
+        TokenStatus::Invalid,
+        TokenStatus::Expired,
+        TokenStatus::Revoked,
+        TokenStatus::Malformed,
+    ] {
         ctx.tokens.push(ProofToken {
             token_id: format!("tok-dead-{status:?}"),
             token_type: "T".into(),
@@ -312,7 +374,11 @@ fn l11_only_dead_tokens_with_past_expiry_no_exp_floor() {
         Permission::EXP,
         "L11: dead tokens with past expiry must not trigger EXP floor"
     );
-    assert_eq!(j.permission, Permission::OOC, "L11: dead tokens don't close gaps either");
+    assert_eq!(
+        j.permission,
+        Permission::OOC,
+        "L11: dead tokens don't close gaps either"
+    );
 }
 
 // ── L12: Bounds-only expired Valid token also triggers EXP floor ─────────────
@@ -326,7 +392,10 @@ fn l12_bounding_expired_valid_token_triggers_exp() {
     ctx.gaps[0] = GapRecord::closed("g1", "t");
 
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
 
     ctx.tokens.push(ProofToken {
@@ -361,7 +430,10 @@ fn l13_context_expiry_fires_at_compile_time() {
     ctx.expiry = Expiry::at(past);
 
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ctx.tokens.push(ProofToken {
         token_id: "tok-l13".into(),
@@ -379,7 +451,11 @@ fn l13_context_expiry_fires_at_compile_time() {
     });
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP, "L13: fired context expiry must produce EXP at compile time");
+    assert_eq!(
+        j.permission,
+        Permission::EXP,
+        "L13: fired context expiry must produce EXP at compile time"
+    );
 }
 
 // ── L14: Context expiry not yet fired → no EXP at compile time ───────────────
@@ -391,7 +467,10 @@ fn l14_context_expiry_not_yet_fired_no_exp() {
     ctx.expiry = Expiry::at(future);
 
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ctx.tokens.push(ProofToken {
         token_id: "tok-l14".into(),
@@ -409,7 +488,11 @@ fn l14_context_expiry_not_yet_fired_no_exp() {
     });
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "L14: future context expiry must not produce EXP");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "L14: future context expiry must not produce EXP"
+    );
 }
 
 // ── L15: Context expiry fires at exact boundary ───────────────────────────────
@@ -422,7 +505,10 @@ fn l15_context_expiry_fires_at_exact_boundary() {
     ctx.expiry = Expiry::at(just_past);
 
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ctx.tokens.push(ProofToken {
         token_id: "tok-l15".into(),

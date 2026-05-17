@@ -62,9 +62,7 @@ fn glb2_meet_is_greatest_lower_bound_all_1728_checks() {
             for &x in &ALL {
                 // If x is a common lower bound of a and b, then x ≤ meet(a,b)
                 if x <= a && x <= b && !(x <= m) {
-                    eprintln!(
-                        "GLB2 FAIL: x={x:?} ≤ {a:?} and x ≤ {b:?} but x ≰ meet={m:?}"
-                    );
+                    eprintln!("GLB2 FAIL: x={x:?} ≤ {a:?} and x ≤ {b:?} but x ≰ meet={m:?}");
                     failures += 1;
                 }
             }
@@ -87,9 +85,7 @@ fn glb3_no_strictly_greater_lower_bound_exists() {
             // Check that no m2 > m satisfies m2 ≤ a AND m2 ≤ b
             for &m2 in &ALL {
                 if m2 > m && m2 <= a && m2 <= b {
-                    eprintln!(
-                        "GLB3 FAIL: m2={m2:?} > meet={m:?} but m2 ≤ {a:?} and m2 ≤ {b:?}"
-                    );
+                    eprintln!("GLB3 FAIL: m2={m2:?} > meet={m:?} but m2 ≤ {a:?} and m2 ≤ {b:?}");
                     failures += 1;
                 }
             }
@@ -106,11 +102,7 @@ fn glb3_no_strictly_greater_lower_bound_exists() {
 #[test]
 fn glb4_meet_idempotent_all_12() {
     for &a in &ALL {
-        assert_eq!(
-            a.meet(a),
-            a,
-            "GLB4: meet({a:?},{a:?}) must equal {a:?}"
-        );
+        assert_eq!(a.meet(a), a, "GLB4: meet({a:?},{a:?}) must equal {a:?}");
     }
 }
 

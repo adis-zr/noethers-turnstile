@@ -16,8 +16,8 @@
 ///   SV11 — all_entries() after 50 registrations returns all 50
 ///   SV12 — current_version() returns most-recently registered version
 use chrono::Utc;
-use std::thread;
 use std::sync::Arc;
+use std::thread;
 use turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -136,7 +136,10 @@ fn sv3_concurrent_registration_exactly_one_succeeds() {
     let successes = results.iter().filter(|r| r.is_ok()).count();
     let failures = results.iter().filter(|r| r.is_err()).count();
 
-    assert_eq!(successes, 1, "SV3: exactly one concurrent registration must succeed");
+    assert_eq!(
+        successes, 1,
+        "SV3: exactly one concurrent registration must succeed"
+    );
     assert_eq!(
         failures,
         n_threads - 1,
@@ -188,8 +191,14 @@ fn sv5_older_schema_version_token_accepted_by_compile() {
     let r_old = compile(ctx_old);
     let r_new = compile(ctx_new);
     // Both should succeed (gap open → OOC, but no error from schema version)
-    assert!(r_old.is_ok(), "SV5: old schema_version must not cause error");
-    assert!(r_new.is_ok(), "SV5: new schema_version must not cause error");
+    assert!(
+        r_old.is_ok(),
+        "SV5: old schema_version must not cause error"
+    );
+    assert!(
+        r_new.is_ok(),
+        "SV5: new schema_version must not cause error"
+    );
 }
 
 // ── SV6: Two tokens same schema_id different versions: both independently OK ──
@@ -214,8 +223,14 @@ fn sv6_two_versions_same_schema_id_both_registered() {
         })
         .unwrap();
 
-    assert!(registry.get("my-schema", "1.0").is_some(), "SV6: v1.0 must be retrievable");
-    assert!(registry.get("my-schema", "2.0").is_some(), "SV6: v2.0 must be retrievable");
+    assert!(
+        registry.get("my-schema", "1.0").is_some(),
+        "SV6: v1.0 must be retrievable"
+    );
+    assert!(
+        registry.get("my-schema", "2.0").is_some(),
+        "SV6: v2.0 must be retrievable"
+    );
     assert_eq!(
         registry.current_version("my-schema").as_deref(),
         Some("2.0"),
@@ -247,7 +262,10 @@ fn sv7_schema_version_whitespace_is_distinct() {
 
     assert!(registry.get("ws-schema", "1.0").is_some());
     assert!(registry.get("ws-schema", " 1.0").is_some());
-    assert!(registry.get("ws-schema", "1.0 ").is_none(), "trailing space is not registered");
+    assert!(
+        registry.get("ws-schema", "1.0 ").is_none(),
+        "trailing space is not registered"
+    );
 }
 
 // ── SV8: Unicode schema_version accepted ─────────────────────────────────────
@@ -261,7 +279,10 @@ fn sv8_unicode_schema_version_accepted() {
         description: "unicode version".into(),
         created_at: Utc::now(),
     });
-    assert!(result.is_ok(), "SV8: unicode schema_version must be accepted");
+    assert!(
+        result.is_ok(),
+        "SV8: unicode schema_version must be accepted"
+    );
     assert!(registry.get("unicode-schema", "1.0-αβγ").is_some());
 }
 

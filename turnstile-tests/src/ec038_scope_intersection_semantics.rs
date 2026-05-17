@@ -19,7 +19,7 @@
 ///   SI10 — compose() preserves unconstrained paths when one ctx has no path constraint
 use turnstile_core::{
     compose, compose_n,
-    context::{ProofContext, Scope, Membership},
+    context::{Membership, ProofContext, Scope},
     expiry::Expiry,
     permission::Permission,
 };
@@ -56,16 +56,12 @@ fn scope_candidates(candidates: Vec<&str>) -> Scope {
 #[test]
 fn si1_unconstrained_intersect_constrained_is_constrained() {
     let ctx1 = ctx_with_scope("si1a", Scope::default()); // unconstrained (empty list)
-    let ctx2 = ctx_with_scope(
-        "si1b",
-        scope_candidates(vec!["z-1", "z-2"]),
-    );
+    let ctx2 = ctx_with_scope("si1b", scope_candidates(vec!["z-1", "z-2"]));
 
     let composed = compose(ctx1, ctx2.clone()).unwrap();
     // Intersection of top with {z-1, z-2} = {z-1, z-2}
     assert_eq!(
-        composed.scope.allowed_candidates,
-        ctx2.scope.allowed_candidates,
+        composed.scope.allowed_candidates, ctx2.scope.allowed_candidates,
         "SI1: unconstrained ∩ constrained must equal the constrained set"
     );
 }
@@ -77,8 +73,7 @@ fn si1_constrained_intersect_unconstrained_is_constrained() {
 
     let composed = compose(ctx1.clone(), ctx2).unwrap();
     assert_eq!(
-        composed.scope.allowed_candidates,
-        ctx1.scope.allowed_candidates,
+        composed.scope.allowed_candidates, ctx1.scope.allowed_candidates,
         "SI1: constrained ∩ unconstrained must equal the constrained set"
     );
 }
@@ -94,11 +89,27 @@ fn si2_overlapping_constraints_produce_intersection() {
     let mut result = composed.scope.allowed_candidates.clone();
     result.sort();
 
-    assert!(result.contains(&"z-2".to_string()), "SI2: z-2 is in both, must be in intersection");
-    assert!(result.contains(&"z-3".to_string()), "SI2: z-3 is in both, must be in intersection");
-    assert!(!result.contains(&"z-1".to_string()), "SI2: z-1 is only in ctx1, must not be in intersection");
-    assert!(!result.contains(&"z-4".to_string()), "SI2: z-4 is only in ctx2, must not be in intersection");
-    assert_eq!(result.len(), 2, "SI2: intersection must have exactly 2 elements");
+    assert!(
+        result.contains(&"z-2".to_string()),
+        "SI2: z-2 is in both, must be in intersection"
+    );
+    assert!(
+        result.contains(&"z-3".to_string()),
+        "SI2: z-3 is in both, must be in intersection"
+    );
+    assert!(
+        !result.contains(&"z-1".to_string()),
+        "SI2: z-1 is only in ctx1, must not be in intersection"
+    );
+    assert!(
+        !result.contains(&"z-4".to_string()),
+        "SI2: z-4 is only in ctx2, must not be in intersection"
+    );
+    assert_eq!(
+        result.len(),
+        2,
+        "SI2: intersection must have exactly 2 elements"
+    );
 }
 
 // ── SI3: Disjoint constraints → empty intersection ───────────────────────────
@@ -161,7 +172,10 @@ fn si6_scope_intersection_is_commutative() {
     fwd_cands.sort();
     rev_cands.sort();
 
-    assert_eq!(fwd_cands, rev_cands, "SI6: scope intersection must be commutative");
+    assert_eq!(
+        fwd_cands, rev_cands,
+        "SI6: scope intersection must be commutative"
+    );
 }
 
 // ── SI7: Scope intersection is associative ────────────────────────────────────
@@ -188,33 +202,58 @@ fn si7_scope_intersection_is_associative() {
     lhs_cands.sort();
     rhs_cands.sort();
 
-    assert_eq!(lhs_cands, rhs_cands, "SI7: scope intersection must be associative");
+    assert_eq!(
+        lhs_cands, rhs_cands,
+        "SI7: scope intersection must be associative"
+    );
 }
 
 // ── SI8: All four scope fields intersect independently ────────────────────────
 
 #[test]
 fn si8_all_four_scope_fields_intersect() {
-    let ctx1 = ctx_with_scope("si8a", Scope {
-        allowed_candidates: vec!["z-1".into(), "z-2".into()],
-        allowed_paths: vec!["/api/v1".into(), "/api/v2".into()],
-        allowed_tools: vec!["tool-a".into(), "tool-b".into()],
-        allowed_resources: vec!["db-read".into(), "cache-read".into()],
-    });
+    let ctx1 = ctx_with_scope(
+        "si8a",
+        Scope {
+            allowed_candidates: vec!["z-1".into(), "z-2".into()],
+            allowed_paths: vec!["/api/v1".into(), "/api/v2".into()],
+            allowed_tools: vec!["tool-a".into(), "tool-b".into()],
+            allowed_resources: vec!["db-read".into(), "cache-read".into()],
+        },
+    );
 
-    let ctx2 = ctx_with_scope("si8b", Scope {
-        allowed_candidates: vec!["z-2".into(), "z-3".into()],
-        allowed_paths: vec!["/api/v2".into(), "/api/v3".into()],
-        allowed_tools: vec!["tool-b".into(), "tool-c".into()],
-        allowed_resources: vec!["cache-read".into(), "queue-read".into()],
-    });
+    let ctx2 = ctx_with_scope(
+        "si8b",
+        Scope {
+            allowed_candidates: vec!["z-2".into(), "z-3".into()],
+            allowed_paths: vec!["/api/v2".into(), "/api/v3".into()],
+            allowed_tools: vec!["tool-b".into(), "tool-c".into()],
+            allowed_resources: vec!["cache-read".into(), "queue-read".into()],
+        },
+    );
 
     let composed = compose(ctx1, ctx2).unwrap();
 
-    assert_eq!(composed.scope.allowed_candidates, vec!["z-2".to_string()], "SI8: candidates");
-    assert_eq!(composed.scope.allowed_paths, vec!["/api/v2".to_string()], "SI8: paths");
-    assert_eq!(composed.scope.allowed_tools, vec!["tool-b".to_string()], "SI8: tools");
-    assert_eq!(composed.scope.allowed_resources, vec!["cache-read".to_string()], "SI8: resources");
+    assert_eq!(
+        composed.scope.allowed_candidates,
+        vec!["z-2".to_string()],
+        "SI8: candidates"
+    );
+    assert_eq!(
+        composed.scope.allowed_paths,
+        vec!["/api/v2".to_string()],
+        "SI8: paths"
+    );
+    assert_eq!(
+        composed.scope.allowed_tools,
+        vec!["tool-b".to_string()],
+        "SI8: tools"
+    );
+    assert_eq!(
+        composed.scope.allowed_resources,
+        vec!["cache-read".to_string()],
+        "SI8: resources"
+    );
 }
 
 // ── SI9: T14 — composed scope never contains element not in all inputs ────────
@@ -242,20 +281,22 @@ fn si9_t14_composed_scope_subset_of_each_input() {
 
 #[test]
 fn si10_unconstrained_paths_preserved() {
-    let ctx1 = ctx_with_scope("si10a", Scope {
-        allowed_candidates: vec![],
-        allowed_paths: vec!["/api/v1".into()],
-        allowed_tools: vec![],
-        allowed_resources: vec![],
-    });
+    let ctx1 = ctx_with_scope(
+        "si10a",
+        Scope {
+            allowed_candidates: vec![],
+            allowed_paths: vec!["/api/v1".into()],
+            allowed_tools: vec![],
+            allowed_resources: vec![],
+        },
+    );
     let ctx2 = ctx_with_scope("si10b", Scope::default()); // no path constraint
 
     let composed = compose(ctx1.clone(), ctx2).unwrap();
     // /api/v1 is in ctx1; ctx2 is unconstrained (top) for paths
     // intersection: top ∩ {/api/v1} = {/api/v1}
     assert_eq!(
-        composed.scope.allowed_paths,
-        ctx1.scope.allowed_paths,
+        composed.scope.allowed_paths, ctx1.scope.allowed_paths,
         "SI10: constrained path scope ∩ unconstrained = constrained"
     );
 }

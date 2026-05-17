@@ -141,7 +141,10 @@ fn n6_static_rendering_is_out_of_class_no_consequential_use() {
 
 #[test]
 fn n7_explicit_crud_is_out_of_class_authorized_deterministic_write() {
-    assert_ooc_with_fake_proof("crud-update", Membership::OutOfClassAuthorizedDeterministicWrite);
+    assert_ooc_with_fake_proof(
+        "crud-update",
+        Membership::OutOfClassAuthorizedDeterministicWrite,
+    );
 }
 
 // ── N8: Regex matching ────────────────────────────────────────────────────────
@@ -209,7 +212,10 @@ fn in_class_system_with_proof_is_admitted() {
     };
 
     let hash = compute_provenance_hash(
-        &ctx.claim_id, &ctx.candidate_id, &ctx.context_id, &ctx.allowed_use,
+        &ctx.claim_id,
+        &ctx.candidate_id,
+        &ctx.context_id,
+        &ctx.allowed_use,
     );
     ctx.tokens.push(ProofToken {
         token_id: "tok-ic".into(),

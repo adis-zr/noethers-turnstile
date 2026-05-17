@@ -41,13 +41,21 @@ fn t1_ooc_meets_every_permission_to_ooc() {
 #[test]
 fn t2_exp_dominates_approval_and_diagnostic() {
     let approval = [
-        Permission::AEX, Permission::ALR, Permission::AAA, Permission::REV,
+        Permission::AEX,
+        Permission::ALR,
+        Permission::AAA,
+        Permission::REV,
     ];
     let diagnostic = [Permission::DIA];
     let control = [Permission::ROL, Permission::ESC];
     let refusal = [Permission::REF, Permission::UNS];
 
-    for &p in approval.iter().chain(diagnostic.iter()).chain(control.iter()).chain(refusal.iter()) {
+    for &p in approval
+        .iter()
+        .chain(diagnostic.iter())
+        .chain(control.iter())
+        .chain(refusal.iter())
+    {
         let m = Permission::EXP.meet(p);
         assert!(
             m <= Permission::EXP,
@@ -82,7 +90,12 @@ fn t3_ref_dominates_approval_and_control() {
 
 #[test]
 fn t3_uns_dominates_approval_tier() {
-    let approval = [Permission::REV, Permission::AEX, Permission::ALR, Permission::AAA];
+    let approval = [
+        Permission::REV,
+        Permission::AEX,
+        Permission::ALR,
+        Permission::AAA,
+    ];
     for &p in &approval {
         let m = Permission::UNS.meet(p);
         assert!(m <= Permission::UNS, "UNS.meet({p}) must be ≤ UNS");
@@ -109,17 +122,33 @@ fn t4_eta_is_below_esc() {
 
 #[test]
 fn t5_dia_separates_action_from_non_action() {
-    let action_permissions = [Permission::REV, Permission::AEX, Permission::ALR, Permission::AAA];
+    let action_permissions = [
+        Permission::REV,
+        Permission::AEX,
+        Permission::ALR,
+        Permission::AAA,
+    ];
     let non_action_permissions = [
-        Permission::OOC, Permission::EXP, Permission::REF,
-        Permission::UNS, Permission::ETA, Permission::ESC, Permission::ROL,
+        Permission::OOC,
+        Permission::EXP,
+        Permission::REF,
+        Permission::UNS,
+        Permission::ETA,
+        Permission::ESC,
+        Permission::ROL,
     ];
 
     for &p in &action_permissions {
-        assert!(p > Permission::DIA, "{p} must be above DIA (action permission)");
+        assert!(
+            p > Permission::DIA,
+            "{p} must be above DIA (action permission)"
+        );
     }
     for &p in &non_action_permissions {
-        assert!(p <= Permission::DIA, "{p} must be at or below DIA (non-action)");
+        assert!(
+            p <= Permission::DIA,
+            "{p} must be at or below DIA (non-action)"
+        );
     }
 }
 
@@ -177,14 +206,8 @@ fn t9_meet_never_promotes() {
     for (i, &p) in all.iter().enumerate() {
         for &q in &all[i..] {
             let m = p.meet(q);
-            assert!(
-                m <= p,
-                "meet({p}, {q}) = {m}: must be ≤ {p}"
-            );
-            assert!(
-                m <= q,
-                "meet({p}, {q}) = {m}: must be ≤ {q}"
-            );
+            assert!(m <= p, "meet({p}, {q}) = {m}: must be ≤ {p}");
+            assert!(m <= q, "meet({p}, {q}) = {m}: must be ≤ {q}");
         }
     }
 }
@@ -195,7 +218,11 @@ fn t9_meet_never_promotes() {
 fn t10_meet_n_over_all_permissions_produces_ooc() {
     let all: Vec<Permission> = Permission::descending().collect();
     let result = Permission::meet_n(all.iter().copied()).unwrap();
-    assert_eq!(result, Permission::OOC, "meet_n of all permissions must be OOC (bottom)");
+    assert_eq!(
+        result,
+        Permission::OOC,
+        "meet_n of all permissions must be OOC (bottom)"
+    );
 }
 
 #[test]

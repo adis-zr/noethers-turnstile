@@ -186,7 +186,10 @@ fn au7_compose_matching_allowed_use_succeeds() {
     let ctx_a = ctx_with_use("shared-purpose");
     let ctx_b = ctx_with_use("shared-purpose");
     let result = compose(ctx_a, ctx_b);
-    assert!(result.is_ok(), "AU7: identical allowed_use must compose successfully");
+    assert!(
+        result.is_ok(),
+        "AU7: identical allowed_use must compose successfully"
+    );
 }
 
 // ── AU8: compose_n fails closed on any mismatch ──────────────────────────────
@@ -217,7 +220,10 @@ fn au9_long_allowed_use_hash_stable() {
 
     let long_use_2: String = "x".repeat(10_000) + "y";
     let h3 = compute_provenance_hash("c", "z", "ctx", &long_use_2);
-    assert_ne!(h1, h3, "AU9: long strings differing by one char must differ");
+    assert_ne!(
+        h1, h3,
+        "AU9: long strings differing by one char must differ"
+    );
 }
 
 // ── AU10: Token uses exact allowed_use bytes in hash ─────────────────────────
@@ -348,7 +354,10 @@ fn au14_null_bytes_are_distinct() {
     let h_null_mid = compute_provenance_hash("c", "z", "ctx", "u\0se");
     assert_ne!(h_plain, h_null, "AU14: null suffix must differ");
     assert_ne!(h_plain, h_null_mid, "AU14: embedded null must differ");
-    assert_ne!(h_null, h_null_mid, "AU14: different null positions must differ");
+    assert_ne!(
+        h_null, h_null_mid,
+        "AU14: different null positions must differ"
+    );
 }
 
 // ── Proptest: single-character mutation changes provenance hash ───────────────

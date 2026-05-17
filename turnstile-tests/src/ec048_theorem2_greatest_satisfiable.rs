@@ -30,7 +30,14 @@ use turnstile_core::{
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
 
-fn valid_token(id: &str, closes: Vec<&str>, claim: &str, candidate: &str, ctx_id: &str, use_: &str) -> ProofToken {
+fn valid_token(
+    id: &str,
+    closes: Vec<&str>,
+    claim: &str,
+    candidate: &str,
+    ctx_id: &str,
+    use_: &str,
+) -> ProofToken {
     let hash = compute_provenance_hash(claim, candidate, ctx_id, use_);
     ProofToken {
         token_id: id.into(),
@@ -74,7 +81,16 @@ fn ctx_with_profiles_and_closed_gaps(
     let tokens: Vec<ProofToken> = closed_gaps
         .iter()
         .enumerate()
-        .map(|(i, g)| valid_token(&format!("tok-{i}"), vec![*g], &claim, &candidate, &ctx_id, &use_))
+        .map(|(i, g)| {
+            valid_token(
+                &format!("tok-{i}"),
+                vec![*g],
+                &claim,
+                &candidate,
+                &ctx_id,
+                &use_,
+            )
+        })
         .collect();
 
     ProofContext {
@@ -142,7 +158,7 @@ fn t2_2_all_gaps_open_weakest_satisfied() {
     }];
     let ctx = ctx_with_profiles_and_closed_gaps(
         profiles,
-        vec![],  // no closed gaps
+        vec![], // no closed gaps
         vec!["g1"],
         Permission::AAA,
         "t2-2",
@@ -243,7 +259,11 @@ fn t2_4_closing_gap_upgrades_permission() {
         "t2-4-full",
     );
     let p_full = compile(ctx_full).unwrap().permission;
-    assert_eq!(p_full, Permission::REV, "T2-4: g1+g2 → REV (greatest satisfied)");
+    assert_eq!(
+        p_full,
+        Permission::REV,
+        "T2-4: g1+g2 → REV (greatest satisfied)"
+    );
 
     assert!(
         p_partial < p_full,
@@ -263,11 +283,7 @@ fn t2_5_no_profiles_yields_ooc() {
         "t2-5",
     );
     let j = compile(ctx).unwrap();
-    assert_eq!(
-        j.permission,
-        Permission::OOC,
-        "T2-5: no profiles → OOC"
-    );
+    assert_eq!(j.permission, Permission::OOC, "T2-5: no profiles → OOC");
 }
 
 // ── T2-6: Partial evidence satisfies only lower profile ───────────────────────
@@ -457,13 +473,7 @@ fn t2_10_empty_requirements_always_satisfied() {
         permission: Permission::DIA,
         required_gaps: vec![],
     }];
-    let ctx = ctx_with_profiles_and_closed_gaps(
-        profiles,
-        vec![],
-        vec![],
-        Permission::AAA,
-        "t2-10",
-    );
+    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA, "t2-10");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
@@ -486,13 +496,7 @@ fn t2_11_empty_requirements_aaa_profile_gives_aaa() {
             required_gaps: vec![],
         },
     ];
-    let ctx = ctx_with_profiles_and_closed_gaps(
-        profiles,
-        vec![],
-        vec![],
-        Permission::AAA,
-        "t2-11",
-    );
+    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA, "t2-11");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,

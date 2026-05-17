@@ -132,8 +132,14 @@ fn p1_approximate_inference_with_kl_bound_compiles_to_dia() {
     }];
 
     let ctx = build_ctx(
-        "p1-claim", "z-posterior", "ctx-inference", "diagnostic-use",
-        Permission::DIA, gaps, profiles, vec![],
+        "p1-claim",
+        "z-posterior",
+        "ctx-inference",
+        "diagnostic-use",
+        Permission::DIA,
+        gaps,
+        profiles,
+        vec![],
     );
 
     let kl_tok = bounding_token("tok-kl", vec!["g-calibration"], &ctx);
@@ -143,7 +149,11 @@ fn p1_approximate_inference_with_kl_bound_compiles_to_dia() {
     ctx.tokens.push(support_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "P1: inference with KL bound must compile to DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "P1: inference with KL bound must compile to DIA"
+    );
 }
 
 #[test]
@@ -167,8 +177,14 @@ fn p1_inference_without_calibration_bound_stays_ooc() {
     }];
 
     let ctx = build_ctx(
-        "p1-no-cal", "z-posterior-2", "ctx-inf-2", "diagnostic-use",
-        Permission::DIA, gaps, profiles, vec![],
+        "p1-no-cal",
+        "z-posterior-2",
+        "ctx-inf-2",
+        "diagnostic-use",
+        Permission::DIA,
+        gaps,
+        profiles,
+        vec![],
     );
     let support_tok = closing_token("tok-s2", vec!["g-support"], &ctx);
     let mut ctx = ctx;
@@ -210,15 +226,25 @@ fn p2_ope_causal_claim_compiles_to_rev() {
     }];
 
     let ctx = build_ctx(
-        "p2-claim", "z-ope", "ctx-causal", "ope-use",
-        Permission::REV, gaps, profiles, vec![],
+        "p2-claim",
+        "z-ope",
+        "ctx-causal",
+        "ope-use",
+        Permission::REV,
+        gaps,
+        profiles,
+        vec![],
     );
     let ope_tok = closing_token("tok-ope", vec!["g-proxy", "g-interference"], &ctx);
     let mut ctx = ctx;
     ctx.tokens.push(ope_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REV, "P2: OPE with coupling witness must compile to REV");
+    assert_eq!(
+        j.permission,
+        Permission::REV,
+        "P2: OPE with coupling witness must compile to REV"
+    );
 }
 
 // ── P3: Marketplace allocation ────────────────────────────────────────────────
@@ -248,15 +274,25 @@ fn p3_marketplace_allocation_with_guardrail_compiles_to_rol() {
     }];
 
     let ctx = build_ctx(
-        "p3-claim", "z-marketplace", "ctx-mkt", "allocation-use",
-        Permission::ROL, gaps, profiles, vec![],
+        "p3-claim",
+        "z-marketplace",
+        "ctx-mkt",
+        "allocation-use",
+        Permission::ROL,
+        gaps,
+        profiles,
+        vec![],
     );
     let g_tok = closing_token("tok-guardrail", vec!["g-guardrail", "g-nc"], &ctx);
     let mut ctx = ctx;
     ctx.tokens.push(g_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::ROL, "P3: marketplace with guardrail must compile to ROL");
+    assert_eq!(
+        j.permission,
+        Permission::ROL,
+        "P3: marketplace with guardrail must compile to ROL"
+    );
 }
 
 // ── P4: Medical triage / clinical risk scoring ────────────────────────────────
@@ -302,9 +338,14 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
     ];
 
     let ctx = build_ctx(
-        "p4-claim", "z-triage", "ctx-clinical", "triage-use",
+        "p4-claim",
+        "z-triage",
+        "ctx-clinical",
+        "triage-use",
         Permission::DIA, // ceiling: no autonomous clinical action
-        gaps, profiles, vec![],
+        gaps,
+        profiles,
+        vec![],
     );
     let kl_tok = bounding_token("tok-p4-kl", vec!["g-cal"], &ctx);
     let boundary_tok = closing_token("tok-p4-b", vec!["g-boundary"], &ctx);
@@ -313,8 +354,15 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
     ctx.tokens.push(boundary_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "P4: medical triage must compile to DIA with ceiling");
-    assert!(j.permission < Permission::AEX, "P4: AEX must be blocked by DIA ceiling");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "P4: medical triage must compile to DIA with ceiling"
+    );
+    assert!(
+        j.permission < Permission::AEX,
+        "P4: AEX must be blocked by DIA ceiling"
+    );
 }
 
 // ── P5: Fraud and trust decisions ────────────────────────────────────────────
@@ -344,8 +392,14 @@ fn p5_fraud_score_with_drift_compiles_to_esc() {
     }];
 
     let ctx = build_ctx(
-        "p5-claim", "z-fraud", "ctx-trust", "fraud-use",
-        Permission::ESC, gaps, profiles, vec![],
+        "p5-claim",
+        "z-fraud",
+        "ctx-trust",
+        "fraud-use",
+        Permission::ESC,
+        gaps,
+        profiles,
+        vec![],
     );
     let drift_tok = closing_token("tok-drift", vec!["g-drift"], &ctx);
     let query_tok = bounding_token("tok-query", vec!["g-query"], &ctx);
@@ -354,7 +408,11 @@ fn p5_fraud_score_with_drift_compiles_to_esc() {
     ctx.tokens.push(query_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::ESC, "P5: fraud score with bounded query gap must compile to ESC");
+    assert_eq!(
+        j.permission,
+        Permission::ESC,
+        "P5: fraud score with bounded query gap must compile to ESC"
+    );
 }
 
 // ── P6: Cybersecurity response ────────────────────────────────────────────────
@@ -384,15 +442,25 @@ fn p6_cybersecurity_threat_with_rollback_compiles_to_rol() {
     }];
 
     let ctx = build_ctx(
-        "p6-claim", "z-quarantine", "ctx-security", "security-use",
-        Permission::ROL, gaps, profiles, vec![],
+        "p6-claim",
+        "z-quarantine",
+        "ctx-security",
+        "security-use",
+        Permission::ROL,
+        gaps,
+        profiles,
+        vec![],
     );
     let tok = closing_token("tok-p6", vec!["g-threat", "g-rollback"], &ctx);
     let mut ctx = ctx;
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::ROL, "P6: cybersecurity with rollback must compile to ROL");
+    assert_eq!(
+        j.permission,
+        Permission::ROL,
+        "P6: cybersecurity with rollback must compile to ROL"
+    );
 }
 
 // ── P7: Trading and portfolio risk ────────────────────────────────────────────
@@ -422,8 +490,14 @@ fn p7_trading_signal_with_missing_data_compiles_to_eta() {
     }];
 
     let ctx = build_ctx(
-        "p7-claim", "z-portfolio", "ctx-trading", "trading-use",
-        Permission::ETA, gaps, profiles, vec![],
+        "p7-claim",
+        "z-portfolio",
+        "ctx-trading",
+        "trading-use",
+        Permission::ETA,
+        gaps,
+        profiles,
+        vec![],
     );
     let data_tok = bounding_token("tok-data", vec!["g-data"], &ctx);
     let auth_tok = closing_token("tok-auth", vec!["g-authority"], &ctx);
@@ -432,7 +506,11 @@ fn p7_trading_signal_with_missing_data_compiles_to_eta() {
     ctx.tokens.push(auth_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::ETA, "P7: trading signal with missing data must compile to ETA");
+    assert_eq!(
+        j.permission,
+        Permission::ETA,
+        "P7: trading signal with missing data must compile to ETA"
+    );
 }
 
 // ── P8: LLM agent deployment decisions ───────────────────────────────────────
@@ -467,15 +545,29 @@ fn p8_llm_agent_with_full_evidence_compiles_to_aex() {
     }];
 
     let ctx = build_ctx(
-        "p8-claim", "z-deploy", "ctx-llm", "agent-deployment",
-        Permission::AEX, gaps, profiles, vec![],
+        "p8-claim",
+        "z-deploy",
+        "ctx-llm",
+        "agent-deployment",
+        Permission::AEX,
+        gaps,
+        profiles,
+        vec![],
     );
-    let tok = closing_token("tok-p8", vec!["g-coverage", "g-execution", "g-rollback"], &ctx);
+    let tok = closing_token(
+        "tok-p8",
+        vec!["g-coverage", "g-execution", "g-rollback"],
+        &ctx,
+    );
     let mut ctx = ctx;
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::AEX, "P8: LLM agent with full evidence must compile to AEX");
+    assert_eq!(
+        j.permission,
+        Permission::AEX,
+        "P8: LLM agent with full evidence must compile to AEX"
+    );
 }
 
 #[test]
@@ -504,8 +596,14 @@ fn p8_llm_agent_with_missing_rollback_stays_below_aex() {
     }];
 
     let ctx = build_ctx(
-        "p8-no-rb", "z-deploy-2", "ctx-llm-2", "agent-deployment",
-        Permission::AEX, gaps, profiles, vec![],
+        "p8-no-rb",
+        "z-deploy-2",
+        "ctx-llm-2",
+        "agent-deployment",
+        Permission::AEX,
+        gaps,
+        profiles,
+        vec![],
     );
     let tok = closing_token("tok-p8b", vec!["g-coverage", "g-execution"], &ctx);
     let mut ctx = ctx;
@@ -545,8 +643,14 @@ fn p9_scientific_surrogate_with_boundary_compiles_to_dia() {
     }];
 
     let ctx = build_ctx(
-        "p9-claim", "z-surrogate", "ctx-science", "simulation-use",
-        Permission::DIA, gaps, profiles, vec![],
+        "p9-claim",
+        "z-surrogate",
+        "ctx-science",
+        "simulation-use",
+        Permission::DIA,
+        gaps,
+        profiles,
+        vec![],
     );
     let truth_tok = bounding_token("tok-truth", vec!["g-truth"], &ctx);
     let boundary_tok = closing_token("tok-boundary", vec!["g-boundary"], &ctx);
@@ -555,7 +659,11 @@ fn p9_scientific_surrogate_with_boundary_compiles_to_dia() {
     ctx.tokens.push(boundary_tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "P9: surrogate model with boundary must compile to DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA,
+        "P9: surrogate model with boundary must compile to DIA"
+    );
 }
 
 // ── P10: Resource-constrained planning ───────────────────────────────────────
@@ -585,13 +693,23 @@ fn p10_constrained_planning_with_composition_gap_compiles_to_rev() {
     }];
 
     let ctx = build_ctx(
-        "p10-claim", "z-planner", "ctx-planning", "planning-use",
-        Permission::REV, gaps, profiles, vec![],
+        "p10-claim",
+        "z-planner",
+        "ctx-planning",
+        "planning-use",
+        Permission::REV,
+        gaps,
+        profiles,
+        vec![],
     );
     let tok = closing_token("tok-p10", vec!["g-support", "g-composition"], &ctx);
     let mut ctx = ctx;
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REV, "P10: constrained planner with full evidence must compile to REV");
+    assert_eq!(
+        j.permission,
+        Permission::REV,
+        "P10: constrained planner with full evidence must compile to REV"
+    );
 }

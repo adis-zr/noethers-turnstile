@@ -157,8 +157,5 @@ fn tr5_split_fold_all_1728_triples() {
             }
         }
     }
-    assert_eq!(
-        failures, 0,
-        "TR5: split-fold failed on {failures} triples"
-    );
+    assert_eq!(failures, 0, "TR5: split-fold failed on {failures} triples");
 }
