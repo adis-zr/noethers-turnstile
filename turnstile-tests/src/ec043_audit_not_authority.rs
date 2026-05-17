@@ -28,7 +28,7 @@ use turnstile_core::{
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
-    token::{compute_provenance_hash, ProofToken, TokenStatus},
+    token::{ProofToken, TokenStatus},
 };
 
 fn ctx_needs_g1_closed() -> ProofContext {

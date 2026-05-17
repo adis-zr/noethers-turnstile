@@ -21,7 +21,6 @@ use std::thread;
 use turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
-    error::TurnstileError,
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,

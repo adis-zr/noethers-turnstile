@@ -236,7 +236,7 @@ fn w6_runtime_context_serde_roundtrip() {
     let rt2: RuntimeContext = serde_json::from_str(&json).expect("RuntimeContext must deserialize");
 
     assert_eq!(rt2.context_fingerprint, "fp-rt");
-    assert_eq!(rt2.strict_mode, true);
+    assert!(rt2.strict_mode);
     assert_eq!(
         rt2.negative_control_states.get("tok-1"),
         Some(&NegativeControlStatus::Live)

@@ -38,11 +38,11 @@ fn glb1_meet_is_lower_bound_all_144_pairs() {
     for &a in &ALL {
         for &b in &ALL {
             let m = a.meet(b);
-            if !(m <= a) {
+            if m > a {
                 eprintln!("GLB1 FAIL: meet({a:?},{b:?})={m:?} is not ≤ {a:?}");
                 failures += 1;
             }
-            if !(m <= b) {
+            if m > b {
                 eprintln!("GLB1 FAIL: meet({a:?},{b:?})={m:?} is not ≤ {b:?}");
                 failures += 1;
             }
@@ -61,7 +61,7 @@ fn glb2_meet_is_greatest_lower_bound_all_1728_checks() {
             let m = a.meet(b);
             for &x in &ALL {
                 // If x is a common lower bound of a and b, then x ≤ meet(a,b)
-                if x <= a && x <= b && !(x <= m) {
+                if x <= a && x <= b && (x > m) {
                     eprintln!("GLB2 FAIL: x={x:?} ≤ {a:?} and x ≤ {b:?} but x ≰ meet={m:?}");
                     failures += 1;
                 }

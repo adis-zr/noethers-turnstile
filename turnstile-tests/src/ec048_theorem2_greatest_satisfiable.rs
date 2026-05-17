@@ -25,7 +25,7 @@ use turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,
-    gap::{GapRecord, GapRequirement, GapStatus, Profile, RequiredStatus},
+    gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };

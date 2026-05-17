@@ -31,6 +31,7 @@ use turnstile_core::{
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
 
+#[allow(clippy::too_many_arguments)]
 fn build_ctx(
     claim_id: &str,
     candidate_id: &str,

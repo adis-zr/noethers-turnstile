@@ -161,7 +161,7 @@ fn a1_2_different_gap_ids_same_type_accepted() {
 #[test]
 fn a3_1_ten_thousand_gap_context_terminates() {
     let gaps: Vec<GapRecord> = (0..10_000)
-        .map(|i| GapRecord::open(&format!("gap-{i}"), "t"))
+        .map(|i| GapRecord::open(format!("gap-{i}"), "t"))
         .collect();
 
     let ctx = ProofContext {
@@ -194,7 +194,7 @@ fn a3_1_ten_thousand_gap_context_terminates() {
 #[test]
 fn a3_2_one_thousand_gaps_no_profiles_yields_ooc() {
     let gaps: Vec<GapRecord> = (0..1_000)
-        .map(|i| GapRecord::open(&format!("gap-{i}"), "t"))
+        .map(|i| GapRecord::open(format!("gap-{i}"), "t"))
         .collect();
 
     let ctx = ProofContext {
@@ -424,7 +424,7 @@ fn a9_1_million_char_allowed_use_terminates() {
 #[test]
 fn a9_2_one_thousand_long_gap_ids_terminates() {
     let gaps: Vec<GapRecord> = (0..1_000)
-        .map(|i| GapRecord::open(&format!("gap-{}-{}", i, "x".repeat(100)), "t"))
+        .map(|i| GapRecord::open(format!("gap-{}-{}", i, "x".repeat(100)), "t"))
         .collect();
 
     let ctx = ProofContext {
@@ -455,10 +455,10 @@ fn a9_2_one_thousand_long_gap_ids_terminates() {
 #[test]
 fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
     let gaps: Vec<GapRecord> = (0..20)
-        .map(|i| GapRecord::open(&format!("gap-{i}"), "t"))
+        .map(|i| GapRecord::open(format!("gap-{i}"), "t"))
         .collect();
 
-    let profiles: Vec<Profile> = (0..1_000)
+    let _profiles: Vec<Profile> = (0..1_000)
         .map(|i| Profile {
             permission: Permission::DIA,
             required_gaps: vec![GapRequirement {
