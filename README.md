@@ -326,6 +326,11 @@ After `maturin develop`, the `turnstile` package is importable in the active env
 ## Architecture
 
 ```
+examples/pgm/            PGM inference integration example (64 Python tests)
+  bridge/                domain adapter — token types, fingerprinting, gap profiles
+  tests/                 64 tests: bridge agreement, narrative demo, compiler stress, BIF integration
+  conftest.py            auto-inserts workspace python/ ahead of any installed wheel
+
 turnstile-core/          Pure Rust library (no PyO3 dependency)
   permission.rs          Permission enum + total order + algebra
   gap.rs                 GapStatus, GapRecord, Profile, GapRequirement

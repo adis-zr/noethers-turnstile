@@ -9,6 +9,29 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- **Example `test_3_stress.py` — 9 stale assertions updated** (`examples/pgm/tests/test_3_stress.py`):
+  - **A1–A5, D3** (6 tests): assertions updated from `OOC` → `REF`.  These tests present a
+    valid-status token with wrong provenance.  Under current semantics the `PROVENANCE_MISMATCH`
+    structural blocker fires at step 4 and applies a `meet(REF)` to the outcome.  `REF` (structural
+    refusal — "credential seen and rejected") is the correct and more informative signal vs `OOC`
+    ("not in class").  Docstrings updated accordingly.
+  - **B1, B5** (2 tests): assertions updated from `OOC` → `EXP`.  These tests present a
+    `Valid`-status token whose `expires_at` is in the past.  The expired token is silently skipped
+    in `effective_gap_status` (gap stays OPEN), but step 6 independently fires the EXP floor because
+    a valid-provenance valid-status time-expired token exists.  The EXP floor does not require a
+    profile to be satisfied first.  The old docstring comment "EXP floor only applies when another
+    valid token satisfies the profile first" was wrong and has been corrected.
+  - **C3** (1 test, two assertions): `p_b` updated from `OOC` → `REF` (`tok_v2` has `Invalid`
+    status with correct provenance → `DEAD_CREDENTIAL` blocker → REF); `p_composed` updated from
+    `OOC` → `REF` (`permission_ceiling = meet(DIA, REF) = REF` caps the composed result).
+    Anti-laundering invariant (T9) continues to hold — `p_composed ≤ meet(p_a, p_b)` is satisfied
+    at REF.  Docstring rewritten to explain the full chain.
+
+- **`examples/pgm/conftest.py` — new file** that prepends the workspace `python/` directory to
+  `sys.path` at test collection time.  This ensures the example test suite always resolves to the
+  locally-built `turnstile` rather than a potentially stale installed wheel, eliminating a class of
+  silent version-skew failures.
+
 - **Clippy: collapsible-if in `compiler.rs:411`** — collapsed nested `if` inside the
   `bounds_gaps` branch into a single `else if … && …` condition to satisfy
   `clippy::collapsible_if` under `-D warnings`.
