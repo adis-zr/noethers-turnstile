@@ -83,6 +83,7 @@ fn build_ctx(ceiling: Permission, membership: Membership, with_token: bool) -> P
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership,
     }
 }

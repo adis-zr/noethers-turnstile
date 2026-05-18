@@ -81,6 +81,7 @@ fn make_large_ctx(
         tokens,
         expiry: Expiry::never(),
         authority_ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -106,8 +107,8 @@ fn l2_one_gap_open_out_of_50_yields_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "L2: 49/50 gaps closed must yield REF (in-class candidate, profile defined but unmet)"
+        Permission::UNS,
+        "L2: 49/50 gaps closed must yield UNS (in-class candidate, profile defined but unmet)"
     );
 }
 
@@ -155,6 +156,7 @@ fn l3_compose_n_twenty_contexts_non_promotion() {
                 }],
                 expiry: Expiry::never(),
                 authority_ceiling: Permission::AAA,
+                permission_ceiling: Permission::AAA,
                 membership: Membership::InClass,
             }
         })
@@ -238,6 +240,7 @@ fn l4_200_tokens_only_one_valid_provenance_emits_dia() {
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -257,8 +260,8 @@ fn l5_500_open_gaps_all_required_yields_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "L5: 500 open gaps required closed must yield REF (in-class candidate, profile defined but unmet)"
+        Permission::UNS,
+        "L5: 500 open gaps required closed must yield UNS (in-class candidate, profile defined but unmet)"
     );
 }
 
@@ -310,6 +313,7 @@ fn l6_compose_n_50_contexts_ceiling_is_meet_of_all() {
                 }],
                 expiry: Expiry::never(),
                 authority_ceiling: ceiling,
+                permission_ceiling: Permission::AAA,
                 membership: Membership::InClass,
             }
         })

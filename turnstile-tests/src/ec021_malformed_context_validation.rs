@@ -38,6 +38,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -422,6 +423,7 @@ proptest! {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
         prop_assert!(

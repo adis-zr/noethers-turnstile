@@ -153,6 +153,7 @@ fn gap_only_ctx(gap: GapRecord) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

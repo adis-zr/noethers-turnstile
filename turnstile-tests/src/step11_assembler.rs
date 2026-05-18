@@ -77,6 +77,7 @@ fn ctx_for_permission(target_permission: Permission) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

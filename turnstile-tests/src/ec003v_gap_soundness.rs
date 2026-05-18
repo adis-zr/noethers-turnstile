@@ -72,6 +72,7 @@ fn base_ctx(with_token: bool, gap_status_fn: impl Fn() -> GapRecord) -> ProofCon
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -82,11 +83,11 @@ fn base_ctx(with_token: bool, gap_status_fn: impl Fn() -> GapRecord) -> ProofCon
 fn t6_open_gap_no_token_blocks_permission() {
     let ctx = base_ctx(false, || GapRecord::open("g1", "calibration_gap"));
     let j = compile(ctx).unwrap();
-    // In-class, profile defined, gap open, no token → REF
+    // In-class, profile defined, gap open, no token → UNS
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "T6: open gap without token must not grant DIA; in-class → REF"
+        Permission::UNS,
+        "T6: open gap without token must not grant DIA; in-class → UNS"
     );
 }
 
@@ -148,14 +149,15 @@ fn t6_bounded_gap_does_not_satisfy_closed_required() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
-    // In-class, profile defined, bounding token ≠ ClosedRequired → REF
+    // In-class, profile defined, bounding token ≠ ClosedRequired → UNS
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "T6: bounding token does not satisfy ClosedRequired; in-class → REF"
+        Permission::UNS,
+        "T6: bounding token does not satisfy ClosedRequired; in-class → UNS"
     );
 }
 
@@ -199,6 +201,7 @@ fn t6_bounded_gap_satisfies_bounded_required() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -261,6 +264,7 @@ fn t5_emitted_permission_implies_all_required_gaps_satisfied() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -332,6 +336,7 @@ fn t5_partial_gap_satisfaction_falls_to_lower_profile() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -387,15 +392,16 @@ fn t5_wrong_gap_id_in_token_does_not_satisfy_profile() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
     let j = compile(ctx).unwrap();
-    // In-class, token for g2 doesn't close g1 → GapNotMet → REF
+    // In-class, token for g2 doesn't close g1 → GapNotMet → UNS
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "T5/T6: token for g2 must not satisfy g1 requirement; in-class → REF"
+        Permission::UNS,
+        "T5/T6: token for g2 must not satisfy g1 requirement; in-class → UNS"
     );
 }
 
@@ -440,15 +446,16 @@ fn t6_empty_gap_claim_in_token_satisfies_nothing() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
     let j = compile(ctx).unwrap();
-    // In-class, empty closes_gaps → gap not closed → REF
+    // In-class, empty closes_gaps → gap not closed → UNS
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "T6: token with empty closes_gaps must not satisfy any gap requirement; in-class → REF"
+        Permission::UNS,
+        "T6: token with empty closes_gaps must not satisfy any gap requirement; in-class → UNS"
     );
 }
 
@@ -532,6 +539,7 @@ fn greatest_satisfiable_permission_is_emitted() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

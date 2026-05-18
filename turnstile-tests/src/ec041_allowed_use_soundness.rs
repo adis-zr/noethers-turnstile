@@ -49,6 +49,7 @@ fn ctx_with_use(allowed_use: &str) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -88,6 +89,7 @@ fn ctx_with_token_use(ctx_use: &str, tok_use: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -320,6 +322,7 @@ fn au12_two_tokens_wrong_use_neither_closes() {
         ],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();

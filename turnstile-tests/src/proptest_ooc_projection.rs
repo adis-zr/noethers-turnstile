@@ -103,6 +103,7 @@ fn maximally_permissive_ctx(membership: Membership, ceiling: Permission) -> Proo
         }],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership,
     }
 }
@@ -197,6 +198,7 @@ fn ooc_is_independent_of_token_count() {
             tokens,
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::OutOfClassExact,
         };
         let j = compile(ctx).unwrap();
@@ -285,6 +287,7 @@ proptest! {
             tokens,
             expiry: Expiry::never(),
             authority_ceiling: ceiling,
+            permission_ceiling: Permission::AAA,
             membership,
         };
 
@@ -317,6 +320,7 @@ proptest! {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
 

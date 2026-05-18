@@ -287,6 +287,7 @@ fn b15_bounding_token_upgrades_gap_to_bounded() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

@@ -67,6 +67,7 @@ fn ctx_with_token(
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -174,6 +175,7 @@ fn invalid_token_does_not_close_gap() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -222,6 +224,7 @@ fn revoked_token_does_not_close_gap() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -271,6 +274,7 @@ fn dia_ctx_with_fp(fp_fingerprint: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -284,8 +288,8 @@ fn stale_context_fingerprint_downgrades_via_live_judgment() {
     let live = turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
-        "stale fp should downgrade to EXP"
+        Permission::OOC,
+        "stale fp should downgrade to OOC (wrong context entirely, not expiry)"
     );
 }
 
@@ -393,6 +397,7 @@ proptest! {
             }],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
         let j = compile(ctx).unwrap();

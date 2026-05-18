@@ -84,6 +84,20 @@ impl GapStatus {
     }
 }
 
+impl Eq for GapStatus {}
+
+impl Ord for GapStatus {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.rank().cmp(&other.rank())
+    }
+}
+
+impl PartialOrd for GapStatus {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 /// A single gap record in a proof context.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GapRecord {

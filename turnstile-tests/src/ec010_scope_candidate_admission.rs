@@ -87,6 +87,7 @@ fn base_ctx(candidate_id: &str, scope: Scope) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

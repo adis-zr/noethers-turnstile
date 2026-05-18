@@ -96,6 +96,7 @@ fn ctx_with_full_evidence_and_ceiling(ceiling: Permission, suffix: &str) -> Proo
         }],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -114,6 +115,7 @@ fn minimal_ctx(ceiling: Permission, suffix: &str) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -296,13 +298,14 @@ fn c10_ceiling_applied_after_gap_resolution() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::DIA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "C10: unsatisfied gap → REF (InClass, profile defined but unmet)"
+        Permission::UNS,
+        "C10: unsatisfied gap → UNS (InClass, profile defined but unmet)"
     );
 }
 
@@ -373,6 +376,7 @@ fn c14_ceiling_above_profiles_gives_best_profile() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();

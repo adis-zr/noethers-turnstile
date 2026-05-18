@@ -43,6 +43,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -374,6 +375,7 @@ fn n13_long_field_strings_do_not_panic() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let result = compile(ctx);

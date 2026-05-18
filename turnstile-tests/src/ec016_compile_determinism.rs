@@ -66,6 +66,7 @@ fn stable_ctx() -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -242,6 +243,7 @@ fn d6_structurally_identical_contexts_same_permission() {
             }],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         }
     };

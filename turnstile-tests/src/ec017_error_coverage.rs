@@ -57,6 +57,7 @@ fn base_ctx(suffix: &str, allowed_use: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

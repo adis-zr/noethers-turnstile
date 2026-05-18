@@ -2,10 +2,13 @@
 ///
 /// Algorithm (spec §3):
 /// 1. If membership ≠ InClass → OOC
-/// 2. Descending search: find the strongest p such that profile_satisfied(Γ, p)
-/// 3. meet with structural_blockers (disallowed_uses → ROL ceiling, etc.)
-/// 4. meet with authority_ceiling
-/// 5. meet with expiry_blocker (any expired token → EXP floor)
+/// 2. Early context expiry check — halt before evaluating tokens (spec §14 step 4)
+/// 3. Descending search: find the strongest p such that profile_satisfied(Γ, p)
+/// 4. meet with structural_blockers (PROVENANCE_MISMATCH → REF; disallowed_uses → ROL ceiling)
+/// 5a. meet with authority_ceiling (structural delegation limit)
+/// 5b. meet with permission_ceiling (non-promotion ceiling T9, set by compose())
+/// 6. meet with expiry_blocker (any expired token with valid provenance → EXP floor)
+/// 7. record negative-control token IDs in the derivation (liveness checked at runtime)
 ///
 /// Every meet can only lower the outcome.
 use chrono::Utc;
@@ -25,6 +28,11 @@ pub struct Judgment {
     /// The proof context that was compiled (snapshot).
     pub context: ProofContext,
     /// The emitted permission.
+    ///
+    /// WARNING: Do not read this field directly when evaluating live admissibility.
+    /// Use `LiveJudgment::permission()` instead — it applies expiry, fingerprint
+    /// verification, and negative-control liveness checks at read time.  Reading
+    /// `permission` directly bypasses all of those runtime guards.
     pub permission: Permission,
     /// The binding expiry (the `ε` in `Γ ⊢ z : p until ε`).
     pub expiry: Expiry,
@@ -153,14 +161,16 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     }
 
     // Step 3: descending search.
-    // outcome starts at REF (not OOC) so that an in-class candidate whose
-    // profiles all have unmet gap requirements emits REF, not OOC.
-    // OOC is reserved for out-of-class membership (already handled above).
-    let mut outcome = Permission::REF;
+    // outcome starts at UNS: "profile exists but no positive permission satisfiable
+    // given the current evidence."  REF is reserved for explicit structural refusals
+    // (wrong-provenance token, step 4 blocker).  OOC is reserved for out-of-class
+    // membership (step 1, already handled above).
+    let mut outcome = Permission::UNS;
     let mut search_note = "no profile satisfied".to_string();
     let mut consulted_tokens: Vec<String> = vec![];
     let mut had_any_profile = false;
     let mut provenance_mismatch_seen = false;
+    let mut dead_credential_seen = false;
 
     'outer: for p in Permission::descending() {
         match profile_satisfied(
@@ -168,6 +178,7 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
             p,
             &mut consulted_tokens,
             &mut provenance_mismatch_seen,
+            &mut dead_credential_seen,
         ) {
             ProfileCheckResult::Satisfied => {
                 outcome = p;
@@ -209,19 +220,50 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         token_ids: consulted_tokens.clone(),
     });
 
-    // Step 4: structural blockers — PROVENANCE_MISMATCH forces REF meet (spec §14 steps 6+9).
-    // Only apply when the profile was NOT satisfied: if a correct-provenance token already
-    // satisfied a profile (outcome > REF), wrong-provenance tokens are silently rejected.
-    if provenance_mismatch_seen && outcome <= Permission::REF {
+    // Step 4: structural blockers — both PROVENANCE_MISMATCH and DEAD_CREDENTIAL force a
+    // REF meet when no profile was satisfied (outcome < DIA).
+    //
+    // Guard is `outcome < DIA` (not `outcome <= REF`) because outcome now initializes to UNS
+    // when profiles exist but none are satisfied.  "No satisfied profile" covers UNS, REF,
+    // EXP, OOC — all are below DIA.  If a correct-provenance token did satisfy a profile
+    // (outcome ≥ DIA), these blockers are suppressed: the profile was met legitimately.
+    //
+    // PROVENANCE_MISMATCH: a token whose provenance hash doesn't match this context was
+    // presented — active credential forgery/misdirection, not mere absence.
+    //
+    // DEAD_CREDENTIAL: a token with correct provenance but non-usable status (Invalid,
+    // Revoked, Malformed, or the Expired variant) was presented — the credential was
+    // explicitly revoked/rejected, not merely absent.  Time-expired tokens (Valid status +
+    // expires_at < now) are handled separately by the step 6 EXP floor; they don't trigger
+    // this blocker.
+    let apply_ref_blocker = (provenance_mismatch_seen || dead_credential_seen)
+        && outcome < Permission::DIA;
+    if apply_ref_blocker {
+        let note = match (provenance_mismatch_seen, dead_credential_seen) {
+            (true, true) => {
+                "PROVENANCE_MISMATCH + DEAD_CREDENTIAL: rejected token(s) seen; REF meet applied"
+                    .to_string()
+            }
+            (true, false) => {
+                "PROVENANCE_MISMATCH: token(s) with wrong provenance seen; REF meet applied"
+                    .to_string()
+            }
+            (false, true) => {
+                "DEAD_CREDENTIAL: token(s) with non-usable status seen; REF meet applied"
+                    .to_string()
+            }
+            (false, false) => unreachable!(),
+        };
         warn!(
             phase = "structural_blockers",
-            "provenance mismatch(es) detected; meeting outcome with REF"
+            provenance_mismatch = provenance_mismatch_seen,
+            dead_credential = dead_credential_seen,
+            "structural blocker(s) detected; meeting outcome with REF"
         );
         derivation.push(DerivationStep {
             phase: "structural_blockers".into(),
             permission_after: outcome.meet(Permission::REF),
-            note: "PROVENANCE_MISMATCH: token(s) with wrong provenance seen; REF meet applied"
-                .into(),
+            note,
             token_ids: vec![],
         });
         outcome = outcome.meet(Permission::REF);
@@ -245,7 +287,7 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     }
     outcome = blocker_outcome;
 
-    // Step 5: authority ceiling.
+    // Step 5a: authority ceiling (structural delegation limit).
     let ceiling = ctx.authority_ceiling;
     if ceiling < outcome {
         warn!(
@@ -263,17 +305,57 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     }
     outcome = outcome.meet(ceiling);
 
-    // Step 6: token-level expiry blocker — if any *live* (Valid-status) token
-    // has expired, floor to EXP.  Context expiry was already handled above.
-    let has_expired_token = ctx
-        .tokens
-        .iter()
-        .any(|t| t.status.is_usable() && t.expires_at.map(|exp| now >= exp).unwrap_or(false));
+    // Step 5b: permission ceiling (non-promotion ceiling, T9).
+    // Set by compose() to meet(compile(g1), compile(g2)).  AAA on contexts not
+    // produced by composition (defaults to unconstrained).
+    let perm_ceiling = ctx.permission_ceiling;
+    if perm_ceiling < outcome {
+        warn!(
+            phase = "permission_ceiling",
+            ceiling = %perm_ceiling,
+            before = %outcome,
+            "non-promotion ceiling (T9) lowered permission"
+        );
+        derivation.push(DerivationStep {
+            phase: "permission_ceiling".into(),
+            permission_after: perm_ceiling,
+            note: format!("non-promotion ceiling (T9) is {}", perm_ceiling),
+            token_ids: vec![],
+        });
+    }
+    outcome = outcome.meet(perm_ceiling);
+
+    // Step 6: token-level expiry blocker — if any Valid-status token with correct
+    // provenance has expired, floor to EXP.  Tokens with wrong provenance are
+    // invisible to the compiler and must not trigger this blocker (a token with
+    // bad provenance was already rejected in effective_gap_status; letting it also
+    // trigger EXP would be a correctness violation).
+    let has_expired_token = ctx.tokens.iter().any(|t| {
+        t.status.is_usable()
+            && t.expires_at.map(|exp| now >= exp).unwrap_or(false)
+            && verify_provenance(
+                t,
+                &ctx.claim_id,
+                &ctx.candidate_id,
+                &ctx.context_id,
+                &ctx.allowed_use,
+            )
+    });
     if has_expired_token && outcome > Permission::EXP {
         let expired_ids: Vec<String> = ctx
             .tokens
             .iter()
-            .filter(|t| t.status.is_usable() && t.expires_at.map(|e| now >= e).unwrap_or(false))
+            .filter(|t| {
+                t.status.is_usable()
+                    && t.expires_at.map(|e| now >= e).unwrap_or(false)
+                    && verify_provenance(
+                        t,
+                        &ctx.claim_id,
+                        &ctx.candidate_id,
+                        &ctx.context_id,
+                        &ctx.allowed_use,
+                    )
+            })
             .map(|t| t.token_id.clone())
             .collect();
         warn!(
@@ -290,7 +372,7 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         outcome = Permission::EXP;
     }
 
-    // Step 6: record negative-control token IDs in the derivation.
+    // Step 7: record negative-control token IDs in the derivation.
     // Liveness is checked at runtime in LiveJudgment::permission() (T17).
     // We record them here so the derivation is self-contained for audit.
     let nc_token_ids: Vec<String> = ctx
@@ -337,20 +419,20 @@ enum ProfileCheckResult {
 /// in context `ctx`.
 ///
 /// Token provenance is checked bitwise: any token with wrong provenance is
-/// treated as if the gap is still Open and the mismatch flag is set on the
-/// caller so a REF-meet can be applied (spec §14 steps 6+9).
+/// treated as if the gap is still Open and `provenance_mismatch` is set so the
+/// caller can apply a REF-meet.  Any token with correct provenance but non-usable
+/// status sets `dead_credential` so the same REF-meet applies.
 fn profile_satisfied(
     ctx: &ProofContext,
     p: Permission,
     consulted: &mut Vec<String>,
     provenance_mismatch: &mut bool,
+    dead_credential: &mut bool,
 ) -> ProfileCheckResult {
     let profile = match ctx.profiles.iter().find(|pr| pr.permission == p) {
         Some(pr) => pr,
         None => return ProfileCheckResult::NoProfile,
     };
-
-    let expected_hash = ctx.provenance_hash();
 
     for req in &profile.required_gaps {
         let gap = match ctx.find_gap(&req.gap_id) {
@@ -361,7 +443,7 @@ fn profile_satisfied(
         };
 
         let effective_status =
-            effective_gap_status(ctx, gap, &expected_hash, consulted, provenance_mismatch);
+            effective_gap_status(ctx, gap, consulted, provenance_mismatch, dead_credential);
 
         if !req.minimum_status.satisfied_by(&effective_status) {
             return ProfileCheckResult::GapNotMet;
@@ -372,16 +454,20 @@ fn profile_satisfied(
 }
 
 /// Compute the effective gap status for a gap, considering only tokens whose
-/// provenance hash matches the context exactly.
+/// provenance hash matches the context exactly and whose status is usable.
 ///
-/// Tokens with wrong provenance are skipped and `provenance_mismatch` is set
-/// to true so the caller can apply the REF-meet (spec §14 steps 6+9).
+/// Tokens with wrong provenance set `provenance_mismatch`; tokens with correct
+/// provenance but non-usable status (Invalid, Revoked, Malformed, Expired variant)
+/// set `dead_credential`.  Both flags cause a REF-meet in step 4.
+///
+/// Time-expired tokens (Valid status + `expires_at` < now) are silently skipped
+/// here; they are handled by the step 6 EXP floor.
 fn effective_gap_status(
     ctx: &ProofContext,
     gap: &crate::gap::GapRecord,
-    _expected_hash: &str,
     consulted: &mut Vec<String>,
     provenance_mismatch: &mut bool,
+    dead_credential: &mut bool,
 ) -> GapStatus {
     let base_status = gap.status.clone();
     let mut best_status = base_status;
@@ -399,7 +485,14 @@ fn effective_gap_status(
             continue;
         }
 
+        // Correct provenance but non-usable status = explicitly rejected credential.
+        if !token.status.is_usable() {
+            *dead_credential = true;
+            continue;
+        }
+
         if !token.is_live(Utc::now()) {
+            // Time-expired (Valid + past expires_at): silently skip — step 6 handles EXP.
             continue;
         }
 
@@ -411,27 +504,15 @@ fn effective_gap_status(
         } else if token.bounds_gaps.iter().any(|g| g == &gap.gap_id)
             && best_status < GapStatus::Bounded(crate::gap::Bound::infinity())
         {
+            // Any Bounded(_) value has rank 1; this condition is false when best_status is
+            // already Bounded.  The branch exists to prevent overwriting a Closed status
+            // downward — once Closed, the break above fires first.
             best_status = GapStatus::Bounded(crate::gap::Bound::infinity());
         }
     }
 
     best_status
 }
-
-/// Ordering for GapStatus (for comparison in effective_gap_status).
-impl Ord for GapStatus {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.rank().cmp(&other.rank())
-    }
-}
-
-impl PartialOrd for GapStatus {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Eq for GapStatus {}
 
 /// Structural blockers that can lower the outcome.
 ///
@@ -478,6 +559,7 @@ mod tests {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership,
         }
     }

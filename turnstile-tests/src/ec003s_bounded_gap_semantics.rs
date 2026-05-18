@@ -41,6 +41,7 @@ fn base_ctx() -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -126,12 +127,12 @@ fn bounded_required_profile_fails_with_no_token() {
             minimum_status: RequiredStatus::BoundedRequired,
         }],
     }];
-    // No token → BoundedRequired not met → REF (in-class, profile defined)
+    // No token → BoundedRequired not met → UNS (in-class, profile defined)
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "no token → BoundedRequired not met; in-class → REF"
+        Permission::UNS,
+        "no token → BoundedRequired not met; in-class → UNS"
     );
 }
 
@@ -151,12 +152,12 @@ fn closed_required_profile_not_satisfied_by_bounding_token() {
     let tok = bounding_token("g1", &ctx);
     ctx.tokens = vec![tok];
 
-    // Bounding token doesn't satisfy ClosedRequired → REF (in-class, profile defined)
+    // Bounding token doesn't satisfy ClosedRequired → UNS (in-class, profile defined)
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "bounding token must NOT satisfy ClosedRequired; in-class → REF"
+        Permission::UNS,
+        "bounding token must NOT satisfy ClosedRequired; in-class → UNS"
     );
 }
 

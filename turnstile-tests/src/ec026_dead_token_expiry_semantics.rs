@@ -56,6 +56,7 @@ fn ctx_with_tokens(suffix: &str, tokens: Vec<ProofToken>) -> ProofContext {
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

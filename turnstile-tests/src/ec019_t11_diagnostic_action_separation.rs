@@ -74,6 +74,7 @@ fn ctx_with_ceiling(suffix: &str, ceiling: Permission) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -178,6 +179,7 @@ fn t11_ooc_input_in_compose_yields_ooc_membership() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::OutOfClassExact,
     };
     let ctx_aaa = ctx_with_ceiling("for-ooc", Permission::AAA);

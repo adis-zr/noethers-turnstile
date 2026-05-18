@@ -101,6 +101,7 @@ fn base_ctx(suffix: &str, permission: Permission) -> ProofContext {
             "token validity window",
         ),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

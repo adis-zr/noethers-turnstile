@@ -62,6 +62,7 @@ fn ctx_with_schema_version(schema_version: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

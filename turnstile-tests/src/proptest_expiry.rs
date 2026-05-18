@@ -54,6 +54,7 @@ fn build_dia_ctx_with_expiry(expiry: Expiry) -> ProofContext {
         }],
         expiry,
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

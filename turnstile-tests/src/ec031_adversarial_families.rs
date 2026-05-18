@@ -12,7 +12,7 @@
 ///
 ///   A1  — Fake-token promotion: OOC membership + tokens → must remain OOC
 ///   A2  — Diagnostic promoted into action: DIA ceiling + action profile → DIA at best
-///   A3  — Stale context laundering: expired context + fresh tokens → EXP
+///   A3  — Stale context laundering: wrong runtime fingerprint → OOC (not EXP)
 ///   A4  — Provenance mismatch: mismatched hash → gap stays Open → OOC
 ///   A5  — Parent-scope laundering: composed scope narrows, child outside scope
 ///   A6  — Proxy-to-objective laundering: bounded gap satisfies only bounded req
@@ -45,6 +45,7 @@ fn base_ctx(id: &str, use_: &str) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -245,13 +246,13 @@ fn a3_stale_runtime_fingerprint_blocks_via_live_judgment() {
         "compiled without expiry should be DIA"
     );
 
-    // Runtime fingerprint mismatch simulates stale context.
+    // Runtime fingerprint mismatch simulates stale/wrong context.
     let rt = RuntimeContext::new(Utc::now(), "fp-different");
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
-        "A3: stale fingerprint at runtime must produce EXP"
+        Permission::OOC,
+        "A3: stale fingerprint at runtime must produce OOC (wrong context, not expiry)"
     );
 }
 
@@ -459,8 +460,8 @@ fn a6_bounding_token_does_not_satisfy_closed_required() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "A6: bounding token cannot satisfy ClosedRequired profile; InClass unmet profile → REF"
+        Permission::UNS,
+        "A6: bounding token cannot satisfy ClosedRequired profile; InClass unmet profile → UNS"
     );
 }
 
@@ -555,8 +556,8 @@ fn a7_missing_required_coupling_gap_blocks_permission() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "A7: open required coupling gap must block permission; InClass unmet profile → REF"
+        Permission::UNS,
+        "A7: open required coupling gap must block permission; InClass unmet profile → UNS"
     );
 }
 
@@ -802,11 +803,11 @@ fn a10_audit_derivation_does_not_grant_authority() {
     // No tokens — gap stays open
 
     let j = compile(ctx).unwrap();
-    // Derivation says DIA profile was not satisfied; InClass candidate with unmet profile → REF.
+    // Derivation says DIA profile was not satisfied; InClass candidate with unmet profile → UNS.
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "A10: no satisfied profile on InClass candidate means REF"
+        Permission::UNS,
+        "A10: no satisfied profile on InClass candidate means UNS"
     );
 
     // The derivation steps never fabricate a higher permission

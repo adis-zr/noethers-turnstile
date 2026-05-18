@@ -13,7 +13,7 @@
 ///   A4-2  — Well-formed profiles (unique permissions) → accepted
 ///   A6-1  — Each of 12 ceiling values produces result ≤ ceiling
 ///   A6-2  — Ceiling lower than any profile → OOC (no satisfied profile within ceiling)
-///   A7-1  — Mismatched context_fingerprint in RuntimeContext → EXP
+///   A7-1  — Mismatched context_fingerprint in RuntimeContext → OOC
 ///   A7-2  — Matching context_fingerprint → permission unchanged
 ///   A9-1  — Adversarial 1M-char allowed_use → compile terminates
 ///   A9-2  — 1k gaps all with 1k-char gap_ids → compile terminates
@@ -80,6 +80,7 @@ fn clean_ctx() -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -150,6 +151,7 @@ fn a1_2_different_gap_ids_same_type_accepted() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let result = compile(ctx);
@@ -177,6 +179,7 @@ fn a3_1_ten_thousand_gap_context_terminates() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -210,6 +213,7 @@ fn a3_2_one_thousand_gaps_no_profiles_yields_ooc() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -247,6 +251,7 @@ fn a4_1_duplicate_permission_level_rejected_for_all_12() {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
         let result = compile(ctx);
@@ -281,6 +286,7 @@ fn a4_2_unique_permission_levels_accepted() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     assert!(
@@ -332,6 +338,7 @@ fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
             }],
             expiry: Expiry::never(),
             authority_ceiling: ceiling,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
         let j = compile(ctx).unwrap();
@@ -346,15 +353,15 @@ fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
 // ── A7: RuntimeContext fingerprint check ──────────────────────────────────────
 
 #[test]
-fn a7_1_mismatched_fingerprint_yields_exp() {
+fn a7_1_mismatched_fingerprint_yields_ooc() {
     let ctx = clean_ctx(); // context_fingerprint = "fp-a"
     let j = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), "fp-DIFFERENT");
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
-        "A7-1: mismatched fingerprint must yield EXP"
+        Permission::OOC,
+        "A7-1: mismatched fingerprint must yield OOC (wrong context, not expiry)"
     );
 }
 
@@ -409,6 +416,7 @@ fn a9_1_million_char_allowed_use_terminates() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let start = Instant::now();
@@ -440,6 +448,7 @@ fn a9_2_one_thousand_long_gap_ids_terminates() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let start = Instant::now();
@@ -506,6 +515,7 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let start = Instant::now();
@@ -513,8 +523,8 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
     let elapsed = start.elapsed();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "A9-3: all gaps open → REF (InClass, profiles defined but unmet)"
+        Permission::UNS,
+        "A9-3: all gaps open → UNS (InClass, profiles defined but unmet)"
     );
     assert!(
         elapsed.as_secs() < 5,

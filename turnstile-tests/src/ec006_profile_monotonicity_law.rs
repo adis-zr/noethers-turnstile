@@ -247,6 +247,7 @@ fn compiler_with_non_monotone_profiles_emits_lower_if_higher_fails() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -320,6 +321,7 @@ fn make_ctx(gap_closed: bool, permission: Permission) -> ProofContext {
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

@@ -111,6 +111,7 @@ fn build_ctx(
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

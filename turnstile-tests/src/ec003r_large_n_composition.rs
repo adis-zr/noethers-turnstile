@@ -68,6 +68,7 @@ fn dia_ctx(suffix: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::DIA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

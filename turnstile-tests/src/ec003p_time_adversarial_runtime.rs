@@ -74,6 +74,7 @@ fn dia_ctx_at(deadline_offset_secs: i64, base_now: chrono::DateTime<Utc>) -> Pro
         }],
         expiry,
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -253,7 +254,7 @@ fn no_expiry_context_is_immune_to_time_skew() {
 // ── Fingerprint mismatch is immune to time tricks ────────────────────────────
 
 #[test]
-fn fingerprint_mismatch_returns_exp_regardless_of_time() {
+fn fingerprint_mismatch_returns_ooc_regardless_of_time() {
     let ctx = dia_ctx(0);
     let judgment = compile(ctx).unwrap();
 
@@ -267,8 +268,8 @@ fn fingerprint_mismatch_returns_exp_regardless_of_time() {
         let live = LiveJudgment::new(judgment.clone(), &rt);
         assert_eq!(
             live.permission(),
-            Permission::EXP,
-            "fingerprint mismatch must return EXP at time {t}"
+            Permission::OOC,
+            "fingerprint mismatch must return OOC at time {t}"
         );
     }
 }

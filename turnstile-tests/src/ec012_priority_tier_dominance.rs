@@ -73,6 +73,7 @@ fn make_ctx_with_profile(membership: Membership, profile_perm: Permission) -> Pr
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership,
     }
 }
@@ -201,6 +202,7 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
         tokens: vec![good_token, expired_token],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -257,6 +259,7 @@ fn context_expiry_fired_yields_exp() {
         }],
         expiry: Expiry::at(Utc::now() - Duration::hours(1)), // context expired
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -327,6 +330,7 @@ fn authority_ceiling_clips_profile_permission_all_pairs() {
                 }],
                 expiry: Expiry::never(),
                 authority_ceiling: ceiling,
+                permission_ceiling: Permission::AAA,
                 membership: Membership::InClass,
             };
 
@@ -384,6 +388,7 @@ fn disallowed_uses_ceiling_rol_applied_correctly() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -415,6 +420,7 @@ fn no_matched_profile_emits_ooc_not_unsupported() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();

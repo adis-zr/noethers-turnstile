@@ -66,6 +66,7 @@ fn make_ctx(suffix: &str, disallowed: Vec<&str>) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

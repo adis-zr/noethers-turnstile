@@ -63,6 +63,7 @@ fn ctx_with_scope(suffix: &str, scope: Scope) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

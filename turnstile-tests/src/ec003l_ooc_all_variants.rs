@@ -58,6 +58,7 @@ fn saturated_ctx(membership: Membership) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership,
     }
 }
@@ -111,6 +112,7 @@ fn out_of_class_exact_empty_ctx_gives_ooc() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::OutOfClassExact,
     };
     let j = compile(ctx).unwrap();

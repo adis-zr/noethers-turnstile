@@ -59,6 +59,7 @@ fn make_ctx(target: Permission) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: target,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

@@ -152,6 +152,7 @@ fn certifier_validates_correctly_issued_token() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let result = certifier.validate(&token, &ctx);
@@ -180,6 +181,7 @@ fn certifier_validation_fails_wrong_candidate() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let result = certifier.validate(&token, &wrong_ctx);
@@ -248,6 +250,7 @@ fn certifier_issued_token_accepted_by_compiler() {
         tokens: vec![token],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -289,6 +292,7 @@ fn token_for_z1_not_accepted_for_z2_end_to_end() {
         tokens: vec![token_for_z1],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

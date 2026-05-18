@@ -40,6 +40,7 @@ fn base_ctx(id: &str) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -169,8 +170,8 @@ fn s3_no_satisfied_profile_produces_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "S3: no satisfied profile (InClass, profile defined but unmet) must produce REF"
+        Permission::UNS,
+        "S3: no satisfied profile (InClass, profile defined but unmet) must produce UNS"
     );
 }
 
@@ -400,8 +401,8 @@ fn s9_bounded_required_not_satisfied_by_open() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "S9: Open must not satisfy BoundedRequired; InClass unmet profile → REF"
+        Permission::UNS,
+        "S9: Open must not satisfy BoundedRequired; InClass unmet profile → UNS"
     );
 }
 

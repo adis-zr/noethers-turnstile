@@ -60,6 +60,7 @@ fn ctx_with_status(status: TokenStatus) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -158,6 +159,7 @@ fn token_expired_by_timestamp_gives_exp_at_compile() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -209,6 +211,7 @@ fn token_not_yet_expired_contributes_normally() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -262,6 +265,7 @@ fn context_expiry_independent_of_token_expiry() {
         }],
         expiry: Expiry::at(Utc::now() - Duration::seconds(1)), // context expired
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -315,6 +319,7 @@ fn both_token_and_context_expired_gives_exp() {
         }],
         expiry: Expiry::at(past),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();
@@ -386,6 +391,7 @@ fn one_expired_token_among_many_floors_to_exp() {
         ],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

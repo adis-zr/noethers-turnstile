@@ -55,6 +55,7 @@ pub fn minimal_ctx(ceiling: Permission, suffix: &str) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

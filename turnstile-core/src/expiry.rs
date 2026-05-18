@@ -208,9 +208,15 @@ impl<'ctx> LiveJudgment<'ctx> {
                 claim_id = %self.inner.context.claim_id,
                 runtime_fingerprint = %self.runtime.context_fingerprint,
                 compile_fingerprint = %self.inner.context.context_fingerprint,
-                "fingerprint mismatch; returning EXP"
+                "fingerprint mismatch; returning OOC (judgment applied in wrong context)"
             );
-            return Permission::EXP;
+            // A fingerprint mismatch means this judgment is being evaluated in a
+            // different context than it was compiled against — the judgment should
+            // not be applied at all.  OOC (not EXP) is the correct outcome: the
+            // candidate is out-of-class with respect to *this* runtime context.
+            // EXP is reserved for "was valid, now expired"; it must not be confused
+            // with "wrong context entirely".
+            return Permission::OOC;
         }
         // T17: negative-control liveness check.
         let nc_ids = self
@@ -268,6 +274,7 @@ mod tests {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: crate::context::Membership::InClass,
         }
     }
@@ -296,7 +303,7 @@ mod tests {
     }
 
     #[test]
-    fn live_judgment_returns_exp_on_fingerprint_mismatch() {
+    fn live_judgment_returns_ooc_on_fingerprint_mismatch() {
         let now = Utc::now();
         let rt = RuntimeContext::new(now, "wrong-fp");
         let judgment = Judgment {
@@ -306,7 +313,8 @@ mod tests {
             derivation: crate::audit::Derivation::default(),
         };
         let live = LiveJudgment::new(judgment, &rt);
-        assert_eq!(live.permission(), Permission::EXP);
+        // Fingerprint mismatch = wrong context entirely, not expiry. OOC, not EXP.
+        assert_eq!(live.permission(), Permission::OOC);
     }
 
     #[test]

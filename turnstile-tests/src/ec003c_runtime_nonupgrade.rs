@@ -76,6 +76,7 @@ fn build_dia_ctx(expiry: Expiry) -> ProofContext {
         }],
         expiry,
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -114,13 +115,13 @@ fn runtime_matching_fp_never_upgrades_all_operational() {
 }
 
 #[test]
-fn runtime_mismatched_fp_returns_exp() {
+fn runtime_mismatched_fp_returns_ooc() {
     let ctx = build_dia_ctx(Expiry::never());
     let judgment = compile(ctx).unwrap();
 
     let rt = RuntimeContext::new(Utc::now(), "fp-wrong"); // mismatched
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::EXP);
+    assert_eq!(live.permission(), Permission::OOC);
 }
 
 #[test]
@@ -213,6 +214,7 @@ fn expired_token_floors_to_exp_during_compile() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

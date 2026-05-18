@@ -77,6 +77,7 @@ fn full_ctx(ceiling: Permission) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

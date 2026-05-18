@@ -60,6 +60,7 @@ fn minimal_ctx() -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -74,7 +75,7 @@ fn no_profiles_gives_ooc() {
 }
 
 #[test]
-fn profile_without_token_gives_ooc() {
+fn profile_without_token_gives_uns() {
     let mut ctx = minimal_ctx();
     ctx.gaps.push(GapRecord::open("g1", "t"));
     ctx.profiles.push(Profile {
@@ -84,9 +85,9 @@ fn profile_without_token_gives_ooc() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    // No token supplied → gap stays Open → profile not satisfied → REF (in-class, profile defined)
+    // No token supplied → gap stays Open → profile not satisfied → UNS (in-class, profile defined)
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REF);
+    assert_eq!(j.permission, Permission::UNS);
 }
 
 #[test]
@@ -100,9 +101,9 @@ fn open_gap_blocks_profile() {
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
-    // Open gap → ClosedRequired not satisfied → REF (in-class, profile defined)
+    // Open gap → ClosedRequired not satisfied → UNS (in-class, profile defined)
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REF);
+    assert_eq!(j.permission, Permission::UNS);
 }
 
 #[test]
@@ -147,8 +148,8 @@ fn bounded_gap_does_not_satisfy_closed_required() {
         }],
     });
     let j = compile(ctx).unwrap();
-    // Bounded ≠ Closed → ClosedRequired not satisfied → REF (in-class, profile defined)
-    assert_eq!(j.permission, Permission::REF);
+    // Bounded ≠ Closed → ClosedRequired not satisfied → UNS (in-class, profile defined)
+    assert_eq!(j.permission, Permission::UNS);
 }
 
 // ── T2: Token validity — only Valid tokens contribute ────────────────────────
@@ -366,6 +367,7 @@ proptest! {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: ceiling,
+            permission_ceiling: Permission::AAA,
             membership,
         };
         let j = compile(ctx).unwrap();

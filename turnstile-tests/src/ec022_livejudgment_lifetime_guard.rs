@@ -12,8 +12,8 @@
 ///   L3 — LiveJudgment::judgment() exposes the inner Judgment for audit/serde.
 ///   L4 — LiveJudgment::deadline() correctly reflects the inner expiry.
 ///   L5 — Two LiveJudgments from the same RuntimeContext can coexist.
-///   L6 — LiveJudgment returns EXP when the runtime fingerprint differs from
-///         the compile-time fingerprint (revalidation guard).
+///   L6 — LiveJudgment returns OOC when the runtime fingerprint differs from
+///         the compile-time fingerprint (wrong-context guard, not expiry).
 ///   L7 — LiveJudgment permission is idempotent: calling permission() multiple
 ///         times on the same live instance returns the same value.
 ///   L8 — LiveJudgment with no expiry and matching fingerprint returns the
@@ -74,6 +74,7 @@ fn build_valid_ctx(suffix: &str, perm: Permission) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -116,8 +117,8 @@ fn l2_fresh_live_judgment_from_cloned_judgment_reflects_new_runtime() {
         let live2 = LiveJudgment::new(j, &rt2);
         assert_eq!(
             live2.permission(),
-            Permission::EXP,
-            "L2: mismatched runtime fingerprint must return EXP"
+            Permission::OOC,
+            "L2: mismatched runtime fingerprint must return OOC"
         );
     }
 }
@@ -205,18 +206,18 @@ fn l5_two_live_judgments_from_same_runtime_coexist() {
     );
 }
 
-// ── L6: Fingerprint mismatch returns EXP ─────────────────────────────────────
+// ── L6: Fingerprint mismatch returns OOC ─────────────────────────────────────
 
 #[test]
-fn l6_fingerprint_mismatch_returns_exp() {
+fn l6_fingerprint_mismatch_returns_ooc() {
     let ctx = build_valid_ctx("l6", Permission::AAA);
     let j = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), "completely-wrong-fingerprint");
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
-        "L6: fingerprint mismatch must return EXP (T15 runtime non-upgrade enforcement)"
+        Permission::OOC,
+        "L6: fingerprint mismatch must return OOC (T15 runtime non-upgrade enforcement)"
     );
 }
 

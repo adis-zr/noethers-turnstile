@@ -37,6 +37,14 @@ pub enum Permission {
 
 impl Permission {
     /// Meet (min) of two permissions in the total order.
+    /// The top element of the permission lattice (AAA).
+    ///
+    /// Used as a `#[serde(default)]` sentinel for fields that default to
+    /// unconstrained (no ceiling).
+    pub fn top() -> Self {
+        Permission::AAA
+    }
+
     #[inline]
     pub fn meet(self, other: Self) -> Self {
         self.min(other)

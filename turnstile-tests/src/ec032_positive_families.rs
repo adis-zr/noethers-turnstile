@@ -55,6 +55,7 @@ fn build_ctx(
         tokens,
         expiry: Expiry::never(),
         authority_ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -194,8 +195,8 @@ fn p1_inference_without_calibration_bound_stays_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "P1: open calibration gap must block DIA profile; InClass unmet profile → REF"
+        Permission::UNS,
+        "P1: open calibration gap must block DIA profile; InClass unmet profile → UNS"
     );
 }
 

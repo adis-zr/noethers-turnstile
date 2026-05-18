@@ -80,6 +80,7 @@ fn in_class_ctx(suffix: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -104,6 +105,7 @@ fn minimal_ctx_with_membership(membership: Membership, suffix: &str) -> ProofCon
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership,
     }
 }

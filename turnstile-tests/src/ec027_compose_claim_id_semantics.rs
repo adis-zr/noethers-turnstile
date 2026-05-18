@@ -56,6 +56,7 @@ fn make_ctx(
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -137,6 +138,19 @@ fn c4_composed_context_inherits_g1_context_id() {
 }
 
 // ── C5: Token issued for g1 is valid after composition ───────────────────────
+//
+// After composition, the composed context inherits g1's identity.  A token
+// hashed for g1's claim tuple has correct provenance in the composed context
+// and is accepted (does NOT trigger PROVENANCE_MISMATCH → REF).
+//
+// However, T9 (non-promotion) caps the composed result at
+// meet(compile(g1), compile(g2)).  g2 has a profile but no token, so
+// compile(g2) = UNS.  Therefore the composed result is capped at
+// meet(DIA, UNS) = UNS — the token is accepted (no REF), but the
+// non-promotion ceiling limits the outcome.
+//
+// Contrast with C6: the g2 token IS rejected (REF), because g2's token is
+// wrong-provenance in the composed context.
 
 #[test]
 fn c5_g1_token_remains_valid_after_composition() {
@@ -149,10 +163,17 @@ fn c5_g1_token_remains_valid_after_composition() {
 
     let composed = compose(g1, g2).unwrap();
     let j = compile(composed).unwrap();
+    // Token is accepted (correct provenance → no REF from PROVENANCE_MISMATCH).
+    // T9 non-promotion ceiling = meet(DIA, UNS) = UNS caps the outcome.
+    assert_ne!(
+        j.permission,
+        Permission::REF,
+        "C5: token with correct provenance must not trigger PROVENANCE_MISMATCH"
+    );
     assert_eq!(
         j.permission,
-        Permission::DIA,
-        "C5: token issued for g1 must satisfy the profile after composition (provenance matches)"
+        Permission::UNS,
+        "C5: composed result is UNS because non-promotion ceiling = meet(DIA, UNS) = UNS"
     );
 }
 

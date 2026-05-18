@@ -106,6 +106,7 @@ fn ctx_with_profiles_and_closed_gaps(
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -166,8 +167,8 @@ fn t2_2_all_gaps_open_weakest_satisfied() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "T2-2: no evidence → no profile satisfied → REF (InClass, profile defined but unmet)"
+        Permission::UNS,
+        "T2-2: no evidence → no profile satisfied → UNS (InClass, profile defined but unmet)"
     );
 }
 

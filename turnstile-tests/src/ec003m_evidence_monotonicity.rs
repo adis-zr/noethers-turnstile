@@ -47,6 +47,7 @@ fn base_ctx_with_gaps(gap_ids: &[&str], closed: &[bool]) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -87,8 +88,8 @@ fn adding_closed_token_raises_permission_from_ooc() {
         }],
     }];
     let p_before = compile(ctx.clone()).unwrap().permission;
-    // In-class candidate with a profile defined but gap unmet → REF (not OOC)
-    assert_eq!(p_before, Permission::REF);
+    // In-class candidate with a profile defined but gap unmet → UNS (not OOC)
+    assert_eq!(p_before, Permission::UNS);
 
     // Now close the gap with a token
     let tok = make_closing_token("g1", &ctx);
@@ -295,6 +296,7 @@ proptest! {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: ceiling,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
 
@@ -373,6 +375,7 @@ proptest! {
             tokens: vec![tok.clone()],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
 

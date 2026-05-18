@@ -43,6 +43,7 @@ fn ooc_ctx(id: &str, membership: Membership) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership,
     }
 }
@@ -208,6 +209,7 @@ fn in_class_system_with_proof_is_admitted() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

@@ -89,8 +89,15 @@ pub struct ProofContext {
     pub tokens: Vec<ProofToken>,
     /// Expiry constraint on any judgment compiled from this context.
     pub expiry: Expiry,
-    /// Hard authority ceiling — the compiler will never emit above this.
+    /// Structural delegation ceiling — the maximum permission any certifier in the
+    /// delegation chain is authorized to grant.  Set by the certifier; meets
+    /// pairwise on composition.  Never modified by non-promotion logic.
     pub authority_ceiling: Permission,
+    /// Non-promotion ceiling — set by `compose()` to `meet(compile(g1), compile(g2))`
+    /// (T9).  Prevents a valid component from laundering a refused one.  Defaults to
+    /// `AAA` (unconstrained) for contexts not produced by composition.
+    #[serde(default = "Permission::top")]
+    pub permission_ceiling: Permission,
     /// Class membership of the candidate.
     pub membership: Membership,
 }

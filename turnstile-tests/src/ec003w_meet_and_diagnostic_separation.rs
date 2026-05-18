@@ -179,6 +179,7 @@ fn t11_dia_context_cannot_compose_into_action_permission() {
             }],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         }
     };
@@ -261,6 +262,7 @@ fn t11_dia_ceiling_prevents_action_permission() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -324,6 +326,7 @@ fn t11_compose_dia_ceiling_with_aaa_stays_at_dia() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::DIA, // diagnostic ceiling
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

@@ -67,6 +67,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -309,6 +310,7 @@ fn closed_ctx(suffix: &str, ceiling: Permission) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: ceiling,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }

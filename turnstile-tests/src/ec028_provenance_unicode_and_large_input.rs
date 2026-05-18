@@ -190,6 +190,7 @@ fn u8_large_field_in_compile_does_not_panic() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

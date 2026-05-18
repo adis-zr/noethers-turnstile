@@ -51,6 +51,7 @@ fn base_ctx_with_tokens(suffix: &str, tokens: Vec<ProofToken>) -> ProofContext {
         tokens,
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -378,6 +379,7 @@ fn make_live_judgment_ctx(suffix: &str) -> (ProofContext, Permission) {
         }],
         expiry: Expiry::at(Utc::now() + Duration::hours(1)), // future expiry
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
     let j = compile(ctx).unwrap();

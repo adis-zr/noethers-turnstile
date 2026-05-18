@@ -72,6 +72,7 @@ fn base_ctx() -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -136,6 +137,7 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -189,6 +191,7 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -341,7 +344,8 @@ fn a7_fingerprint_mismatch_downgrades() {
     let judgment = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), "fp-wrong");
     let live = turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::EXP);
+    // Fingerprint mismatch = wrong context entirely (OOC), not expiry (EXP).
+    assert_eq!(live.permission(), Permission::OOC);
 }
 
 // ── A8: Closed under gap operations ──────────────────────────────────────────
@@ -393,6 +397,7 @@ fn a9_large_profile_compiles_in_finite_time() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

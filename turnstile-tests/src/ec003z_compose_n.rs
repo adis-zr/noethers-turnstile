@@ -65,6 +65,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -329,6 +330,7 @@ proptest! {
                 },
                 expiry: Expiry::never(),
                 authority_ceiling: ceiling,
+                permission_ceiling: Permission::AAA,
                 membership: Membership::InClass,
             };
             ctx

@@ -48,6 +48,7 @@ fn ctx_needs_g1_closed() -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     }
 }
@@ -86,11 +87,11 @@ fn t18_audit_store_not_consulted_by_compiler() {
     let ctx = ctx_needs_g1_closed();
     let j = compile(ctx).unwrap();
 
-    // In-class, profile defined, no proof token → REF
+    // In-class, profile defined, no proof token → UNS
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "T18: audit record must not grant permission; gap still open → REF (in-class)"
+        Permission::UNS,
+        "T18: audit record must not grant permission; gap still open → UNS (in-class)"
     );
 }
 
@@ -99,15 +100,15 @@ fn t18_repeated_compilations_do_not_escalate() {
     // Compiling the same context 100 times must not produce different results.
     let ctx = ctx_needs_g1_closed();
     let baseline = compile(ctx.clone()).unwrap().permission;
-    // In-class, profile defined, no token → REF
-    assert_eq!(baseline, Permission::REF);
+    // In-class, profile defined, no token → UNS
+    assert_eq!(baseline, Permission::UNS);
 
     for i in 0..100 {
         let p = compile(ctx.clone()).unwrap().permission;
         assert_eq!(
             p,
-            Permission::REF,
-            "T18: repeated compilation {i} changed permission from REF to {p}"
+            Permission::UNS,
+            "T18: repeated compilation {i} changed permission from UNS to {p}"
         );
     }
 }
@@ -175,11 +176,11 @@ fn t18_compile_result_unaffected_by_audit_store_size() {
     // Compile a context that cannot produce AAA (no valid tokens).
     let ctx = ctx_needs_g1_closed();
     let j = compile(ctx).unwrap();
-    // In-class, profile defined, no valid tokens → REF
+    // In-class, profile defined, no valid tokens → UNS
     assert_eq!(
         j.permission,
-        Permission::REF,
-        "T18: 1000 audit entries must not affect compile result; still REF (in-class)"
+        Permission::UNS,
+        "T18: 1000 audit entries must not affect compile result; still UNS (in-class)"
     );
 }
 
@@ -314,6 +315,7 @@ fn t19_compiler_accepts_any_valid_token_regardless_of_domain_science() {
         }],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -377,6 +379,7 @@ fn t19_compiler_does_not_validate_details_json_schema() {
             }],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
         let j = compile(ctx).unwrap();

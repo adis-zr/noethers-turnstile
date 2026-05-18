@@ -107,6 +107,7 @@ fn descending_search_returns_highest_satisfied_profile() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -160,6 +161,7 @@ fn both_gaps_closed_satisfies_highest_profile() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
@@ -201,12 +203,13 @@ fn adding_evidence_never_lowers_permission_ordered_profiles() {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 
     let p_before = compile(base_ctx.clone()).unwrap().permission;
-    // In-class, profile defined, gap open, no token → REF
-    assert_eq!(p_before, Permission::REF);
+    // In-class, profile defined, gap open, no token → UNS
+    assert_eq!(p_before, Permission::UNS);
 
     // Add a closing token + update gap to Closed
     let tok = make_token("g1", &base_ctx);
@@ -281,6 +284,7 @@ fn multi_level_profile_descending_search_exhaustive() {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: Permission::AAA,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
 
@@ -335,6 +339,7 @@ proptest! {
             tokens: vec![],
             expiry: Expiry::never(),
             authority_ceiling: ceiling,
+            permission_ceiling: Permission::AAA,
             membership: Membership::InClass,
         };
 

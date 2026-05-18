@@ -848,6 +848,7 @@ impl PyProofContext {
                     .collect(),
                 expiry: expiry.inner.clone(),
                 authority_ceiling: authority_ceiling.inner,
+                permission_ceiling: turnstile_core::permission::Permission::AAA,
                 membership: membership.inner.clone(),
             },
         }
