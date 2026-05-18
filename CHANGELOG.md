@@ -9,6 +9,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- **`docs/guide/introduction.md` — refactored to a leaner conceptual introduction**: removed
+  the "Core concepts" vocabulary section (bounded evidence, certifiable claims, gaps, profiles,
+  tokens, envelopes, compilers, algebra), the "How noethers-turnstile implements this" deep-dive,
+  the "A concrete example: PGM inference" walkthrough, the "The certifier boundary" section, and
+  the "Getting started" code walkthrough. The guide now covers when the design is needed, the
+  basic idea, why ordinary analytics language falls short, where the design does not fit, and a
+  summary. Concept depth and code examples are covered in the papers and the PGM example README.
+  Updated `README.md` table and architecture listing to reflect the narrower scope.
+
 - **`noethers-turnstile-core/src/certifier.rs` — clarified certifier failure-mode contract**:
   corrected a stale doc comment that incorrectly claimed "Turnstile itself only calls
   `validate()` at compile time". Neither `issue()` nor `validate()` is called by `compile()`;
