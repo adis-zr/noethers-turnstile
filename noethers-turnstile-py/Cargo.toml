@@ -1,6 +1,6 @@
 [package]
 name = "noethers-turnstile-py"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 publish = false
 description = "Python bindings for noethers-turnstile-core via PyO3"

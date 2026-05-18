@@ -1,9 +1,10 @@
 [package]
 name = "noethers-turnstile-core"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 description = "Admissibility compiler core: Γ ⊢ z : p until ε"
 license = "Apache-2.0"
+readme = "../README.md"
 repository = "https://github.com/adis-zr/noethers-turnstile"
 homepage = "https://github.com/adis-zr/noethers-turnstile"
 documentation = "https://docs.rs/noethers-turnstile-core"

@@ -1,6 +1,6 @@
 [package]
 name = "noethers-turnstile-tests"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 description = "Property-based tests for noethers-turnstile-core"
 license = "Apache-2.0"
