@@ -9,14 +9,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- **`docs/guide/introduction.md` — refactored to a leaner conceptual introduction**: removed
-  the "Core concepts" vocabulary section (bounded evidence, certifiable claims, gaps, profiles,
-  tokens, envelopes, compilers, algebra), the "How noethers-turnstile implements this" deep-dive,
-  the "A concrete example: PGM inference" walkthrough, the "The certifier boundary" section, and
-  the "Getting started" code walkthrough. The guide now covers when the design is needed, the
-  basic idea, why ordinary analytics language falls short, where the design does not fit, and a
-  summary. Concept depth and code examples are covered in the papers and the PGM example README.
-  Updated `README.md` table and architecture listing to reflect the narrower scope.
+- **`docs/guide/` — split introduction into focused files**: the single `introduction.md` is
+  now a lean entry point covering when the design is needed, the basic idea, why ordinary
+  analytics language falls short, and where it does not fit. The content removed from it has
+  been moved into three new files in the same folder:
+  - `core-concepts.md` — bounded evidence, certifiable claims, gaps, profiles, tokens,
+    envelopes, compilers, algebra
+  - `how-this-is-implemented.md` — judgment form, permission chain, gaps and profiles, tokens
+    and provenance, structural non-promotion, certifier boundary, getting started code
+  - `a-concrete-example.md` — PGM inference memory-budget demo walkthrough (OOC/DIA/AEX),
+    AEX vs ALR distinction, model specification gap lesson
+  Updated `README.md` table and architecture listing to reflect the split.
 
 - **`noethers-turnstile-core/src/certifier.rs` — clarified certifier failure-mode contract**:
   corrected a stale doc comment that incorrectly claimed "Turnstile itself only calls

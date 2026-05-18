@@ -17,7 +17,10 @@ This library is for teams building systems where autonomous or consequential act
 
 | Document | Description |
 |----------|-------------|
-| [`docs/guide/introduction.md`](docs/guide/introduction.md) | Gentle introduction to admissibility compilers for approximate consequential systems — when this design is needed, the basic idea, and when it does not fit |
+| [`docs/guide/introduction.md`](docs/guide/introduction.md) | When this design is needed, the basic idea, and when it does not fit |
+| [`docs/guide/core-concepts.md`](docs/guide/core-concepts.md) | Vocabulary: bounded evidence, certifiable claims, gaps, profiles, tokens, envelopes, compilers, algebra |
+| [`docs/guide/how-this-is-implemented.md`](docs/guide/how-this-is-implemented.md) | Judgment form, permission chain, gaps and profiles, tokens and provenance, structural non-promotion, certifier boundary, getting started |
+| [`docs/guide/a-concrete-example.md`](docs/guide/a-concrete-example.md) | PGM inference memory-budget demo (OOC/DIA/AEX), AEX vs ALR distinction, model specification gap lesson |
 | [`docs/papers/admissibility_compilers_for_approximate_consequential_systems.md`](docs/papers/admissibility_compilers_for_approximate_consequential_systems.md) | Core compiler paper: judgment form, permission algebra, gap/profile/token machinery, 19 structural theorems, PGM benchmark results |
 | [`docs/papers/admissible_compilability_representation_theorem.md`](docs/papers/admissible_compilability_representation_theorem.md) | Representation theorem: characterizes exactly when a domain admits a bounded sharp monotone compiler; WQO and semialgebraic corollaries |
 
@@ -340,7 +343,10 @@ After `maturin develop`, the `noethers_turnstile` package is importable in the a
 
 ```
 docs/guide/              Conceptual guides
-  introduction.md        Admissibility compilers for approximate consequential systems — when needed, basic idea, where it does not fit
+  introduction.md        When this design is needed, the basic idea, where it does not fit
+  core-concepts.md       Vocabulary: bounded evidence, certifiable claims, gaps, profiles, tokens, algebra
+  how-this-is-implemented.md  Judgment form, permission chain, provenance, certifier boundary, getting started
+  a-concrete-example.md  PGM inference demo: OOC/DIA/AEX, AEX vs ALR, model specification gap
 docs/papers/             Research papers
   admissibility_compilers_for_approximate_consequential_systems.md
                          Compiler paper: judgment form, 19 theorems, PGM benchmark
