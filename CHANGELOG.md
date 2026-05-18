@@ -7,6 +7,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- **`bench_compile.rs` — missing `permission_ceiling` field**: `ProofContext` struct literal
+  in the criterion benchmark was missing the `permission_ceiling` field added in the
+  intermediate commit, causing a compile error on the bench target.  Added
+  `permission_ceiling: Permission::AAA` (the default for non-composed contexts).
+
+- **`compiler.rs` doc comment — `clippy::doc_lazy_continuation`**: sub-items `5a.` and `5b.`
+  in the module-level algorithm comment were not indented, triggering a `-D warnings` lint
+  failure.  Indented both lines to fix.
+
+- **Formatting (`cargo fmt`)**: reformatted `compiler.rs`, `composition.rs`, and `gap.rs`
+  to satisfy `cargo fmt --check` after the previous commit introduced over-length lines and
+  dense struct literals.
+
 ### Added
 
 - **`examples/pgm/tests/test_5_gaps.py` — 24 new gap-correctness tests (GAP-001–020)**:

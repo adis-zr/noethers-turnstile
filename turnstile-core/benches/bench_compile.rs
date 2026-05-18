@@ -82,6 +82,7 @@ fn base_ctx(n_gaps: usize, closed: bool, bad_provenance: bool) -> ProofContext {
         tokens: vec![],
         expiry: Expiry::never(),
         authority_ceiling: Permission::AAA,
+        permission_ceiling: Permission::AAA,
         membership: Membership::InClass,
     };
 

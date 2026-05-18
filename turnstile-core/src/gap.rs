@@ -59,7 +59,9 @@ impl Bound {
     /// Panics if `value` is NaN. Use `try_numeric` for fallible construction.
     pub fn numeric(value: f64) -> Self {
         Self {
-            kind: BoundKind::Numeric(NotNan::new(value).expect("numeric bound value must not be NaN")),
+            kind: BoundKind::Numeric(
+                NotNan::new(value).expect("numeric bound value must not be NaN"),
+            ),
             units: None,
         }
     }
@@ -75,7 +77,9 @@ impl Bound {
     /// Panics if `value` is NaN. Use `try_numeric` + `units` for fallible construction.
     pub fn numeric_with_units(value: f64, units: impl Into<String>) -> Self {
         Self {
-            kind: BoundKind::Numeric(NotNan::new(value).expect("numeric bound value must not be NaN")),
+            kind: BoundKind::Numeric(
+                NotNan::new(value).expect("numeric bound value must not be NaN"),
+            ),
             units: Some(units.into()),
         }
     }

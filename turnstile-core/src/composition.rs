@@ -71,7 +71,10 @@ pub fn compose(g1: ProofContext, g2: ProofContext) -> Result<ProofContext, Compo
         .unwrap_or(Permission::OOC);
     // The non-promotion ceiling also incorporates any existing permission_ceiling
     // from each component (which may itself have been produced by a prior compose).
-    let non_promotion_ceiling = p1.meet(p2).meet(g1.permission_ceiling).meet(g2.permission_ceiling);
+    let non_promotion_ceiling = p1
+        .meet(p2)
+        .meet(g1.permission_ceiling)
+        .meet(g2.permission_ceiling);
 
     // Membership: conservative — if either is out-of-class, result is out-of-class.
     let membership = compose_membership(&g1.membership, &g2.membership);
@@ -264,15 +267,14 @@ fn merge_profile_requirements(target: &mut Profile, source: &Profile) {
         {
             Some(tgt_req) => {
                 // Keep the strictest: ClosedRequired > BoundedRequired > OpenAllowed.
-                tgt_req.minimum_status = match (tgt_req.minimum_status, src_req.minimum_status) {
-                    (RequiredStatus::ClosedRequired, _) | (_, RequiredStatus::ClosedRequired) => {
-                        RequiredStatus::ClosedRequired
-                    }
-                    (RequiredStatus::BoundedRequired, _) | (_, RequiredStatus::BoundedRequired) => {
-                        RequiredStatus::BoundedRequired
-                    }
-                    _ => RequiredStatus::OpenAllowed,
-                };
+                tgt_req.minimum_status =
+                    match (tgt_req.minimum_status, src_req.minimum_status) {
+                        (RequiredStatus::ClosedRequired, _)
+                        | (_, RequiredStatus::ClosedRequired) => RequiredStatus::ClosedRequired,
+                        (RequiredStatus::BoundedRequired, _)
+                        | (_, RequiredStatus::BoundedRequired) => RequiredStatus::BoundedRequired,
+                        _ => RequiredStatus::OpenAllowed,
+                    };
             }
             None => {
                 target.required_gaps.push(src_req.clone());
@@ -442,10 +444,18 @@ mod anti_launder_tests {
 
     fn make_token(id: &str, status: TokenStatus, closes: Vec<String>, h: String) -> ProofToken {
         ProofToken {
-            token_id: id.into(), token_type: "T".into(), schema_version: "0.1".into(),
-            status, closes_gaps: closes, bounds_gaps: vec![],
-            provenance_hash: h, issued_at: Utc::now(), expires_at: None,
-            issuer: "test".into(), details: serde_json::Value::Null, is_negative_control: false,
+            token_id: id.into(),
+            token_type: "T".into(),
+            schema_version: "0.1".into(),
+            status,
+            closes_gaps: closes,
+            bounds_gaps: vec![],
+            provenance_hash: h,
+            issued_at: Utc::now(),
+            expires_at: None,
+            issuer: "test".into(),
+            details: serde_json::Value::Null,
+            is_negative_control: false,
         }
     }
 
@@ -453,19 +463,29 @@ mod anti_launder_tests {
         let h = compute_provenance_hash("claim", "cand", fp, "use");
         let profile = Profile {
             permission: Permission::DIA,
-            required_gaps: vec![GapRequirement { gap_id: "g1".into(), minimum_status: RequiredStatus::ClosedRequired }],
+            required_gaps: vec![GapRequirement {
+                gap_id: "g1".into(),
+                minimum_status: RequiredStatus::ClosedRequired,
+            }],
         };
         ProofContext {
-            claim_id: "claim".into(), candidate_id: "cand".into(),
-            context_id: fp.into(), context_fingerprint: fp.into(),
-            allowed_use: "use".into(), disallowed_uses: vec![],
-            scope: Scope::default(), membership: Membership::InClass,
+            claim_id: "claim".into(),
+            candidate_id: "cand".into(),
+            context_id: fp.into(),
+            context_fingerprint: fp.into(),
+            allowed_use: "use".into(),
+            disallowed_uses: vec![],
+            scope: Scope::default(),
+            membership: Membership::InClass,
             authority_ceiling: Permission::AAA,
             permission_ceiling: Permission::AAA,
             expiry: Expiry::never(),
             gaps: vec![GapRecord::open("g1", "gap")],
             profiles: vec![profile],
-            tokens: vec![ProofToken { provenance_hash: h, ..token }],
+            tokens: vec![ProofToken {
+                provenance_hash: h,
+                ..token
+            }],
         }
     }
 
@@ -485,14 +505,29 @@ mod anti_launder_tests {
         let p_a = compile(ctx_a.clone()).unwrap().permission;
         let p_b = compile(ctx_b.clone()).unwrap().permission;
         assert_eq!(p_a, Permission::DIA, "ctx_a should be DIA");
-        assert_eq!(p_b, Permission::REF, "ctx_b should be REF (profile present, gap unmet)");
+        assert_eq!(
+            p_b,
+            Permission::REF,
+            "ctx_b should be REF (profile present, gap unmet)"
+        );
 
         let composed = compose(ctx_a, ctx_b).unwrap();
         let p_c = compile(composed).unwrap().permission;
         // Non-promotion: p_c ≤ meet(DIA, REF) = REF
-        assert!(p_c <= p_a.meet(p_b), "T9 violated: composed={:?} > meet({:?},{:?})", p_c, p_a, p_b);
+        assert!(
+            p_c <= p_a.meet(p_b),
+            "T9 violated: composed={:?} > meet({:?},{:?})",
+            p_c,
+            p_a,
+            p_b
+        );
         // More specifically: should be exactly REF (the ceiling set by the weaker component)
-        assert_eq!(p_c, Permission::REF, "composed should be REF (non-promotion ceiling), got {:?}", p_c);
+        assert_eq!(
+            p_c,
+            Permission::REF,
+            "composed should be REF (non-promotion ceiling), got {:?}",
+            p_c
+        );
     }
 }
 
@@ -517,19 +552,28 @@ mod b1_trace_tests {
 
         let now = Utc::now();
         let expired_tok = ProofToken {
-            token_id: "tok-b1".into(), token_type: "CLOSE".into(),
-            schema_version: "0.1".into(), status: TokenStatus::Valid,
-            closes_gaps: vec!["g1".into()], bounds_gaps: vec![],
-            provenance_hash: h, issued_at: now - Duration::hours(1),
+            token_id: "tok-b1".into(),
+            token_type: "CLOSE".into(),
+            schema_version: "0.1".into(),
+            status: TokenStatus::Valid,
+            closes_gaps: vec!["g1".into()],
+            bounds_gaps: vec![],
+            provenance_hash: h,
+            issued_at: now - Duration::hours(1),
             expires_at: Some(now - Duration::seconds(1)),
-            issuer: "stress-test".into(), details: serde_json::Value::Null,
+            issuer: "stress-test".into(),
+            details: serde_json::Value::Null,
             is_negative_control: false,
         };
         let ctx = ProofContext {
-            claim_id: claim_id.into(), candidate_id: candidate_id.into(),
-            context_id: context_id.into(), context_fingerprint: context_id.into(),
-            allowed_use: allowed_use.into(), disallowed_uses: vec![],
-            scope: Scope::default(), membership: Membership::InClass,
+            claim_id: claim_id.into(),
+            candidate_id: candidate_id.into(),
+            context_id: context_id.into(),
+            context_fingerprint: context_id.into(),
+            allowed_use: allowed_use.into(),
+            disallowed_uses: vec![],
+            scope: Scope::default(),
+            membership: Membership::InClass,
             authority_ceiling: Permission::AAA,
             permission_ceiling: Permission::AAA,
             expiry: Expiry::never(),
@@ -548,6 +592,11 @@ mod b1_trace_tests {
         println!("B1 result: {}", j.permission);
         // Trace: expired token skipped → g1 OPEN → profile GapNotMet → had_any_profile=true
         // outcome stays UNS → step6: has_expired_token=true, UNS > EXP → floor to EXP
-        assert_eq!(j.permission, Permission::EXP, "Expected EXP for expired-only token, got {:?}", j.permission);
+        assert_eq!(
+            j.permission,
+            Permission::EXP,
+            "Expected EXP for expired-only token, got {:?}",
+            j.permission
+        );
     }
 }

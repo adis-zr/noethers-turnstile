@@ -5,8 +5,8 @@
 /// 2. Early context expiry check — halt before evaluating tokens (spec §14 step 4)
 /// 3. Descending search: find the strongest p such that profile_satisfied(Γ, p)
 /// 4. meet with structural_blockers (PROVENANCE_MISMATCH → REF; disallowed_uses → ROL ceiling)
-/// 5a. meet with authority_ceiling (structural delegation limit)
-/// 5b. meet with permission_ceiling (non-promotion ceiling T9, set by compose())
+///    5a. meet with authority_ceiling (structural delegation limit)
+///    5b. meet with permission_ceiling (non-promotion ceiling T9, set by compose())
 /// 6. meet with expiry_blocker (any expired token with valid provenance → EXP floor)
 /// 7. record negative-control token IDs in the derivation (liveness checked at runtime)
 ///
@@ -236,8 +236,8 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     // explicitly revoked/rejected, not merely absent.  Time-expired tokens (Valid status +
     // expires_at < now) are handled separately by the step 6 EXP floor; they don't trigger
     // this blocker.
-    let apply_ref_blocker = (provenance_mismatch_seen || dead_credential_seen)
-        && outcome < Permission::DIA;
+    let apply_ref_blocker =
+        (provenance_mismatch_seen || dead_credential_seen) && outcome < Permission::DIA;
     if apply_ref_blocker {
         let note = match (provenance_mismatch_seen, dead_credential_seen) {
             (true, true) => {
