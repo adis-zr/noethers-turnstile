@@ -190,7 +190,7 @@ The PGM example (`examples/pgm/bridge/certifier.py`) ships a reference certifier
 
 ## Implementing a Certifier
 
-The `Certifier` trait is the primary extension point. A certifier is the domain component that issues and validates proof tokens. Turnstile calls `validate()` at compile time; your domain layer calls `issue()`.
+The `Certifier` trait is the primary extension point. A certifier is the domain component that issues and validates proof tokens. **Neither method is called by `compile()`** — turnstile operates on tokens already present in the `ProofContext` snapshot. Your domain layer calls `issue()` to produce tokens before constructing the context, and may call `validate()` for pre-flight checks.
 
 ```rust
 use noethers_turnstile_core::certifier::{Certifier, Evidence, IssueError, ValidationResult};

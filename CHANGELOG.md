@@ -7,6 +7,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- **`noethers-turnstile-core/src/certifier.rs` — clarified certifier failure-mode contract**:
+  corrected a stale doc comment that incorrectly claimed "Turnstile itself only calls
+  `validate()` at compile time". Neither `issue()` nor `validate()` is called by `compile()`;
+  turnstile consumes tokens already present in the `ProofContext` snapshot. Added a
+  `# Failure mode contract` section to the `Certifier` trait doc explaining the two integration
+  policies (fail hard vs. graceful degradation to a lower permission) and annotated both methods
+  to state they are not called by `compile()`. Updated `README.md` accordingly.
+
 ## [0.2.2] - 2026-05-18
 
 ### Fixed
