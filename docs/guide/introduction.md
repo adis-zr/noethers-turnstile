@@ -1,16 +1,16 @@
-# A Gentle Introduction to Evidence-Carrying Decision Systems
+# A Gentle Introduction to Admissibility Compilers for Approximate Consequential Systems
 
 Most organizations are comfortable with data-driven decisions. We look at dashboards, compare metrics, run experiments, and make judgment calls. That is useful, but it is not enough for systems that will increasingly make or recommend decisions on their own.
 
 As decision systems become more automated, the standard has to change. A system should not merely produce an answer. It should also explain what evidence supports the answer, what uncertainty remains, and whether the answer is *permitted* given that uncertainty.
 
-That is the idea behind an evidence-carrying decision system. This document introduces the concept, the vocabulary, and the **turnstile** library that implements it.
+That is the idea behind an admissibility compiler for approximate consequential systems. This document introduces the concept, the vocabulary, and the **turnstile** library that implements it.
 
 ---
 
 ## When is this needed?
 
-Evidence-carrying design is needed when a system turns evidence into consequential action.
+A system is **approximate consequential** — and needs an admissibility compiler — when it turns approximate evidence into consequential action.
 
 It is usually needed when a system decides, recommends, or constrains:
 
@@ -36,7 +36,7 @@ An ordinary decision system says:
 > "This campaign is underperforming."
 > "This intervention is safe."
 
-An evidence-carrying decision system says:
+An approximate consequential system, structured with an admissibility compiler, says:
 
 > "Here is the claim. Here is the evidence behind it. Here is what we observed. Here is what we could not observe. Here are the limits of the claim. Here is why the system is permitted to make this claim."
 
@@ -105,7 +105,7 @@ This distinction — computation quality versus model adequacy — runs through 
 
 A certificate is the evidence packet attached to a claim. It says: "This is why the system is permitted to make this claim."
 
-In ordinary analytics, the result and the reasoning are usually separate — the result is in a dashboard, the reasoning is in a notebook or a meeting. In an evidence-carrying system, they travel together.
+In ordinary analytics, the result and the reasoning are usually separate — the result is in a dashboard, the reasoning is in a notebook or a meeting. In an approximate consequential system, they travel together.
 
 A certificate for a marketplace decision might include: the data used, the time window, the comparison group, the observed outcome, the missing data, the uncertainty bound, the assumptions, the claim type, and the reason the claim is permitted.
 
@@ -318,17 +318,17 @@ For a complete domain adapter, see `examples/pgm/bridge/`. For the full memory-b
 
 ## Where this design does not fit
 
-Not every system needs this level of structure. Evidence-carrying design is probably unnecessary when the work is purely descriptive, low-stakes, easily reversible, or not tied to automated action.
+Not every system needs this level of structure. An admissibility compiler is probably unnecessary when the work is purely descriptive, low-stakes, easily reversible, or not tied to automated action.
 
 The design is most valuable when a system might otherwise confuse a partial signal for a complete truth — and then act on it.
 
-The standard should not be: every metric needs a certificate. The standard should be: any system that turns evidence into consequential action should carry the claim, the limits, and the permission with it.
+The standard should not be: every metric needs a certificate. The standard should be: any approximate consequential system should carry the claim, the limits, and the permission with it.
 
 ---
 
 ## Summary
 
-An evidence-carrying decision system makes claims with evidence, boundaries, and permissions attached. It does not just return an answer. It returns the answer together with the evidence contract that makes the answer valid.
+An approximate consequential system, structured with an admissibility compiler, makes claims with evidence, boundaries, and permissions attached. It does not just return an answer. It returns the answer together with the evidence contract that makes the answer valid.
 
 turnstile implements this as a structural compiler. The compiler checks evidence but does not produce it. Certifiers produce tokens. Tokens close gaps. Profiles map gap coverage to permissions. The compiler emits the greatest permission the evidence can support and cannot be induced to emit more.
 
