@@ -115,7 +115,7 @@ fn closed_required_accepts_only_closed() {
 #[test]
 fn bound_numeric_stores_value() {
     let b = Bound::numeric(0.05);
-    assert!(matches!(b.kind, BoundKind::Numeric(v) if (v - 0.05).abs() < f64::EPSILON));
+    assert!(matches!(b.kind, BoundKind::Numeric(v) if (v.value() - 0.05).abs() < f64::EPSILON));
     assert!(b.units.is_none());
 }
 

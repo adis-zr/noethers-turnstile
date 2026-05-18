@@ -547,7 +547,7 @@ mod b1_trace_tests {
         let j = compile(ctx).unwrap();
         println!("B1 result: {}", j.permission);
         // Trace: expired token skipped → g1 OPEN → profile GapNotMet → had_any_profile=true
-        // outcome stays REF → step6: has_expired_token=true, REF > EXP → floor to EXP
+        // outcome stays UNS → step6: has_expired_token=true, UNS > EXP → floor to EXP
         assert_eq!(j.permission, Permission::EXP, "Expected EXP for expired-only token, got {:?}", j.permission);
     }
 }

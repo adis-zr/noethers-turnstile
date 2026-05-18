@@ -37,7 +37,7 @@ use chrono::Utc;
 fn b1_numeric_bound_carries_value() {
     let b = Bound::numeric(0.05);
     assert!(
-        matches!(b.kind, BoundKind::Numeric(v) if (v - 0.05).abs() < f64::EPSILON),
+        matches!(b.kind, BoundKind::Numeric(v) if (v.value() - 0.05).abs() < f64::EPSILON),
         "B1: Bound::numeric(0.05) must carry value 0.05"
     );
     assert_eq!(b.units, None, "B1: no units by default");
@@ -49,7 +49,7 @@ fn b1_numeric_bound_carries_value() {
 fn b2_numeric_with_units_carries_units() {
     let b = Bound::numeric_with_units(1.5, "nats");
     assert!(
-        matches!(b.kind, BoundKind::Numeric(v) if (v - 1.5).abs() < f64::EPSILON),
+        matches!(b.kind, BoundKind::Numeric(v) if (v.value() - 1.5).abs() < f64::EPSILON),
         "B2: numeric value must be 1.5"
     );
     assert_eq!(

@@ -10,9 +10,6 @@ pub enum CompositionError {
     #[error("token conflict: token '{token_id}' exists in both contexts with different content")]
     TokenConflict { token_id: String },
 
-    #[error("provenance conflict: hash collision with different content for token '{token_id}'")]
-    ProvenanceConflict { token_id: String },
-
     #[error("empty composition: at least one context is required")]
     EmptyComposition,
 }

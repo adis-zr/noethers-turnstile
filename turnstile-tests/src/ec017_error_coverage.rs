@@ -171,21 +171,6 @@ fn empty_composition_display_is_nonempty() {
     );
 }
 
-// ── ProvenanceConflict ────────────────────────────────────────────────────────
-
-#[test]
-fn provenance_conflict_display_contains_token_id() {
-    let err = CompositionError::ProvenanceConflict {
-        token_id: "provenance-tok".into(),
-    };
-    let msg = format!("{err}");
-    assert!(
-        msg.contains("provenance-tok"),
-        "ProvenanceConflict Display must contain the token_id; got: {msg}"
-    );
-    assert!(!format!("{err:?}").is_empty());
-}
-
 // ── All CompositionError variants are Debug + Display ────────────────────────
 
 #[test]
@@ -193,9 +178,6 @@ fn all_composition_error_variants_are_debug_display() {
     let variants: Vec<CompositionError> = vec![
         CompositionError::UseConflict,
         CompositionError::TokenConflict {
-            token_id: "tok".into(),
-        },
-        CompositionError::ProvenanceConflict {
             token_id: "tok".into(),
         },
         CompositionError::EmptyComposition,

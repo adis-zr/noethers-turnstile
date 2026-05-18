@@ -330,34 +330,23 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     // invisible to the compiler and must not trigger this blocker (a token with
     // bad provenance was already rejected in effective_gap_status; letting it also
     // trigger EXP would be a correctness violation).
-    let has_expired_token = ctx.tokens.iter().any(|t| {
-        t.status.is_usable()
-            && t.expires_at.map(|exp| now >= exp).unwrap_or(false)
-            && verify_provenance(
-                t,
-                &ctx.claim_id,
-                &ctx.candidate_id,
-                &ctx.context_id,
-                &ctx.allowed_use,
-            )
-    });
-    if has_expired_token && outcome > Permission::EXP {
-        let expired_ids: Vec<String> = ctx
-            .tokens
-            .iter()
-            .filter(|t| {
-                t.status.is_usable()
-                    && t.expires_at.map(|e| now >= e).unwrap_or(false)
-                    && verify_provenance(
-                        t,
-                        &ctx.claim_id,
-                        &ctx.candidate_id,
-                        &ctx.context_id,
-                        &ctx.allowed_use,
-                    )
-            })
-            .map(|t| t.token_id.clone())
-            .collect();
+    let expired_ids: Vec<String> = ctx
+        .tokens
+        .iter()
+        .filter(|t| {
+            t.status.is_usable()
+                && t.expires_at.map(|e| now >= e).unwrap_or(false)
+                && verify_provenance(
+                    t,
+                    &ctx.claim_id,
+                    &ctx.candidate_id,
+                    &ctx.context_id,
+                    &ctx.allowed_use,
+                )
+        })
+        .map(|t| t.token_id.clone())
+        .collect();
+    if !expired_ids.is_empty() && outcome > Permission::EXP {
         warn!(
             phase = "expiry_blocker",
             expired_token_ids = ?expired_ids,
@@ -369,7 +358,7 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
             note: "at least one proof token has expired".into(),
             token_ids: expired_ids,
         });
-        outcome = Permission::EXP;
+        outcome = outcome.meet(Permission::EXP);
     }
 
     // Step 7: record negative-control token IDs in the derivation.

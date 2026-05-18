@@ -176,13 +176,18 @@ impl RuntimeContext {
 /// `RuntimeContext`; if that context is dropped or mutated, the borrow checker
 /// prevents the read.
 pub struct LiveJudgment<'ctx> {
-    pub inner: Judgment,
-    pub runtime: &'ctx RuntimeContext,
+    inner: Judgment,
+    runtime: &'ctx RuntimeContext,
 }
 
 impl<'ctx> LiveJudgment<'ctx> {
     pub fn new(inner: Judgment, runtime: &'ctx RuntimeContext) -> Self {
         Self { inner, runtime }
+    }
+
+    /// The runtime context this judgment is bound to.
+    pub fn runtime(&self) -> &RuntimeContext {
+        self.runtime
     }
 
     /// Read the effective permission at this instant.
@@ -249,7 +254,11 @@ impl<'ctx> LiveJudgment<'ctx> {
         self.inner.expiry.deadline
     }
 
-    /// Underlying judgment (for audit / serialization).
+    /// Underlying judgment (for audit / serialization only).
+    ///
+    /// WARNING: Do not read `judgment().permission` for admissibility decisions.
+    /// That field bypasses expiry, fingerprint verification, and negative-control
+    /// liveness checks. `LiveJudgment::permission()` is the only correct read path.
     pub fn judgment(&self) -> &Judgment {
         &self.inner
     }

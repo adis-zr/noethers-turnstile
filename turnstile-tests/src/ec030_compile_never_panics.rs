@@ -9,7 +9,7 @@
 ///   N1 — compile() with empty gaps, empty profiles, empty tokens.
 ///   N2 — compile() with a gap that has no matching token.
 ///   N3 — compile() with all TokenStatus variants.
-///   N4 — compile() with NaN in Bound::Numeric.
+///   N4 — Bound::try_numeric(NaN) returns None (NaN rejected at construction).
 ///   N5 — compile() with Bound::Numeric(f64::INFINITY).
 ///   N6 — compile() with Bound::Numeric(f64::NEG_INFINITY).
 ///   N7 — compose() with two contexts that have disjoint gaps.
@@ -132,24 +132,12 @@ fn n3_all_token_status_variants_do_not_panic() {
 // ── N4: NaN in Bound::Numeric ─────────────────────────────────────────────────
 
 #[test]
-fn n4_nan_bound_does_not_panic() {
-    let mut ctx = base_ctx("n4");
-    ctx.gaps.push(GapRecord::bounded(
-        "g1",
-        "nan_gap",
-        Bound::numeric(f64::NAN),
-    ));
-    ctx.profiles.push(Profile {
-        permission: Permission::DIA,
-        required_gaps: vec![GapRequirement {
-            gap_id: "g1".into(),
-            minimum_status: RequiredStatus::BoundedRequired,
-        }],
-    });
-    let result = compile(ctx);
+fn n4_nan_bound_rejected_at_construction() {
+    // Bound::try_numeric returns None for NaN — NaN is rejected before it can
+    // reach the compiler, so compile() never sees an unsound Eq value.
     assert!(
-        result.is_ok() || result.is_err(),
-        "N4: NaN in Bound::Numeric must not panic"
+        Bound::try_numeric(f64::NAN).is_none(),
+        "N4: Bound::try_numeric(NaN) must return None"
     );
 }
 

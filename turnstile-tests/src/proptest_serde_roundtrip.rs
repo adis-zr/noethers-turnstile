@@ -203,7 +203,7 @@ fn gap_status_bounded_numeric_roundtrip() {
     let r: GapStatus = serde_json::from_str(&json).unwrap();
     match r {
         GapStatus::Bounded(b) => match b.kind {
-            BoundKind::Numeric(v) => assert!((v - 0.05).abs() < 1e-10),
+            BoundKind::Numeric(v) => assert!((v.value() - 0.05).abs() < 1e-10),
             _ => panic!("expected Numeric bound"),
         },
         _ => panic!("expected Bounded"),

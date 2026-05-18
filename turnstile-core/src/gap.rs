@@ -3,12 +3,45 @@ use serde::{Deserialize, Serialize};
 
 use crate::permission::Permission;
 
+/// A non-NaN f64 value. Constructed via `NotNan::new` (returns `None` for NaN)
+/// or `NotNan::try_from` (same). Implements `Eq` and `Hash` soundly.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct NotNan(f64);
+
+impl NotNan {
+    /// Returns `None` if `value` is NaN.
+    pub fn new(value: f64) -> Option<Self> {
+        if value.is_nan() {
+            None
+        } else {
+            Some(Self(value))
+        }
+    }
+
+    pub fn get(self) -> f64 {
+        self.0
+    }
+
+    pub fn value(self) -> f64 {
+        self.0
+    }
+}
+
+impl Eq for NotNan {}
+
+impl std::hash::Hash for NotNan {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // Safe: value is guaranteed non-NaN, so bit representation is stable.
+        self.0.to_bits().hash(state);
+    }
+}
+
 /// Numeric or set-valued bound on a gap.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "value")]
 pub enum BoundKind {
     /// A finite numeric bound (e.g. KL-divergence ≤ 0.05).
-    Numeric(f64),
+    Numeric(NotNan),
     /// A set-valued bound (e.g. allowed tool names).
     SetValued(Vec<String>),
     /// Conceptually unbounded — the gap is acknowledged but not quantified.
@@ -16,23 +49,33 @@ pub enum BoundKind {
 }
 
 /// A structured bound on a gap.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Bound {
     pub kind: BoundKind,
     pub units: Option<String>,
 }
 
 impl Bound {
+    /// Panics if `value` is NaN. Use `try_numeric` for fallible construction.
     pub fn numeric(value: f64) -> Self {
         Self {
-            kind: BoundKind::Numeric(value),
+            kind: BoundKind::Numeric(NotNan::new(value).expect("numeric bound value must not be NaN")),
             units: None,
         }
     }
 
+    /// Returns `None` if `value` is NaN.
+    pub fn try_numeric(value: f64) -> Option<Self> {
+        Some(Self {
+            kind: BoundKind::Numeric(NotNan::new(value)?),
+            units: None,
+        })
+    }
+
+    /// Panics if `value` is NaN. Use `try_numeric` + `units` for fallible construction.
     pub fn numeric_with_units(value: f64, units: impl Into<String>) -> Self {
         Self {
-            kind: BoundKind::Numeric(value),
+            kind: BoundKind::Numeric(NotNan::new(value).expect("numeric bound value must not be NaN")),
             units: Some(units.into()),
         }
     }
@@ -53,7 +96,7 @@ impl Bound {
 }
 
 /// Status of a single gap in the proof context.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "status", content = "bound")]
 pub enum GapStatus {
     /// No evidence has been supplied for this gap.
@@ -83,8 +126,6 @@ impl GapStatus {
         }
     }
 }
-
-impl Eq for GapStatus {}
 
 impl Ord for GapStatus {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
