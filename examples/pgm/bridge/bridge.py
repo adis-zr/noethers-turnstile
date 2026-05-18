@@ -66,7 +66,7 @@ def _is_in_class(runtime: dict) -> bool:
     return True
 
 
-def _build_profiles(claim_class: str) -> list[t.Profile]:
+def build_profiles(claim_class: str) -> list[t.Profile]:
     """Build turnstile Profile objects from PROFILE_REQUIREMENTS."""
     reqs = PROFILE_REQUIREMENTS.get(claim_class, {})
     profiles: list[t.Profile] = [
@@ -220,7 +220,7 @@ def compile_pgm(
     )
 
     gaps = [t.GapRecord(gap_id=g, gap_type=g) for g in GAP_BASIS]
-    profiles = _build_profiles(claim_class)
+    profiles = build_profiles(claim_class)
     ts_tokens = [
         _translate_token(tok, prov_hash, fp_graph, fp_query, fp_evidence, fp_algorithm, issued_at_unix)
         for tok in tokens
@@ -253,3 +253,7 @@ def make_runtime_context(evidence: dict) -> t.RuntimeContext:
         now_unix=time.time(),
         context_fingerprint=fingerprint_evidence(evidence),
     )
+
+
+# Backward-compatible alias — existing tests may import the old private name.
+_build_profiles = build_profiles

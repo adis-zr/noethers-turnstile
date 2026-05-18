@@ -7,6 +7,70 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- **`examples/pgm/demo/` — self-contained certified inference demo** (diabetes.bif, 3 memory budgets):
+  - `demo/inference/` — trimmed copy of `ecds-pgm/certified_inference/` with all
+    `experiments.*` dependencies removed; `cert_policy.py` stubs `evaluate_c1`,
+    `evaluate_tp_c1_best`, and `boundary_size` so the demo runs without the full
+    hilbert-flow experiments package.
+  - `demo/bif_loader.py` — trimmed copy of `experiments/bif_loader.py` with `ModelInstance`
+    inlined; integer-ID BIF parsing for the inference compiler.
+  - `demo/tokens.py` — new translation layer: `InferenceResult → list[ProofToken]`.
+    Maps certificate geometry to gap coverage: `exact` → ExactInferenceToken closes 5 gaps;
+    `hilbert/fkkl` → CertifiedBoundToken closes bound_scope + bounds 2; `infinite` → invalid
+    InfiniteCertToken with empty gap lists.
+  - `demo/run_demo.py` — end-to-end script demonstrating the full certified inference loop:
+    load `diabetes.bif`, compile at three memory budgets, translate each certificate into
+    turnstile proof tokens, compile a permission judgment, print a budget sweep table.
+
+  **Demonstrated outcomes on diabetes.bif (413 vars, 413 factors):**
+
+  | Budget | Outcome | Geometry | Permission |
+  |--------|---------|----------|------------|
+  | 9 MB (tight) | OOC — no plan fits (min ≈11.2 MB) | — | OOC |
+  | 20 MB (medium) | Hilbert guard fires (4307 overlapping scopes) → infinite cert | infinite | DIA |
+  | 120 MB (loose) | All-exact plan | exact | AEX |
+
+  The demo makes the `model_specification_gap` lesson concrete: even the exact row earns
+  AEX, not ALR, because no inference kernel can self-issue a `ModelSpecificationToken`
+  certifying model adequacy for the real-world target. ALR requires that token
+  out-of-band from a domain expert.
+
+  **Why diabetes, not asia**: Asia and other Tier 1 networks collapse to single-point Pareto
+  frontiers — the Hilbert kernel is Pareto-dominated on small binary networks (the 2-group
+  split costs more memory than exact elimination at those factor sizes). Diabetes (413 vars,
+  cardinalities 3–21) is large enough that Hilbert's per-site memory savings are real, and
+  the composition soundness condition becomes the binding constraint at intermediate budgets.
+
+- **`examples/pgm/tests/test_6_demo.py` — 9 unit tests for `demo/tokens.py`**:
+  - DEMO6-001: `claim_class_for_geometry()` for all geometry types
+  - DEMO6-002: exact geometry → 5 gaps closed, freshness present
+  - DEMO6-003: hilbert geometry → bound_scope closed, 2 gaps bounded, freshness present
+  - DEMO6-004: infinite geometry → 0 closed, 0 bounded, no freshness, status=invalid
+  - DEMO6-005: provenance hash threaded to all tokens
+  - DEMO6-006: unique token IDs across calls
+
+- **`examples/pgm/results/`** — captured run outputs:
+  - `demo_diabetes_2026-05-17.txt` — full demo output with row notes and model_specification_gap section
+  - `tests_2026-05-17.txt` — full pytest output, 97/97 passing
+
+### Changed
+
+- **`examples/pgm/bridge/bridge.py` — `_build_profiles` renamed to `build_profiles`**:
+  removed the leading underscore to make it a stable public utility; backward-compatible
+  alias `_build_profiles = build_profiles` retained for existing callers. The demo imports
+  `build_profiles` directly.
+
+- **`examples/pgm/README.md` — full rewrite**: expanded from a quick-start reference into
+  a two-part guide covering (1) how the demo works (inference compiler phases, kernel
+  families, budget calibration for diabetes, translation layer gap mapping,
+  `model_specification_gap` boundary) and (2) how the tests work (per-file scenario tables
+  for all six test files). Total example test count updated to 97.
+
+Total example test count: **97 tests** — 10 bridge agreement + 4 narrative demo + 32 stress
++ 32 BIF integration + 20 gap-correctness + 9 demo tokens.
+
 ### Fixed
 
 - **`bench_compile.rs` — missing `permission_ceiling` field**: `ProofContext` struct literal

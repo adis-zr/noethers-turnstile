@@ -172,7 +172,7 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p turnstile-tests
 ```
 
-**1098 tests total — 998 Rust (85 files) + 100 Python (8 files).** Every test passes on every commit (ubuntu + macos CI matrix).
+**1195 tests total — 998 Rust (85 files) + 100 Python (8 files) + 97 PGM example tests (6 files).** Every test passes on every commit (ubuntu + macos CI matrix).
 
 ---
 
@@ -327,9 +327,15 @@ After `maturin develop`, the `turnstile` package is importable in the active env
 ## Architecture
 
 ```
-examples/pgm/            PGM inference integration example (64 Python tests)
+examples/pgm/            PGM inference integration example (97 Python tests)
   bridge/                domain adapter — token types, fingerprinting, gap profiles
-  tests/                 64 tests: bridge agreement, narrative demo, compiler stress, BIF integration
+  demo/                  self-contained diabetes BIF memory-budget sweep demo
+    inference/           certified inference compiler (copied + stripped from hilbert-flow)
+    bif_loader.py        BIF parser + ModelInstance factory
+    tokens.py            InferenceResult → turnstile ProofToken translation layer
+    run_demo.py          main script: 3-row OOC/DIA/AEX budget table
+  tests/                 97 tests: bridge (10), demo (4), stress (32), BIF (32), gaps (20), tokens (9)
+  results/               captured test and demo outputs (dated)
   conftest.py            auto-inserts workspace python/ ahead of any installed wheel
 
 turnstile-core/          Pure Rust library (no PyO3 dependency)

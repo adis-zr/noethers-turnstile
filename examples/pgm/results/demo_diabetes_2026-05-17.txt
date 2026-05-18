@@ -1,0 +1,50 @@
+Diabetes BIF — certified inference permission sweep
+Network : 413 variables, 413 factors
+Query   : bg_24 (variable 412)
+Evidence: none
+C1/TP-C1: n/a (stubbed) — requires experiments package
+          (see demo/inference/compiler/cert_policy.py for stub details)
+
+Running tight budget (9 MB)... done (0.5s) → OOC (no plan fits)
+Running medium budget (20 MB)... done (2.7s) → DIA
+Running loose budget (120 MB)... done (0.8s) → AEX
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Budget    Budget     Geometry    KL bound      Mem         C1      Permission
+─────────────────────────────────────────────────────────────────────────────
+tight     9 MB       —           —             —           n/a     OOC
+medium    20 MB      infinite    ∞             20.0 MB     n/a     DIA
+loose     120 MB     exact       0.0000        115.1 MB    n/a     AEX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+── Row notes ───────────────────────────────────────────────────────────────────
+tight  (OOC):   No certified candidate fits within 9 MB.
+                The minimum feasible plan requires ≈11.2 MB.
+                Inference is out of class for this memory tier.
+
+medium (DIA):   Plan fits in 20 MB using hilbert kernel, but the composition
+                soundness check fails — 161 Hilbert sites with 4307 overlapping
+                output scopes. A finite KL bound requires a residual certificate
+                (C1/TP-C1), which is stubbed in this demo.
+                With C1/TP-C1 available, a finite bound could potentially be
+                recovered. Result: infinite certificate, no useful bound → DIA.
+
+loose  (AEX):   Exact inference everywhere. KL = 0 (computation is provably
+                correct given the model).
+
+── The model_specification_gap boundary ────────────────────────────────────────
+The loose row earns AEX, not ALR. model_specification_gap stays OPEN.
+This gap asks: 'Is the diabetes BIF model an adequate representation of
+real patients?' No inference kernel can answer that. It requires a
+ModelSpecificationToken issued by a domain expert or external clinical
+validation study — a token the system cannot self-issue.
+
+  AEX: 'the computation was correct given the model.'
+  ALR: 'the model is adequate AND the computation was correct.'
+Without a ModelSpecificationToken, AEX is the ceiling.
+────────────────────────────────────────────────────────────────────────────────
+
+---
+Run date : 2026-05-17
+Platform : darwin (Python 3.10.10)
+turnstile : locally built (maturin develop)
