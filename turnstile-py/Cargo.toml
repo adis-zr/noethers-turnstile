@@ -7,6 +7,8 @@ license = "Apache-2.0"
 repository = "https://github.com/adis-zr/turnstile"
 homepage = "https://github.com/adis-zr/turnstile"
 keywords = ["admissibility", "permission", "formal-methods", "python", "pyo3"]
+categories = ["api-bindings", "algorithms"]
+documentation = "https://docs.rs/turnstile-py"
 
 [lib]
 name = "_turnstile"
