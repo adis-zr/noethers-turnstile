@@ -13,6 +13,16 @@ This library is for teams building systems where autonomous or consequential act
 
 ---
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [`docs/guide/introduction.md`](docs/guide/introduction.md) | Gentle introduction to evidence-carrying decision systems — concepts, vocabulary, worked examples, and when this design does and doesn't fit |
+| [`docs/papers/admissibility_compilers_for_approximate_consequential_systems.md`](docs/papers/admissibility_compilers_for_approximate_consequential_systems.md) | Core compiler paper: judgment form, permission algebra, gap/profile/token machinery, 19 structural theorems, PGM benchmark results |
+| [`docs/papers/admissible_compilability_representation_theorem.md`](docs/papers/admissible_compilability_representation_theorem.md) | Representation theorem: characterizes exactly when a domain admits a bounded sharp monotone compiler; WQO and semialgebraic corollaries |
+
+---
+
 ## Permission Chain
 
 Total order. `OOC` is the bottom (weakest). `AAA` is the top (strongest). Meet = min.
@@ -329,6 +339,14 @@ After `maturin develop`, the `turnstile` package is importable in the active env
 ## Architecture
 
 ```
+docs/guide/              Conceptual guides
+  introduction.md        Evidence-carrying decision systems — concepts and worked examples
+docs/papers/             Research papers
+  admissibility_compilers_for_approximate_consequential_systems.md
+                         Compiler paper: judgment form, 19 theorems, PGM benchmark
+  admissible_compilability_representation_theorem.md
+                         Representation theorem: when a domain admits a sharp compiler
+
 examples/pgm/            PGM inference integration example (97 Python tests)
   bridge/                domain adapter — token types, fingerprinting, gap profiles
     certifier.py         PGMExactCertifier + PGMModelSpecificationCertifier (stub)
