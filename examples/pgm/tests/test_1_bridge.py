@@ -1,7 +1,7 @@
 """Bridge agreement tests (BRIDGE-001 through BRIDGE-010).
 
 Each test demonstrates a specific gap-coverage scenario and asserts the
-permission that turnstile produces.  The expected permission is derived
+permission that noethers-turnstile produces.  The expected permission is derived
 directly from the gap closure rules in bridge/claims.py — no reference
 adapter is needed.
 
@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime, timezone
 
 import pytest
-import turnstile as t
+import noethers_turnstile as t
 
 from bridge import (
     ExactInferenceToken,
@@ -227,7 +227,7 @@ def test_bridge_006_ooc_spec():
 def test_bridge_007_revoked_token():
     """BRIDGE-007: Revoked ExactInferenceToken must not promote above DIA.
 
-    A REVOKED token is passed to turnstile with status="revoked" and empty
+    A REVOKED token is passed to noethers-turnstile with status="revoked" and empty
     closes_gaps/bounds_gaps.  The token is recorded in the derivation but
     cannot close any gap — permission stays at DIA.
     """
@@ -245,7 +245,7 @@ def test_bridge_007_revoked_token():
 def test_bridge_008_authority_ceiling_cap():
     """BRIDGE-008: Full token set earns ALR; ceiling=REV caps it at REV.
 
-    turnstile.ProofContext.authority_ceiling is a hard cap applied at the
+    noethers_turnstile.ProofContext.authority_ceiling is a hard cap applied at the
     end of compilation.  Even with all gaps satisfied for ALR, the result
     is the meet(ALR, REV) = REV.
     """

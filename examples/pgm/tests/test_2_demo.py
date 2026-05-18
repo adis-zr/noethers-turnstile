@@ -3,7 +3,7 @@
 Run with `pytest tests/test_2_demo.py -v -s` to see the printed output.
 
 These tests serve as executable documentation — they show exactly what the
-compiler does at each step, making it easy to understand how turnstile works
+compiler does at each step, making it easy to understand how noethers-turnstile works
 when integrated with a real domain.
 """
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-import turnstile as t
+import noethers_turnstile as t
 
 from bridge import (
     ExactInferenceToken,
@@ -175,7 +175,7 @@ def test_demo_004_composition_walkthrough():
 
     compose(A, B) produces a merged context where B's token carries A's provenance
     hash (A's claim_id).  Since B's token was issued against B's claim_id (-B suffix),
-    its provenance hash doesn't match A's — turnstile rejects it.
+    its provenance hash doesn't match A's — noethers-turnstile rejects it.
 
     The composed result matches A's individual result (AEX), because A's tokens
     are still valid in the composed context.  The non-upgrade property holds:

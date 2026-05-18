@@ -3,7 +3,7 @@ requires = ["maturin>=1.4,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "turnstile"
+name = "noethers-turnstile"
 version = "0.1.0"
 description = "Admissibility compiler: Γ ⊢ z : p until ε"
 license = {text = "Apache-2.0"}
@@ -25,15 +25,15 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/adis-zr/turnstile"
-Homepage = "https://github.com/adis-zr/turnstile"
-Documentation = "https://github.com/adis-zr/turnstile#readme"
+Repository = "https://github.com/adis-zr/noethers-turnstile"
+Homepage = "https://github.com/adis-zr/noethers-turnstile"
+Documentation = "https://github.com/adis-zr/noethers-turnstile#readme"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
-module-name = "turnstile._turnstile"
+module-name = "noethers_turnstile._noethers_turnstile"
 python-source = "python"
-manifest-path = "turnstile-py/Cargo.toml"
+manifest-path = "noethers-turnstile-py/Cargo.toml"
 
 [tool.pytest.ini_options]
 testpaths = ["python/tests"]

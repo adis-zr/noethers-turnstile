@@ -1,0 +1,355 @@
+[package]
+name = "noethers-turnstile-tests"
+version = "0.1.0"
+edition = "2021"
+description = "Property-based tests for noethers-turnstile-core"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+name = "noethers_turnstile_tests"
+path = "src/lib.rs"
+
+[[test]]
+name = "proptest_composition"
+path = "src/proptest_composition.rs"
+
+[[test]]
+name = "proptest_provenance"
+path = "src/proptest_provenance.rs"
+
+[[test]]
+name = "proptest_expiry"
+path = "src/proptest_expiry.rs"
+
+[[test]]
+name = "proptest_monotonicity"
+path = "src/proptest_monotonicity.rs"
+
+[[test]]
+name = "ec003a_permission_order"
+path = "src/ec003a_permission_order.rs"
+
+[[test]]
+name = "ec003b_composition_algebra"
+path = "src/ec003b_composition_algebra.rs"
+
+[[test]]
+name = "ec003c_runtime_nonupgrade"
+path = "src/ec003c_runtime_nonupgrade.rs"
+
+[[test]]
+name = "ec003d_anti_laundering"
+path = "src/ec003d_anti_laundering.rs"
+
+[[test]]
+name = "ec003e_blocking_and_ooc"
+path = "src/ec003e_blocking_and_ooc.rs"
+
+[[test]]
+name = "ec004_profile_wellformedness"
+path = "src/ec004_profile_wellformedness.rs"
+
+[[test]]
+name = "ec005_domain_admission"
+path = "src/ec005_domain_admission.rs"
+
+[[test]]
+name = "ac002_scope_algebra"
+path = "src/ac002_scope_algebra.rs"
+
+[[test]]
+name = "audit_store"
+path = "src/audit_store.rs"
+
+[[test]]
+name = "step11_assembler"
+path = "src/step11_assembler.rs"
+
+[[test]]
+name = "ec003f_nary_composition"
+path = "src/ec003f_nary_composition.rs"
+
+[[test]]
+name = "ec003g_gap_status_algebra"
+path = "src/ec003g_gap_status_algebra.rs"
+
+[[test]]
+name = "ec003h_compile_idempotence"
+path = "src/ec003h_compile_idempotence.rs"
+
+[[test]]
+name = "ec003i_token_status_exhaustive"
+path = "src/ec003i_token_status_exhaustive.rs"
+
+[[test]]
+name = "ec003j_multi_gap_multi_token"
+path = "src/ec003j_multi_gap_multi_token.rs"
+
+[[test]]
+name = "ec003k_version_nonupgrade"
+path = "src/ec003k_version_nonupgrade.rs"
+
+[[test]]
+name = "ec003l_ooc_all_variants"
+path = "src/ec003l_ooc_all_variants.rs"
+
+[[test]]
+name = "ec003m_evidence_monotonicity"
+path = "src/ec003m_evidence_monotonicity.rs"
+
+[[test]]
+name = "ec003n_certifier_interface"
+path = "src/ec003n_certifier_interface.rs"
+
+[[test]]
+name = "ec003o_negative_control_liveness"
+path = "src/ec003o_negative_control_liveness.rs"
+
+[[test]]
+name = "ec003p_time_adversarial_runtime"
+path = "src/ec003p_time_adversarial_runtime.rs"
+
+[[test]]
+name = "ec003q_fingerprint_sensitivity"
+path = "src/ec003q_fingerprint_sensitivity.rs"
+
+[[test]]
+name = "ec003r_large_n_composition"
+path = "src/ec003r_large_n_composition.rs"
+
+[[test]]
+name = "ec003s_bounded_gap_semantics"
+path = "src/ec003s_bounded_gap_semantics.rs"
+
+[[test]]
+name = "ec003t_scope_containment"
+path = "src/ec003t_scope_containment.rs"
+
+[[test]]
+name = "ec003u_provenance_field_absorption"
+path = "src/ec003u_provenance_field_absorption.rs"
+
+[[test]]
+name = "proptest_derivation_audit"
+path = "src/proptest_derivation_audit.rs"
+
+[[test]]
+name = "proptest_permission_ceiling"
+path = "src/proptest_permission_ceiling.rs"
+
+[[test]]
+name = "proptest_ooc_projection"
+path = "src/proptest_ooc_projection.rs"
+
+[[test]]
+name = "proptest_serde_roundtrip"
+path = "src/proptest_serde_roundtrip.rs"
+
+[[test]]
+name = "proptest_meet_lattice"
+path = "src/proptest_meet_lattice.rs"
+
+[[test]]
+name = "ec003v_gap_soundness"
+path = "src/ec003v_gap_soundness.rs"
+
+[[test]]
+name = "ec003w_meet_and_diagnostic_separation"
+path = "src/ec003w_meet_and_diagnostic_separation.rs"
+
+[[test]]
+name = "ec003x_audit_not_authority"
+path = "src/ec003x_audit_not_authority.rs"
+
+[[test]]
+name = "ec003z_compose_n"
+path = "src/ec003z_compose_n.rs"
+
+[[test]]
+name = "ec006_profile_monotonicity_law"
+path = "src/ec006_profile_monotonicity_law.rs"
+
+[[test]]
+name = "ec007_derivation_chain_soundness"
+path = "src/ec007_derivation_chain_soundness.rs"
+
+[[test]]
+name = "ec008_concurrent_audit_store"
+path = "src/ec008_concurrent_audit_store.rs"
+
+[[test]]
+name = "ec009_permission_from_str"
+path = "src/ec009_permission_from_str.rs"
+
+[[test]]
+name = "ec010_scope_candidate_admission"
+path = "src/ec010_scope_candidate_admission.rs"
+
+[[test]]
+name = "ec011_gap_composition_invariants"
+path = "src/ec011_gap_composition_invariants.rs"
+
+[[test]]
+name = "ec012_priority_tier_dominance"
+path = "src/ec012_priority_tier_dominance.rs"
+
+[[test]]
+name = "ec013_composition_fail_closed"
+path = "src/ec013_composition_fail_closed.rs"
+
+[[test]]
+name = "ec014_schema_registry_invariants"
+path = "src/ec014_schema_registry_invariants.rs"
+
+[[test]]
+name = "ec015_disallowed_use_accumulation"
+path = "src/ec015_disallowed_use_accumulation.rs"
+
+[[test]]
+name = "ec016_compile_determinism"
+path = "src/ec016_compile_determinism.rs"
+
+[[test]]
+name = "ec017_error_coverage"
+path = "src/ec017_error_coverage.rs"
+
+[[test]]
+name = "ec018_large_context_stress"
+path = "src/ec018_large_context_stress.rs"
+
+[[test]]
+name = "ec019_t11_diagnostic_action_separation"
+path = "src/ec019_t11_diagnostic_action_separation.rs"
+
+[[test]]
+name = "ec020_token_expiry_edge_cases"
+path = "src/ec020_token_expiry_edge_cases.rs"
+
+[[test]]
+name = "ec021_malformed_context_validation"
+path = "src/ec021_malformed_context_validation.rs"
+
+[[test]]
+name = "ec022_livejudgment_lifetime_guard"
+path = "src/ec022_livejudgment_lifetime_guard.rs"
+
+[[test]]
+name = "ec023_descending_order_stability"
+path = "src/ec023_descending_order_stability.rs"
+
+[[test]]
+name = "ec024_token_expiry_in_composition"
+path = "src/ec024_token_expiry_in_composition.rs"
+
+[[test]]
+name = "ec025_bound_variant_coverage"
+path = "src/ec025_bound_variant_coverage.rs"
+
+[[test]]
+name = "ec026_dead_token_expiry_semantics"
+path = "src/ec026_dead_token_expiry_semantics.rs"
+
+[[test]]
+name = "ec027_compose_claim_id_semantics"
+path = "src/ec027_compose_claim_id_semantics.rs"
+
+[[test]]
+name = "ec028_provenance_unicode_and_large_input"
+path = "src/ec028_provenance_unicode_and_large_input.rs"
+
+[[test]]
+name = "ec029_poisoned_mutex_recovery"
+path = "src/ec029_poisoned_mutex_recovery.rs"
+
+[[test]]
+name = "ec030_compile_never_panics"
+path = "src/ec030_compile_never_panics.rs"
+
+[[test]]
+name = "ec031_adversarial_families"
+path = "src/ec031_adversarial_families.rs"
+
+[[test]]
+name = "ec032_positive_families"
+path = "src/ec032_positive_families.rs"
+
+[[test]]
+name = "ec033_negative_families"
+path = "src/ec033_negative_families.rs"
+
+[[test]]
+name = "ec034_permission_tier_semantics"
+path = "src/ec034_permission_tier_semantics.rs"
+
+[[test]]
+name = "ec035_multi_profile_descending_search"
+path = "src/ec035_multi_profile_descending_search.rs"
+
+[[test]]
+name = "ec036_token_liveness_and_freshness"
+path = "src/ec036_token_liveness_and_freshness.rs"
+
+[[test]]
+name = "ec037_serde_and_wire_format"
+path = "src/ec037_serde_and_wire_format.rs"
+
+[[test]]
+name = "ec038_scope_intersection_semantics"
+path = "src/ec038_scope_intersection_semantics.rs"
+
+[[test]]
+name = "ec039_derivation_and_audit_trail"
+path = "src/ec039_derivation_and_audit_trail.rs"
+
+[[test]]
+name = "ec040_composition_identity_laws"
+path = "src/ec040_composition_identity_laws.rs"
+
+[[test]]
+name = "ec041_allowed_use_soundness"
+path = "src/ec041_allowed_use_soundness.rs"
+
+[[test]]
+name = "ec042_heterogeneous_anti_laundering"
+path = "src/ec042_heterogeneous_anti_laundering.rs"
+
+[[test]]
+name = "ec043_audit_not_authority"
+path = "src/ec043_audit_not_authority.rs"
+
+[[test]]
+name = "ec044_authority_ceiling_exhaustive"
+path = "src/ec044_authority_ceiling_exhaustive.rs"
+
+[[test]]
+name = "ec045_permission_triples_exhaustive"
+path = "src/ec045_permission_triples_exhaustive.rs"
+
+[[test]]
+name = "ec046_meet_glb_exhaustive"
+path = "src/ec046_meet_glb_exhaustive.rs"
+
+[[test]]
+name = "ec047_step11_truth_table"
+path = "src/ec047_step11_truth_table.rs"
+
+[[test]]
+name = "ec048_theorem2_greatest_satisfiable"
+path = "src/ec048_theorem2_greatest_satisfiable.rs"
+
+[[test]]
+name = "ec049_admission_contract_a1_a9"
+path = "src/ec049_admission_contract_a1_a9.rs"
+
+[[test]]
+name = "ec050_schema_version_adversarial"
+path = "src/ec050_schema_version_adversarial.rs"
+
+[dependencies]
+noethers-turnstile-core = { path = "../noethers-turnstile-core" }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }

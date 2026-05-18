@@ -2,7 +2,7 @@
 
 import time
 import pytest
-import turnstile as t
+import noethers_turnstile as t
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────

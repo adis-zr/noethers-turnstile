@@ -14,7 +14,7 @@
 
 import time
 import pytest
-import turnstile as t
+import noethers_turnstile as t
 from conftest import make_ctx, closing_token, make_dia_ctx
 
 

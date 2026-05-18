@@ -31,7 +31,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
     explicit. `AEX → ALR` requires this token; without it, AEX is the ceiling.
   - `ExactInferenceSpec` dataclass — the input bundle for `PGMExactCertifier.issue()`.
   - `CertifierError` exception class for certifier-level failures.
-  - Module docstring explains the trust model: certifiers are external authorities; turnstile
+  - Module docstring explains the trust model: certifiers are external authorities; noethers-turnstile
     trusts their output structurally (provenance hashes, fingerprint bindings) but makes no
     scientific judgment about adequacy.
 
@@ -68,7 +68,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
     InfiniteCertToken with empty gap lists.
   - `demo/run_demo.py` — end-to-end script demonstrating the full certified inference loop:
     load `diabetes.bif`, compile at three memory budgets, translate each certificate into
-    turnstile proof tokens, compile a permission judgment, print a budget sweep table.
+    noethers-turnstile proof tokens, compile a permission judgment, print a budget sweep table.
 
   **Demonstrated outcomes on diabetes.bif (413 vars, 413 factors):**
 
@@ -226,7 +226,7 @@ Total example test count: **88 tests** — 10 bridge agreement + 4 demo + 32 str
 
 - **`examples/pgm/conftest.py` — new file** that prepends the workspace `python/` directory to
   `sys.path` at test collection time.  This ensures the example test suite always resolves to the
-  locally-built `turnstile` rather than a potentially stale installed wheel, eliminating a class of
+  locally-built `noethers_turnstile` rather than a potentially stale installed wheel, eliminating a class of
   silent version-skew failures.
 
 - **Clippy: collapsible-if in `compiler.rs:411`** — collapsed nested `if` inside the
@@ -574,7 +574,7 @@ Total test count: **656 tests across 55 files** (up from 562 / 46).
 
 ### Added
 
-- `turnstile-core`: pure Rust admissibility compiler (`compile`, `compose`, `LiveJudgment<'ctx>`)
+- `noethers-turnstile-core`: pure Rust admissibility compiler (`compile`, `compose`, `LiveJudgment<'ctx>`)
 - Permission total order: `OOC < EXP < REF < UNS < ETA < ESC < ROL < DIA < REV < AEX < ALR < AAA`
 - `ProofContext` / `ProofToken` / `GapRecord` / `Profile` types
 - SHA-256 provenance hashing with constant-time comparison
@@ -582,8 +582,8 @@ Total test count: **656 tests across 55 files** (up from 562 / 46).
 - Negative-control token support (`is_negative_control`, T17 liveness check in strict mode)
 - `AuditStore` trait + `InMemoryAuditStore` with full `Derivation` trail
 - `Certifier` trait for domain token issuance and validation
-- `turnstile-py`: PyO3 bindings exposing all core types to Python ≥ 3.10
-- `turnstile-tests`: 417-test suite covering EC-003 (composition algebra, provenance,
+- `noethers-turnstile-py`: PyO3 bindings exposing all core types to Python ≥ 3.10
+- `noethers-turnstile-tests`: 417-test suite covering EC-003 (composition algebra, provenance,
   expiry, token status, OOC variants, evidence monotonicity, certifier interface),
   EC-004 (profile well-formedness), EC-005 (domain admission), and proptest
   property suites for the 4 structural guarantees

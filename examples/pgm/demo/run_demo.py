@@ -3,7 +3,7 @@ Diabetes BIF — certified inference permission sweep.
 
 Demonstrates the full certified inference loop end-to-end:
   load diabetes.bif → run inference at three memory budgets → get certificates
-  → translate to turnstile proof tokens → compile permission judgment → print table.
+  → translate to noethers-turnstile proof tokens → compile permission judgment → print table.
 
 Run from examples/pgm/:
   python demo/run_demo.py
@@ -23,7 +23,7 @@ _HERE = Path(__file__).parent.parent
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
-import turnstile as t
+import noethers_turnstile as t
 from bridge.bridge import build_profiles, compile_pgm
 from bridge.bif_parser import parse_bif as bridge_parse_bif, bif_to_pgm_dicts
 from bridge.certifier import ExactInferenceSpec, PGMExactCertifier

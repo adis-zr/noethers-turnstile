@@ -40,16 +40,16 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Build
-        run: cargo build -p turnstile-core -p turnstile-tests
+        run: cargo build -p noethers-turnstile-core -p noethers-turnstile-tests
 
       - name: Clippy
-        run: cargo clippy -p turnstile-core -p turnstile-tests --all-targets -- -D warnings
+        run: cargo clippy -p noethers-turnstile-core -p noethers-turnstile-tests --all-targets -- -D warnings
 
-      - name: Unit tests (turnstile-core)
-        run: cargo test -p turnstile-core
+      - name: Unit tests (noethers-turnstile-core)
+        run: cargo test -p noethers-turnstile-core
 
-      - name: Structural test suite (turnstile-tests)
-        run: cargo test -p turnstile-tests
+      - name: Structural test suite (noethers-turnstile-tests)
+        run: cargo test -p noethers-turnstile-tests
 
   fmt:
     name: Rustfmt
@@ -59,7 +59,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - run: cargo fmt -p turnstile-core -p turnstile-tests -- --check
+      - run: cargo fmt -p noethers-turnstile-core -p noethers-turnstile-tests -- --check
 
   bench-build:
     name: Benchmarks compile
@@ -76,4 +76,4 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
       - name: Verify benchmarks compile
-        run: cargo bench -p turnstile-core --no-run
+        run: cargo bench -p noethers-turnstile-core --no-run

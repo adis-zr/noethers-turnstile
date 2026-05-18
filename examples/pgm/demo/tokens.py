@@ -1,5 +1,5 @@
 """
-Translation layer: InferenceResult → turnstile ProofToken list.
+Translation layer: InferenceResult → noethers-turnstile ProofToken list.
 
 This is the only genuinely new code in the demo (everything else is copied).
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 import uuid
 
-import turnstile as t
+import noethers_turnstile as t
 
 
 def claim_class_for_geometry(geometry: str) -> str:

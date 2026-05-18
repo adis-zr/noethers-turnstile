@@ -1,6 +1,6 @@
 """Pytest configuration for the pgm example.
 
-Inserts the workspace turnstile source ahead of any installed wheel so that
+Inserts the workspace noethers_turnstile source ahead of any installed wheel so that
 tests always run against the local build.  This prevents stale-wheel failures
 when the installed package lags behind the source tree.
 """

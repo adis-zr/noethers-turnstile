@@ -1,13 +1,13 @@
-# Turnstile
+# Noethers Turnstile
 
-[![CI](https://github.com/adisriram/turnstile/actions/workflows/ci.yml/badge.svg)](https://github.com/adisriram/turnstile/actions/workflows/ci.yml)
-[![Crates.io](https://img.shields.io/crates/v/turnstile-core)](https://crates.io/crates/turnstile-core)
-[![PyPI](https://img.shields.io/pypi/v/turnstile)](https://pypi.org/project/turnstile/)
+[![CI](https://github.com/adis-zr/noethers-turnstile/actions/workflows/ci.yml/badge.svg)](https://github.com/adis-zr/noethers-turnstile/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/noethers-turnstile-core)](https://crates.io/crates/noethers-turnstile-core)
+[![PyPI](https://img.shields.io/pypi/v/noethers-turnstile)](https://pypi.org/project/noethers-turnstile/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
-Turnstile is an **admissibility compiler** for approximate consequential systems. Given a proof context Γ — a set of gap records, profiles, proof tokens, and authority constraints — it produces the strongest permission `p` the evidence supports and a binding expiry `ε`. The answer is a judgment in a typed form that the Rust borrow checker prevents from being read after it expires.
+Noethers Turnstile is an **admissibility compiler** for approximate consequential systems. Given a proof context Γ — a set of gap records, profiles, proof tokens, and authority constraints — it produces the strongest permission `p` the evidence supports and a binding expiry `ε`. The answer is a judgment in a typed form that the Rust borrow checker prevents from being read after it expires.
 
-This library is for teams building systems where autonomous or consequential actions should be gated on structured evidence: calibration certificates, negative-control results, role assertions, scope restrictions. Turnstile handles the algebra; your domain supplies the certifiers.
+This library is for teams building systems where autonomous or consequential actions should be gated on structured evidence: calibration certificates, negative-control results, role assertions, scope restrictions. Noethers Turnstile handles the algebra; your domain supplies the certifiers.
 
 **Judgment form:** `Γ ⊢ z : p until ε`
 
@@ -36,7 +36,7 @@ OOC < EXP < REF < UNS < ETA < ESC < ROL < DIA < REV < AEX < ALR < AAA
 ## Quick Start — Rust
 
 ```rust
-use turnstile_core::{
+use noethers_noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},
@@ -96,14 +96,14 @@ assert_eq!(judgment.permission, Permission::DIA);
 
 // 3. Read through LiveJudgment (expiry check enforced by Rust borrow checker).
 let rt = RuntimeContext::new(Utc::now(), "fp-001");
-let live = turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
+let live = noethers_turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
 assert_eq!(live.permission(), Permission::DIA);
 ```
 
 ### Composition
 
 ```rust
-use turnstile_core::compose;
+use noethers_noethers_turnstile_core::compose;
 
 let composed = compose(ctx1, ctx2)?;
 // Composition is non-promoting:
@@ -116,7 +116,7 @@ let composed = compose(ctx1, ctx2)?;
 
 ```python
 import time
-import turnstile as ts
+import noethers_turnstile as ts
 
 # Compute provenance hash.
 h = ts.compute_provenance_hash("my-claim", "z-001", "ctx-001", "diagnostics")
@@ -179,7 +179,7 @@ live = ts.compile(composed)
 All four properties are checked by `proptest` property-based tests on every run:
 
 ```bash
-cargo test -p turnstile-tests
+cargo test -p noethers-turnstile-tests
 ```
 
 **1195 tests total — 998 Rust (85 files) + 100 Python (8 files) + 97 PGM example tests (6 files).** Every test passes on every commit (ubuntu + macos CI matrix).
@@ -193,9 +193,9 @@ The PGM example (`examples/pgm/bridge/certifier.py`) ships a reference certifier
 The `Certifier` trait is the primary extension point. A certifier is the domain component that issues and validates proof tokens. Turnstile calls `validate()` at compile time; your domain layer calls `issue()`.
 
 ```rust
-use turnstile_core::certifier::{Certifier, Evidence, IssueError, ValidationResult};
-use turnstile_core::context::ProofContext;
-use turnstile_core::token::{compute_provenance_hash, ProofToken, TokenStatus};
+use noethers_noethers_turnstile_core::certifier::{Certifier, Evidence, IssueError, ValidationResult};
+use noethers_noethers_turnstile_core::context::ProofContext;
+use noethers_noethers_turnstile_core::token::{compute_provenance_hash, ProofToken, TokenStatus};
 use chrono::Utc;
 
 struct CalibrationCertifier;
@@ -309,10 +309,10 @@ cargo build
 
 # Run all tests (unit + structural + property).
 cargo test
-cargo test -p turnstile-tests
+cargo test -p noethers-turnstile-tests
 
 # Run benchmarks.
-cargo bench -p turnstile-core
+cargo bench -p noethers-turnstile-core
 ```
 
 ### Python (via maturin)
@@ -332,7 +332,7 @@ python3 -m venv .venv && .venv/bin/pip install maturin pytest
 .venv/bin/maturin build --release
 ```
 
-After `maturin develop`, the `turnstile` package is importable in the active environment.
+After `maturin develop`, the `noethers_turnstile` package is importable in the active environment.
 
 ---
 
@@ -353,13 +353,13 @@ examples/pgm/            PGM inference integration example (97 Python tests)
   demo/                  self-contained diabetes BIF memory-budget sweep demo
     inference/           certified inference compiler (copied + stripped from hilbert-flow)
     bif_loader.py        BIF parser + ModelInstance factory
-    tokens.py            InferenceResult → turnstile ProofToken translation layer
+    tokens.py            InferenceResult → noethers-turnstile ProofToken translation layer
     run_demo.py          main script: 3-row OOC/DIA/AEX budget table
   tests/                 97 tests: bridge (10), demo (4), stress (32), BIF (32), gaps (20), tokens (9)
   results/               captured test and demo outputs (dated)
   conftest.py            auto-inserts workspace python/ ahead of any installed wheel
 
-turnstile-core/          Pure Rust library (no PyO3 dependency)
+noethers-turnstile-core/          Pure Rust library (no PyO3 dependency)
   permission.rs          Permission enum + total order + algebra
   gap.rs                 GapStatus, GapRecord, Profile, GapRequirement
   token.rs               ProofToken, provenance hashing
@@ -372,10 +372,10 @@ turnstile-core/          Pure Rust library (no PyO3 dependency)
   audit.rs               AuditEntry, Derivation, AuditStore trait
   certifier.rs           Certifier trait (main extension point)
 
-turnstile-py/            PyO3 bindings (thin wrapper over turnstile-core)
+noethers-turnstile-py/            PyO3 bindings (thin wrapper over turnstile-core)
   src/lib.rs             #[pymodule] + all #[pyclass] wrappers
 
-turnstile-tests/         Structural and property-based tests (998 Rust tests)
+noethers-turnstile-tests/         Structural and property-based tests (998 Rust tests)
   ec003*/                EC-003 theorem suite (composition algebra,
                          provenance, expiry, token status, OOC variants, …)
   ec004_*/               EC-004 profile well-formedness

@@ -20,7 +20,7 @@
 
 import time
 import pytest
-import turnstile as t
+import noethers_turnstile as t
 
 
 # ── G1: GapRecord status variants ────────────────────────────────────────────

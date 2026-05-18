@@ -1,16 +1,16 @@
-# PGM Inference — turnstile integration example
+# PGM Inference — noethers-turnstile integration example
 
-This example shows how to integrate turnstile with a real domain: probabilistic
+This example shows how to integrate noethers-turnstile with a real domain: probabilistic
 graphical model (PGM) inference on Bayesian networks. It is structured in two
 parts that serve different purposes.
 
 **The bridge** (`bridge/`) maps PGM evidence (inference certificates, freshness
-tokens, identity proofs) onto turnstile's gap/profile/token API and is exercised by
+tokens, identity proofs) onto noethers-turnstile's gap/profile/token API and is exercised by
 the test suite.
 
 **The demo** (`demo/`) loads a real Bayesian network, runs inference at three memory
 budgets using the certified inference compiler, translates each certificate into
-turnstile proof tokens, and compiles a permission judgment — showing how memory
+noethers-turnstile proof tokens, and compiles a permission judgment — showing how memory
 pressure drives outcomes all the way from OOC to AEX.
 
 ---
@@ -89,7 +89,7 @@ pytest tests/test_6_demo.py -v        # demo tokens.py unit tests
 ```
 
 `conftest.py` at the example root puts the workspace `python/` directory first on
-`sys.path` so tests always run against the locally-built `turnstile`.
+`sys.path` so tests always run against the locally-built `noethers_turnstile`.
 
 ---
 
@@ -129,7 +129,7 @@ See `results/demo_diabetes_2026-05-17.txt` for a captured run with full notes.
 ## How the demo works
 
 The demo exercises the certified inference compiler at three memory budgets and
-feeds each result into turnstile.
+feeds each result into noethers-turnstile.
 
 ### The inference compiler (demo/inference/)
 
@@ -186,7 +186,7 @@ memory savings are real, producing genuinely different outcomes at different bud
 
 ### The translation layer (demo/tokens.py)
 
-`cert_to_proof_tokens()` converts an `InferenceResult` into a list of turnstile
+`cert_to_proof_tokens()` converts an `InferenceResult` into a list of noethers-turnstile
 `ProofToken` objects by mapping certificate geometry to gap coverage:
 
 | Geometry | ProofToken type | Gaps closed | Gaps bounded |
@@ -224,7 +224,7 @@ boundary between computational correctness and model adequacy.
 
 ## Token issuance and the certifier boundary
 
-The compiler (turnstile) checks evidence — it verifies fingerprint bindings, validates
+The compiler (noethers-turnstile) checks evidence — it verifies fingerprint bindings, validates
 gap coverage, and enforces permission profiles. It does not produce evidence. Tokens are
 issued by certifiers, which are domain-specific authorities that run their own checks
 before signing a token. This separation is load-bearing: if the compiler also issued
@@ -417,7 +417,7 @@ MY_PROFILES = {
 **3. Build tokens** with `compute_provenance_hash()` and hand them to `compile()`.
 
 ```python
-import turnstile as t
+import noethers_turnstile as t
 
 claim_id     = fingerprint(my_model)
 candidate_id = fingerprint(my_query)
@@ -456,4 +456,4 @@ rt = t.RuntimeContext(now_unix=time.time(), context_fingerprint=context_id)
 print(live.permission_str(rt))
 ```
 
-The key insight: **your domain supplies the certifiers; turnstile handles the algebra.**
+The key insight: **your domain supplies the certifiers; noethers-turnstile handles the algebra.**

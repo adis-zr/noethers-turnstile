@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Literal
 
 import pytest
-import turnstile as t
+import noethers_turnstile as t
 
 from bridge import (
     CertifiedBoundToken,
@@ -90,7 +90,7 @@ def _translate_model_spec_token(
     fp_graph: str,
     issued_at_unix: float,
 ) -> t.ProofToken:
-    """Translate a ModelSpecificationToken into a turnstile ProofToken."""
+    """Translate a ModelSpecificationToken into a noethers-turnstile ProofToken."""
     bounds: list[str] = []
     if token.status == "VALID" and token.graph_fingerprint == fp_graph:
         bounds = ["model_specification_gap"]

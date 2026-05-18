@@ -3,7 +3,7 @@ PGM domain certifiers — reference implementation of the token issuance side.
 
 Trust model
 -----------
-Certifiers are external authorities. The compiler (turnstile) trusts their output
+Certifiers are external authorities. The compiler (noethers-turnstile) trusts their output
 structurally — it checks provenance hashes and fingerprint bindings — but makes no
 scientific judgment about whether the certifier's claim is adequate for the real-world
 target. That separation is intentional and load-bearing.

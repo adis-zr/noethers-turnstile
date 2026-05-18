@@ -1,7 +1,7 @@
 """Compiler stress tests (Groups A–D).
 
 These tests exercise the Rust evaluation path directly with adversarial inputs
-that are NOT covered by turnstile's own 100-test Python suite.  They are
+that are NOT covered by noethers-turnstile's own 100-test Python suite.  They are
 designed to find bugs in the Rust compiler, not in the bridge translation layer.
 
 Group A: Provenance enforcement variants (5 tests)
@@ -16,7 +16,7 @@ import time
 import uuid
 
 import pytest
-import turnstile as t
+import noethers_turnstile as t
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 

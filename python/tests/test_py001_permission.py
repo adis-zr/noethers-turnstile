@@ -15,7 +15,7 @@
 """
 
 import pytest
-import turnstile as t
+import noethers_turnstile as t
 
 ALL_PERMS = [
     t.Permission.OOC, t.Permission.EXP, t.Permission.REF, t.Permission.UNS,

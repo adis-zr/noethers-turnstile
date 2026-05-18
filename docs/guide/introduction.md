@@ -4,7 +4,7 @@ Most organizations are comfortable with data-driven decisions. We look at dashbo
 
 As decision systems become more automated, the standard has to change. A system should not merely produce an answer. It should also explain what evidence supports the answer, what uncertainty remains, and whether the answer is *permitted* given that uncertainty.
 
-That is the idea behind an admissibility compiler for approximate consequential systems. This document introduces the concept, the vocabulary, and the **turnstile** library that implements it.
+That is the idea behind an admissibility compiler for approximate consequential systems. This document introduces the concept, the vocabulary, and the **noethers-turnstile** library that implements it.
 
 ---
 
@@ -99,7 +99,7 @@ These are different problems. Closing the first does not close the second.
 
 An inference system that produces a certified exact posterior — KL divergence from the true posterior is zero — has established that its computation was correct *given the model*. It has not established that the model faithfully represents the real system. A fraud detection model that produces a perfectly calibrated score has established its calibration properties. It has not established that the features it was trained on are the right features for the population it will be deployed on.
 
-This distinction — computation quality versus model adequacy — runs through all the machinery below. It is why **AEX** (computation certified) and **ALR** (computation certified *and* model adequate) are different permissions in the turnstile system.
+This distinction — computation quality versus model adequacy — runs through all the machinery below. It is why **AEX** (computation certified) and **ALR** (computation certified *and* model adequate) are different permissions in the noethers-turnstile system.
 
 ### Certificates
 
@@ -147,9 +147,9 @@ Tokens force precision. They prevent the system from using one observed fact to 
 
 ---
 
-## How turnstile implements this
+## How noethers-turnstile implements this
 
-**turnstile** is a Rust library (with Python bindings) that implements the admissibility compiler. It takes a proof context — a bundle of evidence tokens, gap records, permission profiles, and runtime constraints — and emits the strongest permission the evidence can support.
+**noethers-turnstile** is a Rust library (with Python bindings) that implements the admissibility compiler. It takes a proof context — a bundle of evidence tokens, gap records, permission profiles, and runtime constraints — and emits the strongest permission the evidence can support.
 
 The judgment form is:
 
@@ -254,7 +254,7 @@ The `PGMModelSpecificationCertifier` is a stub that raises `NotImplementedError`
 Install the library:
 
 ```bash
-pip install turnstile
+pip install noethers-turnstile
 ```
 
 Or build from source with maturin:
@@ -266,7 +266,7 @@ maturin develop
 A minimal compilation:
 
 ```python
-import turnstile as t
+import noethers_turnstile as t
 
 ctx = t.ProofContext(
     claim_id="my-claim",
@@ -330,6 +330,6 @@ The standard should not be: every metric needs a certificate. The standard shoul
 
 An approximate consequential system, structured with an admissibility compiler, makes claims with evidence, boundaries, and permissions attached. It does not just return an answer. It returns the answer together with the evidence contract that makes the answer valid.
 
-turnstile implements this as a structural compiler. The compiler checks evidence but does not produce it. Certifiers produce tokens. Tokens close gaps. Profiles map gap coverage to permissions. The compiler emits the greatest permission the evidence can support and cannot be induced to emit more.
+noethers-turnstile implements this as a structural compiler. The compiler checks evidence but does not produce it. Certifiers produce tokens. Tokens close gaps. Profiles map gap coverage to permissions. The compiler emits the greatest permission the evidence can support and cannot be induced to emit more.
 
 The goal is not systems that are always right. The goal is systems that are honest about what they know, what they do not know, and what they are permitted to do anyway.

@@ -1,4 +1,4 @@
-"""PGM bridge package for the turnstile examples."""
+"""PGM bridge package for the noethers-turnstile examples."""
 
 from .bridge import BridgeResult, compile_pgm, make_runtime_context
 from .certifier import CertifierError, ExactInferenceSpec, PGMExactCertifier, PGMModelSpecificationCertifier

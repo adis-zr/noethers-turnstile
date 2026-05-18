@@ -10,7 +10,7 @@ import time
 import uuid
 from unittest.mock import MagicMock
 
-import turnstile as t
+import noethers_turnstile as t
 
 from bridge.fingerprints import fingerprint, fingerprint_evidence, fingerprint_graph, fingerprint_query
 from demo.tokens import cert_to_proof_tokens, claim_class_for_geometry

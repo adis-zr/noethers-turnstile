@@ -1,5 +1,5 @@
 [workspace]
-members = ["turnstile-core", "turnstile-py", "turnstile-tests"]
+members = ["noethers-turnstile-core", "noethers-turnstile-py", "noethers-turnstile-tests"]
 resolver = "2"
 
 [workspace.dependencies]

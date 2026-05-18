@@ -1,10 +1,10 @@
-"""PGM → turnstile bridge.
+"""PGM → noethers-turnstile bridge.
 
 Translates PGM problem inputs (graph, query, evidence, algorithm, tokens) into
-a turnstile ProofContext and compiles it into a LiveJudgment.
+a noethers-turnstile ProofContext and compiles it into a LiveJudgment.
 
 This is the primary integration point for the example.  It demonstrates how a
-domain adapter maps its evidence model onto turnstile's gap/profile/token API.
+domain adapter maps its evidence model onto noethers-turnstile's gap/profile/token API.
 
 Adapted from ecds-pgm/ecds_pgm/turnstile_bridge.py.  Key differences:
 - No dependency on ecds-pgm or ecds-core — uses only local bridge/ modules.
@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-import turnstile as t
+import noethers_turnstile as t
 
 from .claims import GAP_BASIS, PROFILE_REQUIREMENTS
 from .fingerprints import fingerprint, fingerprint_evidence, fingerprint_graph, fingerprint_query
@@ -67,7 +67,7 @@ def _is_in_class(runtime: dict) -> bool:
 
 
 def build_profiles(claim_class: str) -> list[t.Profile]:
-    """Build turnstile Profile objects from PROFILE_REQUIREMENTS."""
+    """Build noethers-turnstile Profile objects from PROFILE_REQUIREMENTS."""
     reqs = PROFILE_REQUIREMENTS.get(claim_class, {})
     profiles: list[t.Profile] = [
         # DIA: always available for in-class specs; requires no specific gap closure.
@@ -93,7 +93,7 @@ def _translate_token(
     fp_algorithm: str,
     issued_at_unix: float,
 ) -> t.ProofToken:
-    """Translate a PGM token into a turnstile ProofToken.
+    """Translate a PGM token into a noethers-turnstile ProofToken.
 
     Only VALID tokens whose fingerprints match the spec actually close/bound gaps.
     Invalid/revoked/expired tokens are passed through with empty gap lists so the
@@ -176,7 +176,7 @@ def compile_pgm(
     issued_at: datetime | None = None,
     ttl_seconds: float | None = _DEFAULT_TTL_SECONDS,
 ) -> BridgeResult:
-    """Compile a PGM inference problem into a turnstile LiveJudgment.
+    """Compile a PGM inference problem into a noethers-turnstile LiveJudgment.
 
     Parameters
     ----------
