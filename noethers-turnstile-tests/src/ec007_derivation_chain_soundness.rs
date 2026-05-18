@@ -27,7 +27,7 @@
 ///   - Proptest: for any context, derivation steps are always non-increasing
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

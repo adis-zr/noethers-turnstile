@@ -13,7 +13,7 @@
 ///               if one side constrained → use it;
 ///               both constrained → set intersection.
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::context::Scope;
+use noethers_turnstile_core::context::Scope;
 
 fn scope_with_tools(tools: Vec<&str>) -> Scope {
     Scope {

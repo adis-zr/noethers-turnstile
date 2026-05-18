@@ -25,7 +25,7 @@
 /// the turnstile-core source (see `expiry.rs`).  This suite tests the *runtime*
 /// behaviour of the lifetime contract.
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},

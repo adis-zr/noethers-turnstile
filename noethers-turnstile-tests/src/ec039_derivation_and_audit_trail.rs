@@ -22,7 +22,7 @@
 ///   D11 — T18: audit record writes do not alter judgment permission
 ///   D12 — Derivation token_ids are accurate (consulted tokens appear)
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     audit::{AuditEntry, AuditStore, InMemoryAuditStore},
     compile,
     context::{Membership, ProofContext, Scope},

@@ -7,7 +7,7 @@
 ///   - Error Display/Debug output is non-empty (usable in logs).
 ///   - Errors propagate correctly through the public API.
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
     error::CompositionError,
@@ -222,7 +222,7 @@ fn use_conflict_propagates_through_compose_n() {
 
 #[test]
 fn turnstile_error_wraps_composition_error() {
-    use noethers_noethers_turnstile_core::error::TurnstileError;
+    use noethers_turnstile_core::error::TurnstileError;
     let comp_err = CompositionError::UseConflict;
     let turnstile_err: TurnstileError = comp_err.into();
     let display = format!("{turnstile_err}");
@@ -231,7 +231,7 @@ fn turnstile_error_wraps_composition_error() {
 
 #[test]
 fn all_turnstile_error_variants_are_debug_display() {
-    use noethers_noethers_turnstile_core::error::TurnstileError;
+    use noethers_turnstile_core::error::TurnstileError;
     let variants: Vec<TurnstileError> = vec![
         TurnstileError::Composition(CompositionError::UseConflict),
         TurnstileError::ProvenanceMismatch {

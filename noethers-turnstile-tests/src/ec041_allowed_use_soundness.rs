@@ -25,7 +25,7 @@
 ///   Prop — Single-character mutation to allowed_use changes provenance hash
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
     error::CompositionError,

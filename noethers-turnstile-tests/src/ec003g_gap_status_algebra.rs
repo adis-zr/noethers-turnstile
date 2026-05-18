@@ -8,7 +8,7 @@
 /// Gap status total order: Open < Bounded < Closed
 /// RequiredStatus: BoundedRequired accepts {Bounded, Closed}; ClosedRequired accepts {Closed}
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::gap::{Bound, BoundKind, GapRecord, GapStatus, RequiredStatus};
+use noethers_turnstile_core::gap::{Bound, BoundKind, GapRecord, GapStatus, RequiredStatus};
 
 // ── GapStatus total order (Open < Bounded < Closed) ─────────────────────────
 

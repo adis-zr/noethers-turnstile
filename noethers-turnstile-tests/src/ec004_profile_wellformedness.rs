@@ -13,7 +13,7 @@ use chrono::Utc;
 /// G₁ and G₂, then every gap requirement in G₁ must be satisfiable with whatever
 /// satisfies G₂ (i.e., the descending search returns the *greatest* satisfying p).
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

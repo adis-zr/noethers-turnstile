@@ -16,7 +16,7 @@
 ///   - Proptest: for any two contexts, composed disallowed_uses ⊇ each input's list
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

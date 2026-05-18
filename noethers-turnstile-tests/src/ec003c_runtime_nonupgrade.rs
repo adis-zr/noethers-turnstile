@@ -10,7 +10,7 @@
 ///   T7  — Expiry soundness: expired token/context → EXP, not upgradeable
 use chrono::{Duration, Utc};
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},

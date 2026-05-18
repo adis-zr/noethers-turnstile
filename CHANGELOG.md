@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- **Stale crate name references after rename from `turnstile-core` to `noethers-turnstile-core`**: corrected `use turnstile_core::` → `use noethers_turnstile_core::` in `noethers-turnstile-core/benches/bench_compile.rs` and `src/lib.rs` (doctest), and replaced the double-prefixed `noethers_noethers_turnstile_core` with `noethers_turnstile_core` across all 80+ test files in `noethers-turnstile-tests/` and in `README.md`. The bench and all tests now compile and pass cleanly.
+
 ### Changed
 
 - **`docs/guide/introduction.md` — reframed from "evidence-carrying decision systems" to "admissibility compilers for approximate consequential systems"**: title, opening paragraph, "When is this needed?" lead sentence, "basic idea" contrast sentence, "Certificates" section, "Where this design does not fit" closing, and Summary paragraph updated throughout. The framing now matches the terminology used in the papers and in the compiler's own judgment form. The vocabulary introduced in the doc (bounded evidence, certifiable claims, gaps, profiles, tokens, envelopes, algebra) is unchanged.

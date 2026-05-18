@@ -21,7 +21,7 @@
 ///   D10 — TokenStatus::Expired with future expires_at → no EXP floor
 ///          (status semantics dominate, not the deadline).
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

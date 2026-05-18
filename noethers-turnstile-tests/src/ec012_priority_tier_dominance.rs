@@ -23,7 +23,7 @@
 ///   - Expired token floors outcome below any profile permission
 ///   - Context expiry fires even if all tokens are valid and not expired
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

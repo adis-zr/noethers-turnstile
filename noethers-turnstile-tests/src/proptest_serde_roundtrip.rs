@@ -13,7 +13,7 @@
 /// of the original context, breaking the compliance story.
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     audit::Derivation,
     compile,
     context::{Membership, ProofContext, Scope},

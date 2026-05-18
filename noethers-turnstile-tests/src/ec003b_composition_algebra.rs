@@ -15,7 +15,7 @@
 ///   T14 — Scope containment: scope intersection on composition
 use chrono::{Duration, Utc};
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,
@@ -365,7 +365,7 @@ fn compose_token_conflict_fails_closed() {
 
 #[test]
 fn compose_ooc_is_absorbing_for_membership() {
-    use noethers_noethers_turnstile_core::context::Membership;
+    use noethers_turnstile_core::context::Membership;
     let mut g1 = minimal_ctx(Permission::AAA, "1");
     let g2 = minimal_ctx(Permission::AAA, "2");
     g1.membership = Membership::OutOfClassExact;

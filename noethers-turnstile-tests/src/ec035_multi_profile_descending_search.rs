@@ -17,7 +17,7 @@
 ///   S11 — Two profiles for same permission level are a MalformedContext error
 ///   S12 — All 12 permission levels can be targeted via profiles
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

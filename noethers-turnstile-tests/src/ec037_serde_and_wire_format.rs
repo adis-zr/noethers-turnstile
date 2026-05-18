@@ -18,7 +18,7 @@
 ///   W11 — Derivation round-trips: steps, provenance_hash, compiled_at
 ///   W12 — compose() round-trips: composed context serializes correctly
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     audit::{Derivation, DerivationStep},
     compile, compose,
     context::{Membership, ProofContext, Scope},

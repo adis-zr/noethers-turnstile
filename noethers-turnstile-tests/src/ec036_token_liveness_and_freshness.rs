@@ -21,7 +21,7 @@
 ///   L14 — Context expiry not yet fired → no EXP at compile time
 ///   L15 — Context expiry fires at exact boundary (≥)
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

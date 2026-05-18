@@ -16,7 +16,7 @@
 ///   T8  — Within approval chain: meet = greatest lower bound
 ///   T9  — Action set interpretation via non-promotion law
 ///   T10 — Tier 5 (OOC) is absorbing in the meet operator
-use noethers_noethers_turnstile_core::permission::Permission;
+use noethers_turnstile_core::permission::Permission;
 
 // ── T1: OOC is absorbing ──────────────────────────────────────────────────────
 

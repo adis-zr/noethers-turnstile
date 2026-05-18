@@ -12,7 +12,7 @@
 /// Also tests: token-level expiry via expires_at vs. context-level expiry.
 use chrono::{Duration, Utc};
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

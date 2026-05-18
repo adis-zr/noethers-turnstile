@@ -16,7 +16,7 @@
 ///   U7 — Verify_provenance is deterministic: calling it twice on the same token
 ///        returns the same result.
 ///   U8 — Large provenance fields do not cause a panic in compile().
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

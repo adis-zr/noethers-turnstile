@@ -18,7 +18,7 @@
 ///   - Invalid/expired bounding token provides no support
 ///   - Bound value semantics: Numeric, SetValued, Infinity all satisfy BoundedRequired
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

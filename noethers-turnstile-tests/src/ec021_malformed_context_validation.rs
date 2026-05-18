@@ -12,7 +12,7 @@
 ///   V8 — MalformedContext error message is non-empty and human-readable.
 ///
 /// All tests verify `Err(TurnstileError::MalformedContext(_))` is returned.
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     error::TurnstileError,

@@ -15,7 +15,7 @@
 ///   E9  — LiveJudgment: expiry fires at exactly runtime.now == deadline.
 ///   E10 — LiveJudgment: expiry does not fire at runtime.now < deadline.
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},

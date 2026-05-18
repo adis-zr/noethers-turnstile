@@ -16,7 +16,7 @@
 ///   - Adding a token that bounds a required-closed gap but doesn't close it
 ///     still causes the profile to be satisfied.
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

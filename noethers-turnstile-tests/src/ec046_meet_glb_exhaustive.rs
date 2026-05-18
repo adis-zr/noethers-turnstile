@@ -13,7 +13,7 @@
 ///   GLB5 — GLB of {a} is a itself (degenerate case)
 ///   Prop  — GLB property holds for random triples (proptest)
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::permission::Permission;
+use noethers_turnstile_core::permission::Permission;
 
 const ALL: [Permission; 12] = [
     Permission::OOC,

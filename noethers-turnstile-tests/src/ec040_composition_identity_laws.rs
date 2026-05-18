@@ -21,7 +21,7 @@
 ///   CI11 — compose with TokenConflict always fails closed
 ///   CI12 — compose_n single-element is identity
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
     error::CompositionError,

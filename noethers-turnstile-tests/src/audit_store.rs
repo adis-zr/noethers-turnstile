@@ -8,7 +8,7 @@
 ///          does not change the permission that would be recompiled from the
 ///          same context; the audit trail is read-only evidence, not a grant.
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     audit::{AuditEntry, AuditStore, Derivation, InMemoryAuditStore},
     compile,
     context::{Membership, ProofContext, Scope},
@@ -159,7 +159,7 @@ fn derivation_records_steps_in_order() {
 
 #[test]
 fn derivation_permission_after_is_non_increasing() {
-    use noethers_noethers_turnstile_core::{
+    use noethers_turnstile_core::{
         gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
         token::{compute_provenance_hash, ProofToken, TokenStatus},
     };

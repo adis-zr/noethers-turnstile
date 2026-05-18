@@ -19,7 +19,7 @@
 ///   C7 — Compose of two identical contexts (same all fields) is idempotent
 ///         w.r.t. claim identity.
 ///   C8 — Context fingerprint is the concatenation of both fingerprints.
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

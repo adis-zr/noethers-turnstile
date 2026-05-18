@@ -20,7 +20,7 @@
 ///   N12 — compile() with a profile listing 100 gap requirements.
 ///   N13 — compile() with very long field strings (10k chars each).
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

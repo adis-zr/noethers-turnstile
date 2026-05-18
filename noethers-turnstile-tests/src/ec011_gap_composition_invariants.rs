@@ -20,7 +20,7 @@
 ///
 /// These invariants protect the "fail-closed" semantics of gap composition.
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

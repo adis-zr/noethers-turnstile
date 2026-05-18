@@ -12,7 +12,7 @@
 ///   R7 — Registry is append-only: registered entries cannot be mutated or removed.
 use std::sync::Arc;
 use std::thread;
-use noethers_noethers_turnstile_core::registry::{SchemaEntry, SchemaRegistry};
+use noethers_turnstile_core::registry::{SchemaEntry, SchemaRegistry};
 
 fn make_entry(schema_id: &str, version: &str) -> SchemaEntry {
     SchemaEntry {

@@ -16,7 +16,7 @@
 /// Tests also verify the non-promotion invariant on the result of successful
 /// composition (T9/T10) for a range of permission pairs.
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
     error::CompositionError,

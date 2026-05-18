@@ -24,7 +24,7 @@
 ///   - ETA ceiling blocks AAA
 ///   - OOC in any input of compose_n dominates the composed membership
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

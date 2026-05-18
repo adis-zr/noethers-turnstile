@@ -25,7 +25,7 @@
 ///   S16 — Cross-tier conflict matrix: UNS vs each tier
 ///   S17 — EXP absorbs all non-OOC tiers
 ///   S18 — OOC absorbs N-ary compose_n across all 12 values
-use noethers_noethers_turnstile_core::permission::Permission;
+use noethers_turnstile_core::permission::Permission;
 
 const ALL: [Permission; 12] = [
     Permission::OOC,

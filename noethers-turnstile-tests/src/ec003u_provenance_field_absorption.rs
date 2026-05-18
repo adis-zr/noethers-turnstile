@@ -22,7 +22,7 @@ use proptest::prelude::*;
 ///   - All four fields are independent axes
 ///   - Swapping fields produces different hashes
 ///   - Proptest: any single-field change produces a different hash
-use noethers_noethers_turnstile_core::token::{compute_provenance_hash, verify_provenance, ProofToken, TokenStatus};
+use noethers_turnstile_core::token::{compute_provenance_hash, verify_provenance, ProofToken, TokenStatus};
 
 fn make_token_with_hash(hash: &str) -> ProofToken {
     ProofToken {

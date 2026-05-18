@@ -17,7 +17,7 @@ use std::sync::Arc;
 use std::thread;
 
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     audit::{AuditEntry, AuditStore, Derivation, InMemoryAuditStore},
     permission::Permission,
 };

@@ -16,7 +16,7 @@
 ///   - compose_n is associativity-agnostic (same result regardless of fold order)
 use chrono::{Duration, Utc};
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
     error::CompositionError,

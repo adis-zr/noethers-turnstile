@@ -22,7 +22,7 @@
 ///   A9 — Finite checkability (compile terminates; we test this by structure)
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     error,
@@ -328,7 +328,7 @@ fn a6_disallowed_uses_with_low_ceiling() {
 
 #[test]
 fn a7_non_empty_fingerprint_enables_live_judgment() {
-    use noethers_noethers_turnstile_core::expiry::RuntimeContext;
+    use noethers_turnstile_core::expiry::RuntimeContext;
     let ctx = base_ctx();
     assert!(!ctx.context_fingerprint.is_empty());
     let judgment = compile(ctx).unwrap();
@@ -339,7 +339,7 @@ fn a7_non_empty_fingerprint_enables_live_judgment() {
 
 #[test]
 fn a7_fingerprint_mismatch_downgrades() {
-    use noethers_noethers_turnstile_core::expiry::RuntimeContext;
+    use noethers_turnstile_core::expiry::RuntimeContext;
     let ctx = base_ctx();
     let judgment = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), "fp-wrong");

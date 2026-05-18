@@ -19,8 +19,8 @@ use proptest::prelude::*;
 ///   - N-way intersection is monotonically narrowing
 ///   - All four scope fields (candidates, paths, tools, resources)
 ///   - Proptest: composed scope ⊆ each input scope
-use noethers_noethers_turnstile_core::context::{Membership, ProofContext, Scope};
-use noethers_noethers_turnstile_core::{compose, expiry::Expiry, permission::Permission};
+use noethers_turnstile_core::context::{Membership, ProofContext, Scope};
+use noethers_turnstile_core::{compose, expiry::Expiry, permission::Permission};
 
 fn scope_with_tools(tools: Vec<&str>) -> Scope {
     Scope {

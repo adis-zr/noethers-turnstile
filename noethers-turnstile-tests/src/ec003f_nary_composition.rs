@@ -9,7 +9,7 @@
 /// These tests compile the composed context and verify the full compile path.
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

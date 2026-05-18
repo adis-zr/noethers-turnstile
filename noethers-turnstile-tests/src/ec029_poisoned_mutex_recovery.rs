@@ -19,7 +19,7 @@
 ///         consistent results.
 use std::sync::Arc;
 use std::thread;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     audit::{AuditEntry, AuditStore, Derivation, InMemoryAuditStore},
     registry::{SchemaEntry, SchemaRegistry},
 };

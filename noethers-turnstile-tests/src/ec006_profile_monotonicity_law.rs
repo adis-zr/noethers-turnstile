@@ -25,7 +25,7 @@
 ///   - Proptest: for any monotone profile pair, adding evidence never lowers permission
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

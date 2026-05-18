@@ -18,7 +18,7 @@
 use chrono::Utc;
 use std::sync::Arc;
 use std::thread;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

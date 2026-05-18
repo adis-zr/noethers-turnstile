@@ -21,7 +21,7 @@
 ///   Prop  — For random well-formed profiles + random gap-status, result ≥ all lower
 ///            satisfied profiles and result ≤ all unsatisfied profiles
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

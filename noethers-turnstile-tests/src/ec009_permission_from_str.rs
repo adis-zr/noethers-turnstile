@@ -19,7 +19,7 @@
 ///   - Near-miss strings → None (e.g., "DIAA", "DI", "D I A")
 ///   - Numeric strings → None
 ///   - Unicode lookalikes → None
-use noethers_noethers_turnstile_core::permission::Permission;
+use noethers_turnstile_core::permission::Permission;
 
 const ALL_VARIANTS: [(Permission, &str); 12] = [
     (Permission::OOC, "OOC"),

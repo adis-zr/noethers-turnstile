@@ -16,7 +16,7 @@
 /// In all cases, the runtime can only lower or preserve the compiled permission.
 use chrono::{Duration, Utc};
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},

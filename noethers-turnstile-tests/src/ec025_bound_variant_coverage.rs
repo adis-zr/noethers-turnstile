@@ -20,7 +20,7 @@
 ///   B13 — RequiredStatus::BoundedRequired accepts Bounded(SetValued).
 ///   B14 — RequiredStatus::BoundedRequired accepts Bounded(Infinity).
 ///   B15 — Bounding token upgrades gap to Bounded(Infinity) in compile().
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

@@ -11,7 +11,7 @@
 ///   TR3 — Left-fold = right-fold = meet_n for all 1728 triples
 ///   TR4 — meet_n idempotence on duplicate: meet_n([a,b,c,a,b,c]) = meet_n([a,b,c])
 ///   TR5 — Split-fold: meet_n([a,b,c]) = meet_n([meet_n([a,b]), c])
-use noethers_noethers_turnstile_core::permission::Permission;
+use noethers_turnstile_core::permission::Permission;
 
 const ALL: [Permission; 12] = [
     Permission::OOC,

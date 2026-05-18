@@ -13,7 +13,7 @@
 /// Token schema versions are immutable: a token issued under version V cannot
 /// be validated against version V' ≠ V.
 use chrono::Utc;
-use noethers_noethers_turnstile_core::registry::{SchemaEntry, SchemaRegistry};
+use noethers_turnstile_core::registry::{SchemaEntry, SchemaRegistry};
 
 fn entry(schema_id: &str, version: &str) -> SchemaEntry {
     SchemaEntry {

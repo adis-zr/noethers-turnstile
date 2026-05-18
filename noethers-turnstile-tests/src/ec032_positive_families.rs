@@ -22,7 +22,7 @@
 ///   P9  — Scientific simulation and surrogate modeling
 ///   P10 — Resource-constrained planning
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

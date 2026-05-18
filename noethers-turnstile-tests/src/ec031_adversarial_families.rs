@@ -21,7 +21,7 @@
 ///   A9  — Authority-gap laundering: authority ceiling always caps outcome
 ///   A10 — Domain-certifier overreach: audit derivation is not authority
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},

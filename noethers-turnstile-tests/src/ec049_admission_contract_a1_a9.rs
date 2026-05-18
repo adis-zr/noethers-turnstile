@@ -21,7 +21,7 @@
 ///   All   — Clean context passes all conditions
 use chrono::Utc;
 use std::time::Instant;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     error::TurnstileError,

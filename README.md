@@ -36,7 +36,7 @@ OOC < EXP < REF < UNS < ETA < ESC < ROL < DIA < REV < AEX < ALR < AAA
 ## Quick Start — Rust
 
 ```rust
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},
@@ -103,7 +103,7 @@ assert_eq!(live.permission(), Permission::DIA);
 ### Composition
 
 ```rust
-use noethers_noethers_turnstile_core::compose;
+use noethers_turnstile_core::compose;
 
 let composed = compose(ctx1, ctx2)?;
 // Composition is non-promoting:
@@ -193,9 +193,9 @@ The PGM example (`examples/pgm/bridge/certifier.py`) ships a reference certifier
 The `Certifier` trait is the primary extension point. A certifier is the domain component that issues and validates proof tokens. Turnstile calls `validate()` at compile time; your domain layer calls `issue()`.
 
 ```rust
-use noethers_noethers_turnstile_core::certifier::{Certifier, Evidence, IssueError, ValidationResult};
-use noethers_noethers_turnstile_core::context::ProofContext;
-use noethers_noethers_turnstile_core::token::{compute_provenance_hash, ProofToken, TokenStatus};
+use noethers_turnstile_core::certifier::{Certifier, Evidence, IssueError, ValidationResult};
+use noethers_turnstile_core::context::ProofContext;
+use noethers_turnstile_core::token::{compute_provenance_hash, ProofToken, TokenStatus};
 use chrono::Utc;
 
 struct CalibrationCertifier;

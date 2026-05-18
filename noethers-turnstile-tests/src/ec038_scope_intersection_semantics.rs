@@ -17,7 +17,7 @@
 ///   SI8  — All four scope fields (candidates, paths, tools, resources) intersect
 ///   SI9  — Composed scope never contains an element not in all inputs (T14)
 ///   SI10 — compose() preserves unconstrained paths when one ctx has no path constraint
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compose, compose_n,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

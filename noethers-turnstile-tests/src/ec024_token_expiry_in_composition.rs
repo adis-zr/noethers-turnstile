@@ -25,7 +25,7 @@
 /// early token expiry should use the minimum expires_at of the two when building
 /// their contexts before composing, or rely on context-level expiry.
 use chrono::{Duration, Utc};
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
     error::CompositionError,

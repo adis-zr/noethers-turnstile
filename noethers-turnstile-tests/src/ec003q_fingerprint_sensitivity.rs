@@ -19,7 +19,7 @@
 ///   - Proptest: any string change → OOC
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::{Expiry, LiveJudgment, RuntimeContext},
@@ -196,7 +196,7 @@ fn fingerprint_mismatch_with_future_expiry_still_returns_ooc() {
 
 #[test]
 fn composed_context_fingerprint_must_match_combined() {
-    use noethers_noethers_turnstile_core::compose;
+    use noethers_turnstile_core::compose;
 
     let fp1 = "fp-A";
     let fp2 = "fp-B";

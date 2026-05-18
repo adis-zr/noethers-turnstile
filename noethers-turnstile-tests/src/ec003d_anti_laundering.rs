@@ -14,7 +14,7 @@
 ///   T16 — Heterogeneous anti-laundering: stale never upgrades; group-fold independent
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

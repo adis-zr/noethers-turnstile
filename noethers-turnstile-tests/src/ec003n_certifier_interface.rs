@@ -14,7 +14,7 @@
 ///   Spec §4 — The certifier interface
 use chrono::Utc;
 use serde_json::json;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     certifier::{Certifier, Evidence, IssueError, ValidationResult},
     compile,
     context::{Membership, ProofContext, Scope},

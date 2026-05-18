@@ -13,7 +13,7 @@
 //! ## Quick start
 //!
 //! ```rust
-//! use turnstile_core::{
+//! use noethers_turnstile_core::{
 //!     context::{Membership, ProofContext, Scope},
 //!     compiler::compile,
 //!     expiry::Expiry,

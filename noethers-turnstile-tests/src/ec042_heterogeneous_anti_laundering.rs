@@ -24,7 +24,7 @@
 ///   Prop2 — For any N, inserting OOC at any position makes result OOC
 use chrono::Utc;
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

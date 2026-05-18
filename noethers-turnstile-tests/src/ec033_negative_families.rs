@@ -20,7 +20,7 @@
 ///   N9  — Feature-flag read
 ///   N10 — Cache lookup
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

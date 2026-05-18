@@ -25,7 +25,7 @@ use chrono::Utc;
 ///   - Proptest: candidate always admitted when scope is empty
 ///   - Proptest: candidate in list is always admitted
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

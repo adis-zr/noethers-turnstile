@@ -15,7 +15,7 @@
 ///   L6 — compose_n of 50 single-gap contexts → composed authority ceiling
 ///         is the meet of all input ceilings.
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile, compose_n,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

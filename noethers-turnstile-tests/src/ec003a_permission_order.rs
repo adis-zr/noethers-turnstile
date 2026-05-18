@@ -8,7 +8,7 @@
 ///   T9  — N-ary composition non-promotion (meet_n)
 ///   T10 — Composition monotonicity (meet is idempotent, associative, commutative)
 use proptest::prelude::*;
-use noethers_noethers_turnstile_core::permission::Permission;
+use noethers_turnstile_core::permission::Permission;
 
 pub fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

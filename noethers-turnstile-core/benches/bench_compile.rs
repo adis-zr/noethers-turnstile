@@ -7,7 +7,7 @@
 ///   4. Adversarial: token with wrong provenance (gap stays open)
 use chrono::Utc;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

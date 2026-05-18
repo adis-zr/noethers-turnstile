@@ -13,7 +13,7 @@
 /// best_positive, authority_ceiling, structural_blockers, and expiry_blocker —
 /// all four of which are conservative (can only lower, never raise).
 use chrono::Utc;
-use noethers_noethers_turnstile_core::{
+use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,

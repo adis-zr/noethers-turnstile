@@ -14,7 +14,7 @@
 ///   O5 — No duplicates appear in the iterator.
 ///   O6 — ascending() is the reverse of descending() (via Ord).
 ///   O7 — Permission total order is consistent with descending() ordering.
-use noethers_noethers_turnstile_core::permission::Permission;
+use noethers_turnstile_core::permission::Permission;
 
 // ── O1: Exact sequence is pinned ─────────────────────────────────────────────
 
