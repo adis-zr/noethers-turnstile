@@ -1,3 +1,4 @@
+use noethers_turnstile_core::gap::{Bound, BoundKind, GapRecord, GapStatus, RequiredStatus};
 /// EC-003G — Gap status algebra: total order, min_status, bound types,
 ///           RequiredStatus satisfiability, composition minimum.
 ///
@@ -8,7 +9,6 @@
 /// Gap status total order: Open < Bounded < Closed
 /// RequiredStatus: BoundedRequired accepts {Bounded, Closed}; ClosedRequired accepts {Closed}
 use proptest::prelude::*;
-use noethers_turnstile_core::gap::{Bound, BoundKind, GapRecord, GapStatus, RequiredStatus};
 
 // ── GapStatus total order (Open < Bounded < Closed) ─────────────────────────
 

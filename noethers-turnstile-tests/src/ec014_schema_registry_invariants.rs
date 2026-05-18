@@ -1,3 +1,4 @@
+use noethers_turnstile_core::registry::{SchemaEntry, SchemaRegistry};
 /// EC-014 — SchemaRegistry invariants: append-only, no duplicate schema versions,
 ///           concurrent read safety.
 ///
@@ -12,7 +13,6 @@
 ///   R7 — Registry is append-only: registered entries cannot be mutated or removed.
 use std::sync::Arc;
 use std::thread;
-use noethers_turnstile_core::registry::{SchemaEntry, SchemaRegistry};
 
 fn make_entry(schema_id: &str, version: &str) -> SchemaEntry {
     SchemaEntry {

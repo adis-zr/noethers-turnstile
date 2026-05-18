@@ -1,3 +1,4 @@
+use noethers_turnstile_core::permission::Permission;
 /// Property test: Permission lattice meet algebra.
 ///
 /// The permission lattice is a finite total order (chain lattice).
@@ -17,7 +18,6 @@
 ///
 /// Spec reference: EC-001 §2 (Permission outcomes, total linear order).
 use proptest::prelude::*;
-use noethers_turnstile_core::permission::Permission;
 
 const ALL_PERMISSIONS: [Permission; 12] = [
     Permission::OOC,

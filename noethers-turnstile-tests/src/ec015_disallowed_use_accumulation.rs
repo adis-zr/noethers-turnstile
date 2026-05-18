@@ -15,7 +15,6 @@
 ///   - Disallowed use present in either input blocks AAA in composed context
 ///   - Proptest: for any two contexts, composed disallowed_uses ⊇ each input's list
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
@@ -24,6 +23,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

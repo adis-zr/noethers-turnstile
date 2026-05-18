@@ -11,7 +11,6 @@
 ///   4. Adding a lower ceiling can only lower or preserve the result
 ///   5. N-way meet of ceilings applied to the same context is monotone
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -20,6 +19,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

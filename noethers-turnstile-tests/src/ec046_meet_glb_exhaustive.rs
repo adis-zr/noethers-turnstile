@@ -1,3 +1,4 @@
+use noethers_turnstile_core::permission::Permission;
 /// EC-046 — Meet GLB property exhaustive (T8, EC-001 §16).
 ///
 /// meet(a,b) is the *greatest* lower bound — not just *a* lower bound.
@@ -13,7 +14,6 @@
 ///   GLB5 — GLB of {a} is a itself (degenerate case)
 ///   Prop  — GLB property holds for random triples (proptest)
 use proptest::prelude::*;
-use noethers_turnstile_core::permission::Permission;
 
 const ALL: [Permission; 12] = [
     Permission::OOC,

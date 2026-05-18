@@ -18,7 +18,6 @@
 ///   - Empty string fingerprint: mismatch unless compiled with ""
 ///   - Proptest: any string change → OOC
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -27,6 +26,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn ctx_with_fingerprint(fp: &str) -> ProofContext {
     let claim_id = "claim-fp";

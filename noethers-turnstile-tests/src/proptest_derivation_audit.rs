@@ -7,7 +7,6 @@
 ///   4. Provenance hash must be non-empty.
 ///   5. Derivation is deterministic: same context → same derivation steps.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -16,6 +15,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

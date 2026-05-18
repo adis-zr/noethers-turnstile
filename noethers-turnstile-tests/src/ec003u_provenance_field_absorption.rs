@@ -1,5 +1,4 @@
 use chrono::Utc;
-use proptest::prelude::*;
 /// EC-003U — Provenance field absorption prevention (T3, T4).
 ///
 /// The provenance hash is SHA-256 of:
@@ -22,7 +21,10 @@ use proptest::prelude::*;
 ///   - All four fields are independent axes
 ///   - Swapping fields produces different hashes
 ///   - Proptest: any single-field change produces a different hash
-use noethers_turnstile_core::token::{compute_provenance_hash, verify_provenance, ProofToken, TokenStatus};
+use noethers_turnstile_core::token::{
+    compute_provenance_hash, verify_provenance, ProofToken, TokenStatus,
+};
+use proptest::prelude::*;
 
 fn make_token_with_hash(hash: &str) -> ProofToken {
     ProofToken {

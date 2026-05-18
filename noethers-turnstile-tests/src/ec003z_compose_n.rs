@@ -15,7 +15,6 @@
 ///   - compose_n([Γ]) = Γ (identity for singleton)
 ///   - compose_n is associativity-agnostic (same result regardless of fold order)
 use chrono::{Duration, Utc};
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
@@ -25,6 +24,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn base_ctx(suffix: &str) -> ProofContext {
     let claim_id = "claim-cn";

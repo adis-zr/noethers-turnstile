@@ -1,4 +1,12 @@
 use chrono::Utc;
+use noethers_turnstile_core::{
+    compile,
+    context::{Membership, ProofContext, Scope},
+    expiry::Expiry,
+    gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
+    permission::Permission,
+    token::{compute_provenance_hash, ProofToken, TokenStatus},
+};
 /// EC-004 — Profile wellformedness: monotonicity, greatest-satisfiable-permission.
 ///
 /// Ported from:
@@ -13,14 +21,6 @@ use chrono::Utc;
 /// G₁ and G₂, then every gap requirement in G₁ must be satisfiable with whatever
 /// satisfies G₂ (i.e., the descending search returns the *greatest* satisfying p).
 use proptest::prelude::*;
-use noethers_turnstile_core::{
-    compile,
-    context::{Membership, ProofContext, Scope},
-    expiry::Expiry,
-    gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
-    permission::Permission,
-    token::{compute_provenance_hash, ProofToken, TokenStatus},
-};
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

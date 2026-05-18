@@ -3,7 +3,6 @@
 /// For any judgment with `expires_at = T`,
 /// `LiveJudgment::permission()` at `now >= T` returns `EXP`.
 use chrono::{Duration, Utc};
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -12,6 +11,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn build_dia_ctx_with_expiry(expiry: Expiry) -> ProofContext {
     let claim_id = "claim-exp".to_string();

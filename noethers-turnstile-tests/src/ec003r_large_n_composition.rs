@@ -19,7 +19,6 @@
 ///   - N=1000 terminates in reasonable time
 ///   - Proptest: N random envelopes monotonicity
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
@@ -28,6 +27,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn dia_ctx(suffix: &str) -> ProofContext {
     let claim_id = "claim-ln";

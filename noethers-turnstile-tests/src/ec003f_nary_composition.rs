@@ -8,7 +8,6 @@
 /// The proptest_composition.rs file checks structural ceiling fields only.
 /// These tests compile the composed context and verify the full compile path.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
@@ -17,6 +16,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn make_ctx_with_permission(target: Permission, suffix: &str) -> ProofContext {
     let claim_id = "claim-nary";

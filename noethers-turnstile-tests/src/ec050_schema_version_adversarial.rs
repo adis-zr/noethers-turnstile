@@ -16,8 +16,6 @@
 ///   SV11 — all_entries() after 50 registrations returns all 50
 ///   SV12 — current_version() returns most-recently registered version
 use chrono::Utc;
-use std::sync::Arc;
-use std::thread;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -27,6 +25,8 @@ use noethers_turnstile_core::{
     registry::{SchemaEntry, SchemaRegistry},
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use std::sync::Arc;
+use std::thread;
 
 fn ctx_with_schema_version(schema_version: &str) -> ProofContext {
     let hash = compute_provenance_hash("claim-sv", "z-sv", "ctx-sv", "sv-use");

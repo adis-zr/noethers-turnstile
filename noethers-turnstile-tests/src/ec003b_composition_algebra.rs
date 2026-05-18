@@ -14,7 +14,6 @@
 ///   T13 — Disallowed-use accumulation: union on composition
 ///   T14 — Scope containment: scope intersection on composition
 use chrono::{Duration, Utc};
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
@@ -23,6 +22,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
@@ -242,7 +242,10 @@ fn compose_gap_takes_minimum_status() {
     g2.gaps.push(GapRecord::open("g1", "calibration_gap"));
     let composed = compose(g1, g2).unwrap();
     let gap = composed.find_gap("g1").unwrap();
-    assert!(matches!(gap.status, noethers_turnstile_core::gap::GapStatus::Open));
+    assert!(matches!(
+        gap.status,
+        noethers_turnstile_core::gap::GapStatus::Open
+    ));
 }
 
 #[test]

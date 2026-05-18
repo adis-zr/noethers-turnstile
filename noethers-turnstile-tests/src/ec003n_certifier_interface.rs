@@ -13,7 +13,6 @@
 ///   T3  — Provenance soundness: issued hash must bind (claim, candidate, ctx, use)
 ///   Spec §4 — The certifier interface
 use chrono::Utc;
-use serde_json::json;
 use noethers_turnstile_core::{
     certifier::{Certifier, Evidence, IssueError, ValidationResult},
     compile,
@@ -23,6 +22,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use serde_json::json;
 
 // ── Minimal concrete certifier for testing ───────────────────────────────────
 

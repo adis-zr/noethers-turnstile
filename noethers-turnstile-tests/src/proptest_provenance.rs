@@ -4,7 +4,6 @@
 /// Equivalently: if the only token for a gap has the wrong provenance,
 /// the gap remains Open and the profile for that gap is not satisfied.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -13,6 +12,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 proptest! {
     /// For any context, a token with wrong provenance hash never closes a gap.

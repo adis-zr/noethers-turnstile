@@ -1,4 +1,12 @@
 use chrono::Utc;
+use noethers_turnstile_core::{
+    compile,
+    context::{Membership, ProofContext, Scope},
+    expiry::Expiry,
+    gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
+    permission::Permission,
+    token::{compute_provenance_hash, ProofToken, TokenStatus},
+};
 /// EC-010 — Scope candidate admission (rule [ADMISSIBLE]).
 ///
 /// EC-001 §24 rule [ADMISSIBLE]:
@@ -25,14 +33,6 @@ use chrono::Utc;
 ///   - Proptest: candidate always admitted when scope is empty
 ///   - Proptest: candidate in list is always admitted
 use proptest::prelude::*;
-use noethers_turnstile_core::{
-    compile,
-    context::{Membership, ProofContext, Scope},
-    expiry::Expiry,
-    gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
-    permission::Permission,
-    token::{compute_provenance_hash, ProofToken, TokenStatus},
-};
 
 // ── Scope candidate validator ────────────────────────────────────────────────
 

@@ -23,7 +23,6 @@
 ///   Prop1 — Any single OOC context in compose_n makes result OOC
 ///   Prop2 — For any N, inserting OOC at any position makes result OOC
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
@@ -32,6 +31,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 const ALL_MEMBERSHIPS: [Membership; 4] = [
     Membership::InClass,

@@ -1,3 +1,7 @@
+use noethers_turnstile_core::{
+    audit::{AuditEntry, AuditStore, Derivation, InMemoryAuditStore},
+    registry::{SchemaEntry, SchemaRegistry},
+};
 /// EC-029 — Poisoned-mutex recovery in SchemaRegistry and InMemoryAuditStore.
 ///
 /// Both `SchemaRegistry` and `InMemoryAuditStore` use `Err(p) => p.into_inner()`
@@ -19,10 +23,6 @@
 ///         consistent results.
 use std::sync::Arc;
 use std::thread;
-use noethers_turnstile_core::{
-    audit::{AuditEntry, AuditStore, Derivation, InMemoryAuditStore},
-    registry::{SchemaEntry, SchemaRegistry},
-};
 
 use chrono::Utc;
 

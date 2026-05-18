@@ -26,7 +26,6 @@
 ///   - compiled_at is Some
 ///   - Proptest: for any context, derivation steps are always non-increasing
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -35,6 +34,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn base_ctx() -> ProofContext {
     let claim_id = "deriv-claim";

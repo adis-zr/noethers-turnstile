@@ -1,3 +1,10 @@
+use noethers_turnstile_core::{
+    compose,
+    context::{Membership, ProofContext, Scope},
+    expiry::Expiry,
+    gap::{Bound, GapRecord, GapStatus},
+    permission::Permission,
+};
 /// EC-011 — Gap composition invariants.
 ///
 /// The GapStatus composition rule (used in compose()) is:
@@ -20,13 +27,6 @@
 ///
 /// These invariants protect the "fail-closed" semantics of gap composition.
 use proptest::prelude::*;
-use noethers_turnstile_core::{
-    compose,
-    context::{Membership, ProofContext, Scope},
-    expiry::Expiry,
-    gap::{Bound, GapRecord, GapStatus},
-    permission::Permission,
-};
 
 // ── GapStatus rank-level invariants ──────────────────────────────────────────
 

@@ -11,7 +11,6 @@
 ///
 /// We also test that the Judgment's context snapshot does not affect a fresh compilation.
 use chrono::{Duration, Utc};
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -20,6 +19,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn make_ctx(target: Permission) -> ProofContext {
     let claim_id = "claim-idem";

@@ -1,4 +1,3 @@
-use proptest::prelude::*;
 /// EC-003T — Scope containment: intersection is conservative (T14).
 ///
 /// Covers theorems:
@@ -21,6 +20,7 @@ use proptest::prelude::*;
 ///   - Proptest: composed scope ⊆ each input scope
 use noethers_turnstile_core::context::{Membership, ProofContext, Scope};
 use noethers_turnstile_core::{compose, expiry::Expiry, permission::Permission};
+use proptest::prelude::*;
 
 fn scope_with_tools(tools: Vec<&str>) -> Scope {
     Scope {

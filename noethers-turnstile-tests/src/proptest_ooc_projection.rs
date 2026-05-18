@@ -11,7 +11,6 @@
 /// Falsification: if any out-of-class context with any token configuration
 /// ever produces a permission other than OOC, the property fails.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -20,6 +19,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

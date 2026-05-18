@@ -24,7 +24,6 @@
 ///   AU14 — Null bytes in allowed_use: treated as distinct values
 ///   Prop — Single-character mutation to allowed_use changes provenance hash
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
@@ -34,6 +33,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn ctx_with_use(allowed_use: &str) -> ProofContext {
     ProofContext {

@@ -24,7 +24,6 @@
 ///   - Compiler descending search with non-monotone profiles: documents behaviour
 ///   - Proptest: for any monotone profile pair, adding evidence never lowers permission
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -33,6 +32,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 // ── Profile monotonicity validator ───────────────────────────────────────────
 

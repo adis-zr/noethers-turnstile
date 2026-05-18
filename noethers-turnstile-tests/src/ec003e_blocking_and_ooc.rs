@@ -10,7 +10,6 @@
 ///   T2  — Token validity soundness: only Valid tokens contribute
 ///   T11 — Diagnostic/action separation: disallowed_uses cap at ROL
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -19,6 +18,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_membership() -> impl Strategy<Value = Membership> {
     prop_oneof![

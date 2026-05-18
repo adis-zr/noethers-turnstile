@@ -17,7 +17,6 @@
 ///   - Compiling the same context multiple times inflates audit entries
 ///     in a way that upgrades subsequent compilations.
 use chrono::Utc;
-use std::sync::Arc;
 use noethers_turnstile_core::{
     audit::{AuditEntry, AuditStore, Derivation, InMemoryAuditStore},
     compile,
@@ -27,6 +26,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use std::sync::Arc;
 
 fn ctx_needs_g1_closed() -> ProofContext {
     ProofContext {

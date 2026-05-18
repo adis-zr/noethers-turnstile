@@ -20,7 +20,6 @@
 ///   A9-3  — All gap statuses OPEN + 1k profiles → compile terminates (all unsatisfied → OOC)
 ///   All   — Clean context passes all conditions
 use chrono::Utc;
-use std::time::Instant;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -30,6 +29,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use std::time::Instant;
 
 const ALL_PERMISSIONS: [Permission; 12] = [
     Permission::OOC,

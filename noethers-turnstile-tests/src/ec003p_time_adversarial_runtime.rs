@@ -15,7 +15,6 @@
 ///
 /// In all cases, the runtime can only lower or preserve the compiled permission.
 use chrono::{Duration, Utc};
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -24,6 +23,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn dia_ctx(deadline_offset_secs: i64) -> ProofContext {
     dia_ctx_at(deadline_offset_secs, Utc::now())

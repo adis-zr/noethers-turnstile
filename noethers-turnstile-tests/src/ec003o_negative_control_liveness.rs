@@ -21,7 +21,6 @@
 use std::collections::HashMap;
 
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -31,6 +30,7 @@ use noethers_turnstile_core::{
     token::{compute_provenance_hash, ProofToken, TokenStatus},
     NegativeControlStatus,
 };
+use proptest::prelude::*;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

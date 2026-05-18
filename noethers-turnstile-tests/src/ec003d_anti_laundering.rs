@@ -13,7 +13,6 @@
 ///   T4  — Instance identity: token for z₁ never licenses z₂ (emits REF via prov mismatch)
 ///   T16 — Heterogeneous anti-laundering: stale never upgrades; group-fold independent
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
@@ -22,6 +21,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_id() -> impl Strategy<Value = String> {
     "[a-z]{4,8}"

@@ -14,8 +14,6 @@
 ///   D6 — Different contexts with identical structure → same permission
 ///         (structural equivalence).
 use chrono::Utc;
-use std::sync::{Arc, Barrier};
-use std::thread;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -24,6 +22,8 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use std::sync::{Arc, Barrier};
+use std::thread;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

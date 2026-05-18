@@ -19,8 +19,6 @@
 ///   A9  — compile() result independent of store observer count (0 vs 10k)
 ///   Prop — N random audit entries + compile → permission unchanged
 use chrono::{Duration, Utc};
-use std::sync::Arc;
-use std::thread;
 use noethers_turnstile_core::{
     audit::{AuditEntry, AuditStore, Derivation, InMemoryAuditStore},
     compile,
@@ -30,6 +28,8 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{ProofToken, TokenStatus},
 };
+use std::sync::Arc;
+use std::thread;
 
 fn ctx_needs_g1_closed() -> ProofContext {
     ProofContext {

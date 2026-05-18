@@ -12,7 +12,6 @@
 /// through a serde round-trip, the audit record would be unrepresentative
 /// of the original context, breaking the compliance story.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     audit::Derivation,
     compile,
@@ -22,6 +21,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, NegativeControlStatus, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

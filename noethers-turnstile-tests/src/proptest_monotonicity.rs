@@ -5,7 +5,6 @@
 /// Formally: if Γ' = Γ ∪ {t} where t is a new valid Closed token with
 /// correct provenance, then compile(Γ').permission ≥ compile(Γ).permission.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -14,6 +13,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

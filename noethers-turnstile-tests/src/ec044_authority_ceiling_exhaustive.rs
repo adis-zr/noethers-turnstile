@@ -20,7 +20,6 @@
 ///   C14 — Ceiling above all profiles: result = highest satisfied profile
 ///   Prop — compile() permission ≤ authority_ceiling for any context
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
@@ -29,6 +28,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 const ALL_PERMISSIONS: [Permission; 12] = [
     Permission::OOC,

@@ -11,7 +11,6 @@
 ///
 /// Also tests: token-level expiry via expires_at vs. context-level expiry.
 use chrono::{Duration, Utc};
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -20,6 +19,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn ctx_with_status(status: TokenStatus) -> ProofContext {
     let claim_id = "c-ts";

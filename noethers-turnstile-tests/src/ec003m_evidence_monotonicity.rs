@@ -9,7 +9,6 @@
 ///   T10 — Composition monotonicity
 ///   Spec §8 property 3 — Monotonicity in evidence
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -18,6 +17,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn base_ctx_with_gaps(gap_ids: &[&str], closed: &[bool]) -> ProofContext {
     let claim_id = "c-mono";

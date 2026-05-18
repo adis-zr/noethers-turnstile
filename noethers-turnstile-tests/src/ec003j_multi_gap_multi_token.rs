@@ -12,7 +12,6 @@
 /// - Adding one more token promotes to the next permission
 /// - Tokens with bounds_gaps (BoundedRequired)
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -21,6 +20,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn make_token(gap_ids: &[&str], bounds_gap_ids: &[&str], ctx: &ProofContext) -> ProofToken {
     let hash = compute_provenance_hash(

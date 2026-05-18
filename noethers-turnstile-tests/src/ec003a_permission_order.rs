@@ -1,3 +1,4 @@
+use noethers_turnstile_core::permission::Permission;
 /// EC-003A — Permission order: reflexivity, antisymmetry, transitivity, meet table.
 ///
 /// Ported from hilbert-flow/admissibility-atlas/tests/test_ec003a_permission_order.py
@@ -8,7 +9,6 @@
 ///   T9  — N-ary composition non-promotion (meet_n)
 ///   T10 — Composition monotonicity (meet is idempotent, associative, commutative)
 use proptest::prelude::*;
-use noethers_turnstile_core::permission::Permission;
 
 pub fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

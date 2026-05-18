@@ -14,7 +14,6 @@
 /// with a stale or minimal-evidence context to unlock automatic execution,
 /// the permission algebra would be unsound.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile, compose,
     context::{Membership, ProofContext, Scope},
@@ -23,6 +22,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

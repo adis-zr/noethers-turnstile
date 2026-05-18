@@ -9,7 +9,6 @@
 ///   T15 — Runtime non-upgrade: live permission ≤ compiled permission
 ///   T7  — Expiry soundness: expired token/context → EXP, not upgradeable
 use chrono::{Duration, Utc};
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -18,6 +17,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![

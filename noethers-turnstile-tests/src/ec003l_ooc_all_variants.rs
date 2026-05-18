@@ -8,7 +8,6 @@
 /// Confirms that no matter what evidence is in the context, non-InClass
 /// membership always projects to OOC.
 use chrono::Utc;
-use proptest::prelude::*;
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
@@ -17,6 +16,7 @@ use noethers_turnstile_core::{
     permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
+use proptest::prelude::*;
 
 fn saturated_ctx(membership: Membership) -> ProofContext {
     // Build the most evidence-rich context possible and verify OOC still wins.

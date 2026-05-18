@@ -1,3 +1,4 @@
+use noethers_turnstile_core::context::Scope;
 /// AC-002 — Scope algebra: containment, intersection, dimension kinds.
 ///
 /// Ported from:
@@ -13,7 +14,6 @@
 ///               if one side constrained → use it;
 ///               both constrained → set intersection.
 use proptest::prelude::*;
-use noethers_turnstile_core::context::Scope;
 
 fn scope_with_tools(tools: Vec<&str>) -> Scope {
     Scope {
