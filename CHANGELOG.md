@@ -7,6 +7,78 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- **`examples/pgm/tests/test_5_gaps.py` — 24 new gap-correctness tests (GAP-001–020)**:
+  - **GAP-001–005** (`model_specification_gap` gate): `model_specification_gap` is now the
+    11th gap in the PGM taxonomy, sitting between `approximation_gap` and
+    `certifier_soundness_gap`.  It captures whether the supplied model is adequate for the
+    real-world target — distinct from `approximation_gap`, which only proves closeness to the
+    supplied model.  ALR and AAA for both `exact_inference_result` and
+    `certified_approximate_inference` now require this gap BOUNDED/CLOSED.
+    GAP-001 confirms `ExactInferenceToken + FreshnessToken → AEX` (not ALR); GAP-002 confirms
+    adding a `ModelSpecificationToken` restores ALR; GAP-003/004 confirm revoked and
+    wrong-fingerprint tokens do not bound the gap; GAP-005 confirms BOUNDED is insufficient for
+    AAA (requires CLOSED).
+  - **GAP-006–010** (approximate inference BIF benchmark): First BIF benchmark tests for the
+    `certified_approximate_inference` claim class.  GAP-006 confirms
+    `CertifiedBoundToken + FreshnessToken` earns AEX (not ALR) on asia/cancer/earthquake because
+    `model_specification_gap` is open; GAP-007 confirms adding `ModelSpecificationToken`
+    unlocks ALR on all three networks; GAP-008/009 confirm DIA floor and uncertified cap.
+    GAP-010 pins the gap's position in the 11-element `GAP_BASIS`.
+  - **GAP-011–014** (context expiry TTL): `compile_pgm` now accepts a `ttl_seconds` parameter
+    (default 86400 s = 24 h) wired into `Expiry.at(issued_at + ttl)`.  `ttl_seconds=None`
+    restores `Expiry.never()` for gap-logic tests.  GAP-011 confirms expired context → EXP;
+    GAP-012 confirms within-TTL context returns the correct permission; GAP-013 confirms
+    `ttl_seconds=None` never expires; GAP-014 pins the 24 h default.
+  - **GAP-015–020** (serde round-trip): Confirms that `ProofContext` identity fields survive
+    recompilation: permission is preserved (GAP-015), `claim_id` equals `fingerprint_graph`
+    (GAP-016), `provenance_hash` is deterministic (GAP-017), different graphs produce different
+    `claim_id` values (GAP-018), OOC permission round-trips (GAP-019), and `provenance_hash` is
+    exactly 64 hex chars / 256-bit SHA-256 (GAP-020).
+
+### Changed
+
+- **`examples/pgm/bridge/claims.py` — gap taxonomy expanded from 10 to 11 gaps**: added
+  `model_specification_gap` between `approximation_gap` and `certifier_soundness_gap`.  ALR and
+  AAA profiles updated for both `exact_inference_result` and `certified_approximate_inference` to
+  require this gap BOUNDED and CLOSED respectively.
+
+- **`examples/pgm/bridge/bridge.py` — four correctness improvements**:
+  1. `_is_in_class` now validates that each required runtime key maps to a non-empty string, not
+     merely that the key exists.  `{"graph_version": None, ...}` previously passed; now fails.
+  2. `compile_pgm` accepts `ttl_seconds` (default 86400) and wires it into `Expiry.at`; previously
+     all contexts used `Expiry.never()`, leaving the freshness lifecycle unconnected to the
+     compiled context.
+  3. `CertifiedBoundToken` translation updated: when all four scope-binding fingerprints match,
+     `bound_scope_gap` is now CLOSED (not merely BOUNDED).  A fully-scoped certified bound with
+     exact fingerprint matches fully determines the scope of the certificate.
+  4. `_translate_token` comment added explaining that fingerprint re-verification in the bridge
+     layer indicates the certifier boundary has not yet been drawn: in production, the certifier
+     would verify fingerprints at issuance time and the bridge would trust the provenance hash.
+
+- **`examples/pgm/bridge/fingerprints.py` — fingerprint width widened to 256 bits**: `hexdigest()[:16]`
+  (64-bit) replaced with `hexdigest()` (full 256-bit SHA-256).  At production token-registry scale,
+  64-bit fingerprints are susceptible to birthday collisions.
+
+- **`examples/pgm/tests/test_1_bridge.py`**: BRIDGE-002 updated — the test previously asserted
+  `ExactInferenceToken + FreshnessToken → ALR`; it now correctly asserts `→ AEX` and documents
+  that ALR requires `model_specification_gap` BOUNDED.  All `compile_pgm` calls updated with
+  `ttl_seconds=None` so gap-logic tests are not sensitive to the new 24 h default expiry.
+
+- **`examples/pgm/tests/test_2_demo.py`**: DEMO-001 updated — narrative assertion changed from ALR
+  to AEX with an explanatory note; `ttl_seconds=None` added to all `compile_pgm` calls.
+
+- **`examples/pgm/tests/test_4_bif.py`**: `test_bif_exact_plus_freshness_earns_alr` renamed to
+  `test_bif_exact_plus_freshness_earns_aex` and asserts AEX; `ttl_seconds=None` added to all
+  `compile_pgm` calls.
+
+- **`examples/pgm/README.md`**: added gap taxonomy table with rationale for `model_specification_gap`
+  gating ALR; added `test_5_gaps.py` to the file listing and run-command table.
+
+Total example test count: **88 tests** — 10 bridge agreement + 4 demo + 32 stress + 18 BIF tiers
+(6 named × AEX + 6 named × AEX-with-freshness + 20 DIA sweep) + 24 gap-correctness.
+
 ### Fixed
 
 - **Example `test_3_stress.py` — 9 stale assertions updated** (`examples/pgm/tests/test_3_stress.py`):

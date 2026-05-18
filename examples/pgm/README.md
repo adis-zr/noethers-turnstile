@@ -16,6 +16,8 @@ tests/
   test_2_demo.py     narrative tests — shows what the compiler does step by step
   test_3_stress.py   stress tests    — adversarial inputs targeting the Rust path
   test_4_bif.py      BIF integration — real graph topologies (skips if no files)
+  test_5_gaps.py     gap-correctness — model_specification_gap gate, approximate inference
+                     BIF benchmark, context expiry TTL, and serde round-trip
 ```
 
 ---
@@ -47,11 +49,38 @@ pytest tests/test_1_bridge.py -v     # bridge agreement tests
 pytest tests/test_2_demo.py -v -s    # narrative demo — prints derivation steps
 pytest tests/test_3_stress.py -v     # compiler stress tests
 pytest tests/test_4_bif.py -v        # BIF integration (requires data/bif/)
+pytest tests/test_5_gaps.py -v       # gap correctness, expiry, serde round-trip
 ```
 
 `conftest.py` at the example root automatically puts the workspace `python/` directory first on
 `sys.path`, so tests always run against the locally-built `turnstile` rather than any previously
 installed wheel.  No `PYTHONPATH` export is needed.
+
+---
+
+## Gap taxonomy
+
+The bridge defines 11 standard gaps. Each represents a distinct piece of evidence a certifier must supply before the corresponding permission tier is reachable.
+
+| Gap | What it captures |
+|-----|-----------------|
+| `model_identity_gap` | The graph structure is pinned to this exact model fingerprint |
+| `query_identity_gap` | The query target and type are pinned |
+| `evidence_identity_gap` | The observation dict is pinned |
+| `algorithm_reproducibility_gap` | The inference algorithm is registered and reproducible |
+| `approximation_gap` | The result is exact (or a certified bound has been supplied) |
+| `model_specification_gap` | The supplied model is adequate for the real-world target — **not** just that the computation was correct given the model |
+| `certifier_soundness_gap` | The certifier algorithm is sound for the claimed guarantee type |
+| `bound_scope_gap` | The certified bound applies to exactly this problem instance |
+| `runtime_registry_gap` | All runtime dependencies are registered and version-controlled |
+| `freshness_gap` | The evidence and model versions are current |
+| `provenance_gap` | The full provenance chain is auditable |
+
+### Why `model_specification_gap` gates ALR
+
+`approximation_gap` proves that the inference is close to the posterior of the *supplied* model. It does not prove that the supplied model is an adequate representation of the real-world system. `model_specification_gap` is the only gap that addresses adequacy. Without bounding it, a rollout certificate (ALR) only certifies "correct computation on a model of unknown relevance" — which is the production failure mode identified in the paper.
+
+The design consequence: `ExactInferenceToken + FreshnessToken` earns AEX (the computation is exact and fresh) but not ALR (no adequacy claim). ALR requires a `ModelSpecificationToken` issued by a domain expert or external validation process that is independent of the inference system itself.
 
 ---
 
