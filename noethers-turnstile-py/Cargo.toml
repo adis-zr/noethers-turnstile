@@ -1,7 +1,8 @@
 [package]
 name = "noethers-turnstile-py"
-version = "0.1.0"
+version = "0.2.1"
 edition = "2021"
+publish = false
 description = "Python bindings for noethers-turnstile-core via PyO3"
 license = "Apache-2.0"
 repository = "https://github.com/adis-zr/noethers-turnstile"

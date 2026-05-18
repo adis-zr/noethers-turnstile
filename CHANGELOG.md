@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-18
+
 ### Fixed
 
 - **Stale crate name references after rename from `turnstile-core` to `noethers-turnstile-core`**: corrected `use turnstile_core::` → `use noethers_turnstile_core::` in `noethers-turnstile-core/benches/bench_compile.rs` and `src/lib.rs` (doctest), and replaced the double-prefixed `noethers_noethers_turnstile_core` with `noethers_turnstile_core` across all 80+ test files in `noethers-turnstile-tests/` and in `README.md`. The bench and all tests now compile and pass cleanly.
@@ -595,3 +597,8 @@ Total test count: **656 tests across 55 files** (up from 562 / 46).
   `six_gaps_bad_provenance`
 - CI: GitHub Actions matrix (ubuntu, macos), clippy `-D warnings`, rustfmt check,
   bench compile verification
+
+[0.2.1]: https://github.com/adis-zr/noethers-turnstile/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/adis-zr/noethers-turnstile/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/adis-zr/noethers-turnstile/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/adis-zr/noethers-turnstile/releases/tag/v0.1.0

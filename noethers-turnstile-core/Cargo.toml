@@ -1,6 +1,6 @@
 [package]
 name = "noethers-turnstile-core"
-version = "0.1.0"
+version = "0.2.1"
 edition = "2021"
 description = "Admissibility compiler core: Γ ⊢ z : p until ε"
 license = "Apache-2.0"
