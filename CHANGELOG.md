@@ -9,6 +9,46 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **`examples/pgm/bridge/certifier.py` — reference certifier implementation**:
+  - `PGMExactCertifier` — issues `ExactInferenceToken` for PGM exact inference. Key
+    property: fingerprints are computed from the supplied inputs (graph, query, evidence,
+    algorithm), not accepted from the caller. The certifier runs inference internally via a
+    provided `inference_fn`, verifies the returned `certificate_geometry` is `"exact"`, and
+    only then issues the token. Refuses with `CertifierError` if the algorithm is not
+    `"exact"`, if inference raises, or if the geometry is not exact (i.e. the result is
+    approximate). This is the distinction between a certifier and a token factory.
+  - `PGMModelSpecificationCertifier` (stub) — raises `NotImplementedError` with a detailed
+    explanation. Documents what a real implementation would need (validation artifacts, scope
+    limits, assumption list, expiry policy) and why the inference system cannot self-issue
+    this token: `P(query | evidence, model)` makes no statement about whether the model is
+    adequate for the real-world target. The stub makes the interface and the responsibility
+    explicit. `AEX → ALR` requires this token; without it, AEX is the ceiling.
+  - `ExactInferenceSpec` dataclass — the input bundle for `PGMExactCertifier.issue()`.
+  - `CertifierError` exception class for certifier-level failures.
+  - Module docstring explains the trust model: certifiers are external authorities; turnstile
+    trusts their output structurally (provenance hashes, fingerprint bindings) but makes no
+    scientific judgment about adequacy.
+
+- **`examples/pgm/bridge/__init__.py`** — exports `PGMExactCertifier`,
+  `PGMModelSpecificationCertifier`, `ExactInferenceSpec`, `CertifierError`.
+
+- **`examples/pgm/demo/run_demo.py`** — loose-budget row (AEX) now issues its
+  `ExactInferenceToken` through `PGMExactCertifier` rather than constructing it directly.
+  Added `_make_exact_inference_fn()` helper that bridges the certifier's
+  `(graph, query, evidence) → result` dict interface to `compile_inference`'s
+  `GraphicalModel/Query` interface via `make_bif_instance`. The certifier runs inference a
+  second time for the loose row (noted in a comment — clarity over performance for a demo).
+  Tight and medium rows are unchanged. Row note updated to mention certifier issuance.
+
+- **`examples/pgm/README.md`** — new section "Token issuance and the certifier boundary"
+  (4 paragraphs): compiler-vs-certifier role separation; what `PGMExactCertifier` does and
+  why self-computed fingerprints are the key property; why `PGMModelSpecificationCertifier`
+  is a stub and what a real implementation would need; how this plays out in the demo (same
+  AEX output, full protocol path). `certifier.py` added to the directory listing.
+
+- **`README.md`** — architecture listing updated with `certifier.py`; brief note added after
+  the test count line referencing the certifier boundary discussion in `examples/pgm/README.md`.
+
 - **`examples/pgm/demo/` — self-contained certified inference demo** (diabetes.bif, 3 memory budgets):
   - `demo/inference/` — trimmed copy of `ecds-pgm/certified_inference/` with all
     `experiments.*` dependencies removed; `cert_policy.py` stubs `evaluate_c1`,

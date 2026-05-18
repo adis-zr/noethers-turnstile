@@ -21,6 +21,7 @@ pressure drives outcomes all the way from OOC to AEX.
 bridge/                 domain adapter — token types, fingerprinting, gap profiles, bridge API
   bif_parser.py         BIF file parser → graph_dict / query_dict for fingerprinting
   bridge.py             compile_pgm() — main integration point
+  certifier.py          PGMExactCertifier + PGMModelSpecificationCertifier (stub)
   claims.py             GAP_BASIS (11 gaps), PROFILE_REQUIREMENTS per claim class
   fingerprints.py       SHA-256 fingerprinting for graph / query / evidence dicts
   tokens.py             ExactInferenceToken, CertifiedBoundToken, FreshnessToken, etc.
@@ -218,6 +219,39 @@ ALR: "the model is adequate AND the computation was correct."
 
 This is the design point of the demo: the permission system enforces the scientific
 boundary between computational correctness and model adequacy.
+
+---
+
+## Token issuance and the certifier boundary
+
+The compiler (turnstile) checks evidence — it verifies fingerprint bindings, validates
+gap coverage, and enforces permission profiles. It does not produce evidence. Tokens are
+issued by certifiers, which are domain-specific authorities that run their own checks
+before signing a token. This separation is load-bearing: if the compiler also issued
+tokens, the trust chain would collapse to the process trusting itself.
+
+`bridge/certifier.py` contains a reference implementation for the one certifier the
+inference system *can* implement: `PGMExactCertifier`. It takes a graph, query,
+evidence, and algorithm; runs inference internally using a provided `inference_fn`;
+verifies the certificate geometry is `"exact"`; and computes all fingerprints itself
+from the inputs. The caller cannot supply pre-computed hashes — that property is what
+makes it a certifier rather than a token factory. If inference fails or returns an
+approximate certificate, the certifier refuses to issue.
+
+The second certifier in `bridge/certifier.py` is `PGMModelSpecificationCertifier` —
+and it is a stub. It raises `NotImplementedError` with an explanation. This is
+intentional: issuing a `ModelSpecificationToken` requires a domain expert who can
+attest that the model adequately represents the real-world system. That attestation
+cannot be automated by the inference system, which only computes
+P(query | evidence, model). The stub exists to make the interface concrete and the
+responsibility explicit. Any production deployment that wants ALR must implement this
+certifier externally — with validation artifacts, scope limits, and an expiry policy.
+
+The loose row in the demo (AEX) now issues its `ExactInferenceToken` through
+`PGMExactCertifier` rather than direct construction. The output is the same — AEX —
+but the path demonstrates the full issuance protocol. The `model_specification_gap`
+stays open regardless, because `PGMModelSpecificationCertifier` is a stub. AEX is the
+ceiling until someone outside the inference system issues a `ModelSpecificationToken`.
 
 ---
 

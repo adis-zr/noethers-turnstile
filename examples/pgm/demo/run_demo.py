@@ -15,7 +15,7 @@ from __future__ import annotations
 import math
 import sys
 import time
-import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Allow running from examples/pgm/ without installing
@@ -24,8 +24,9 @@ if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
 import turnstile as t
-from bridge.bridge import build_profiles
+from bridge.bridge import build_profiles, compile_pgm
 from bridge.bif_parser import parse_bif as bridge_parse_bif, bif_to_pgm_dicts
+from bridge.certifier import ExactInferenceSpec, PGMExactCertifier
 from bridge.claims import GAP_BASIS
 from bridge.fingerprints import fingerprint, fingerprint_graph, fingerprint_query, fingerprint_evidence
 
@@ -46,6 +47,24 @@ BUDGETS = [
     ("medium", 20_000_000),
     ("loose",  120_000_000),
 ]
+
+
+def _make_exact_inference_fn(demo_bif, budget, label, query_var_id):
+    """Return an inference_fn closure for PGMExactCertifier.
+
+    The certifier's interface is (graph, query, evidence) -> result using bridge-format
+    dicts, but compile_inference works on GraphicalModel/Query objects from demo_bif.
+    This closure bridges the two: it ignores the dict arguments (the certifier has
+    already verified they match via fingerprints) and runs compile_inference using the
+    same demo_bif and budget that produced the table row.
+    """
+    def _fn(graph: dict, query: dict, evidence: dict):
+        inst = make_bif_instance(
+            "diabetes", demo_bif, budget, label,
+            query_var=query_var_id, clamp_zeros=True,
+        )
+        return compile_inference(inst.model, inst.query, budget)
+    return _fn
 
 
 def _fmt_kl(kl: float) -> str:
@@ -108,31 +127,53 @@ def main() -> None:
             geometry = result.certificate_geometry
             claim_class = claim_class_for_geometry(geometry)
 
-            fp_algorithm = fingerprint("exact") if geometry == "exact" else fingerprint("hilbert")
-            prov_hash = t.compute_provenance_hash(fp_graph, fp_query, context_id, claim_class)
+            if geometry == "exact":
+                # Use PGMExactCertifier to issue the token — demonstrates the full
+                # issuance protocol. The certifier runs inference internally a second
+                # time to compute fingerprints from the inputs themselves (not from the
+                # caller). Clarity over performance is the right trade for a demo.
+                certifier = PGMExactCertifier(
+                    inference_fn=_make_exact_inference_fn(demo_bif, budget, label, query_var_id),
+                    issuer_id="pgm-demo-certifier/1.0",
+                )
+                spec = ExactInferenceSpec(
+                    graph=graph_dict, query=query_dict, evidence={}, algorithm="exact"
+                )
+                bridge_token = certifier.issue(spec)
+                br = compile_pgm(
+                    graph=graph_dict, query=query_dict, evidence={},
+                    algorithm="exact", tokens=[bridge_token],
+                    claim_class="exact_inference_result",
+                    issued_at=datetime.fromtimestamp(issued_at_unix, tz=timezone.utc),
+                    ttl_seconds=None,
+                )
+                permission = br.permission()
+            else:
+                fp_algorithm = fingerprint("hilbert")
+                prov_hash = t.compute_provenance_hash(fp_graph, fp_query, context_id, claim_class)
 
-            ts_tokens = cert_to_proof_tokens(
-                result, fp_graph, fp_query, fp_evidence,
-                fp_algorithm, prov_hash, issued_at_unix,
-            )
+                ts_tokens = cert_to_proof_tokens(
+                    result, fp_graph, fp_query, fp_evidence,
+                    fp_algorithm, prov_hash, issued_at_unix,
+                )
 
-            ctx = t.ProofContext(
-                claim_id=fp_graph,
-                candidate_id=fp_query,
-                context_id=context_id,
-                allowed_use=claim_class,
-                membership=t.Membership.InClass,
-                authority_ceiling=t.Permission.ALR,
-                expiry=t.Expiry.never(),
-                gaps=[t.GapRecord(g, g) for g in GAP_BASIS],
-                profiles=build_profiles(claim_class),
-                tokens=ts_tokens,
-                context_fingerprint=context_id,
-            )
+                ctx = t.ProofContext(
+                    claim_id=fp_graph,
+                    candidate_id=fp_query,
+                    context_id=context_id,
+                    allowed_use=claim_class,
+                    membership=t.Membership.InClass,
+                    authority_ceiling=t.Permission.ALR,
+                    expiry=t.Expiry.never(),
+                    gaps=[t.GapRecord(g, g) for g in GAP_BASIS],
+                    profiles=build_profiles(claim_class),
+                    tokens=ts_tokens,
+                    context_fingerprint=context_id,
+                )
 
-            live = t.compile(ctx)
-            rt = t.RuntimeContext(now_unix=issued_at_unix, context_fingerprint=context_id)
-            permission = live.permission_str(rt)
+                live = t.compile(ctx)
+                rt = t.RuntimeContext(now_unix=issued_at_unix, context_fingerprint=context_id)
+                permission = live.permission_str(rt)
 
             kl_str = _fmt_kl(result.certified_kl)
             mem_str = _fmt_mem(result.memory.bytes)
@@ -172,6 +213,8 @@ def main() -> None:
     print()
     print("loose  (AEX):   Exact inference everywhere. KL = 0 (computation is provably")
     print("                correct given the model).")
+    print("                Token issued by PGMExactCertifier — fingerprints computed")
+    print("                from inputs, not supplied by caller.")
 
     # The model_specification_gap lesson
     print()

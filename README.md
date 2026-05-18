@@ -174,6 +174,8 @@ cargo test -p turnstile-tests
 
 **1195 tests total — 998 Rust (85 files) + 100 Python (8 files) + 97 PGM example tests (6 files).** Every test passes on every commit (ubuntu + macos CI matrix).
 
+The PGM example (`examples/pgm/bridge/certifier.py`) ships a reference certifier implementation: `PGMExactCertifier` self-computes all fingerprints from inputs and runs inference internally before issuing a token; `PGMModelSpecificationCertifier` is a documented stub that raises `NotImplementedError` with an explanation of why domain-expert attestation cannot be automated. See `examples/pgm/README.md` for the full certifier boundary discussion.
+
 ---
 
 ## Implementing a Certifier
@@ -329,6 +331,7 @@ After `maturin develop`, the `turnstile` package is importable in the active env
 ```
 examples/pgm/            PGM inference integration example (97 Python tests)
   bridge/                domain adapter — token types, fingerprinting, gap profiles
+    certifier.py         PGMExactCertifier + PGMModelSpecificationCertifier (stub)
   demo/                  self-contained diabetes BIF memory-budget sweep demo
     inference/           certified inference compiler (copied + stripped from hilbert-flow)
     bif_loader.py        BIF parser + ModelInstance factory

@@ -1,6 +1,7 @@
 """PGM bridge package for the turnstile examples."""
 
 from .bridge import BridgeResult, compile_pgm, make_runtime_context
+from .certifier import CertifierError, ExactInferenceSpec, PGMExactCertifier, PGMModelSpecificationCertifier
 from .tokens import (
     CertifiedBoundToken,
     CertifierContract,
@@ -16,6 +17,10 @@ __all__ = [
     "BridgeResult",
     "compile_pgm",
     "make_runtime_context",
+    "CertifierError",
+    "ExactInferenceSpec",
+    "PGMExactCertifier",
+    "PGMModelSpecificationCertifier",
     "CertifiedBoundToken",
     "CertifierContract",
     "ExactInferenceToken",
