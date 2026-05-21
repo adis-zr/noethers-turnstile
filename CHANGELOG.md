@@ -38,6 +38,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
     permission algebra coverage, seance staleness bounds, provenance enforcement, evaluator
     verdict classification, and harness aggregation
 
+- **`examples/gastown/corpus/component2/preregistration.md` — Component 2 pre-registration (Phase 3)**:
+  locked before any GasTown trace is collected; derived from Component 1 empirical results
+  (commit de45ec1). Key contents:
+  - Basis: CLEAN family ALR=80%, AAA=20%, all structural gaps closed except merge_safety_gap
+  - Per-run permission predictions: G1 ALR ≥85%, G2 ALR ≥75%, G3 ALR ≥70%, G4 ALR/REV split
+    by backend vs frontend, G5 REV/DIA ≥60% below ALR; all thresholds derived from CLEAN
+    base rate with approximation-pressure discount per gradient step
+  - Gradient invariant: context_integrity_gap, delegation_authority_gap, authority_chain_gap
+    predicted stable across G1–G5 (> 20% deviation = falsification)
+  - Six falsification conditions (F1–F6) with root-cause classification schema (profile
+    miscalibration / taxonomy gap / GasTown behavioral finding)
+
 - **`examples/gastown/corpus/` — Component 1 synthetic corpus generator (Phase 2)**:
   controlled synthetic corpus for algebraic validation and gap-taxonomy coverage:
   - `corpus/generator/patterns.py` — 17 pattern factory functions: CLEAN (polecat/mayor),

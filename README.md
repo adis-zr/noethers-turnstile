@@ -23,7 +23,7 @@ This library is for teams building systems where autonomous or consequential act
 | [`docs/guide/a-concrete-example.md`](docs/guide/a-concrete-example.md) | PGM inference memory-budget demo (OOC/DIA/AEX), AEX vs ALR distinction, model specification gap lesson |
 | [`docs/papers/admissibility_compilers_for_approximate_consequential_systems.md`](docs/papers/admissibility_compilers_for_approximate_consequential_systems.md) | Core compiler paper: judgment form, permission algebra, gap/profile/token machinery, 19 structural theorems, PGM benchmark results |
 | [`docs/papers/admissible_compilability_representation_theorem.md`](docs/papers/admissible_compilability_representation_theorem.md) | Representation theorem: characterizes exactly when a domain admits a bounded sharp monotone compiler; WQO and semialgebraic corollaries |
-| [`examples/gastown/gastown_benchmark_spec.md`](examples/gastown/gastown_benchmark_spec.md) | GasTown benchmark specification (v7.0): multi-agent OTEL telemetry, 7-gap taxonomy Θ_GT_v1, laundering patterns L1–L8, adversarial families A1–A5, Component 1 synthetic corpus (180 traces), Component 2 gradient pilot (5 real runs G1–G5) |
+| [`examples/gastown/gastown_benchmark_spec.md`](examples/gastown/gastown_benchmark_spec.md) | GasTown benchmark specification (v8.0): multi-agent OTEL telemetry, 7-gap taxonomy Θ_GT_v1, laundering patterns L1–L8, adversarial families A1–A5, Component 1 synthetic corpus (180 traces, 0 falsifications), Component 2 gradient pilot (5 real runs G1–G5), pre-registration protocol |
 
 ---
 
