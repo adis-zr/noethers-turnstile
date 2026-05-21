@@ -35,7 +35,7 @@ Usage::
 
 import logging as _logging
 
-from ._noethers_turnstile import (  # noqa: F401
+from ._turnstile import (  # noqa: F401
     # Exceptions
     TurnstileError,
     ExpiredError,

@@ -826,18 +826,18 @@ Memory OOC is clean refusal. Kernel coverage OOC is a registry/instrumentation p
 
 ## Current evidence status
 
-| Claim | Status |
-|---|---|
-| Algebraic non-promotion | Supported by proof and EC-003 |
-| Profile/search non-promotion | Supported by proof and EC-004 |
-| Token/provenance anti-laundering | Supported by proof, EC-003, and EC-004 |
-| Runtime non-upgrade | Supported by proof and EC-003 |
-| Inference structural soundness | Supported by PGM-001 on checked cases |
-| Inference tightness | Not yet measured in the interesting regime |
-| Inference taxonomy completeness | Falsified once; patched with `model_specification_gap` |
-| Kernel-family coverage | Open instrumentation task |
-| GasTown multi-agent class benchmark | Pending |
-| Sift/product-decision benchmark | Pending |
+| Claim                               | Status                                                 |
+| ----------------------------------- | ------------------------------------------------------ |
+| Algebraic non-promotion             | Supported by proof and EC-003                          |
+| Profile/search non-promotion        | Supported by proof and EC-004                          |
+| Token/provenance anti-laundering    | Supported by proof, EC-003, and EC-004                 |
+| Runtime non-upgrade                 | Supported by proof and EC-003                          |
+| Inference structural soundness      | Supported by PGM-001 on checked cases                  |
+| Inference tightness                 | Not yet measured in the interesting regime             |
+| Inference taxonomy completeness     | Falsified once; patched with `model_specification_gap` |
+| Kernel-family coverage              | Open instrumentation task                              |
+| GasTown multi-agent class benchmark | Pending                                                |
+
 
 The important result is not that every benchmark passed. The important result is that the framework failed in the right place. It did not silently promote invalid evidence inside the compiler. It exposed a missing obligation in the taxonomy.
 
@@ -884,12 +884,11 @@ The current proof is textual. The submission artifact target is concrete: first 
 Remaining implementation work:
 
 1. run the GasTown class benchmark over constructable multi-agent workflows;
-2. run the Sift/product-decision benchmark over proposal and experiment-readout cases;
-3. rerun the PGM benchmark with calibrated per-network memory budgets;
-4. instrument kernel-family coverage failures for `link` and `munin1`;
-5. replace the illustrative marketplace token with emitted certifier output;
-6. formalize predicate scopes beyond finite sets;
-7. extend adversarial suites for adapters, taxonomies, profiles, contracts, registries, and authority envelopes.
+2. rerun the PGM benchmark with calibrated per-network memory budgets;
+3. instrument kernel-family coverage failures for `link` and `munin1`;
+4. replace the illustrative marketplace token with emitted certifier output;
+5. formalize predicate scopes beyond finite sets;
+6. extend adversarial suites for adapters, taxonomies, profiles, contracts, registries, and authority envelopes.
 
 ---
 

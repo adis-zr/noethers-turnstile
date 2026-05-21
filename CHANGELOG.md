@@ -7,6 +7,37 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- **`examples/gastown/` — GasTown benchmark harness (Phase 1)**: retrospective ACS compiler
+  validation over GasTown multi-agent OTEL telemetry. Reads the OTEL stream as an auditor
+  (GasTown runs unchanged; no patching or middleware). Key components:
+  - `adapter/otel_adapter.py` — stateless OTEL record processor; `done` handled explicitly by
+    `exit_type` (not in general IN_CLASS_EVENTS) to prevent the ADAPTER_FAILURE silent failure mode
+  - `adapter/proof_context.py` — builds `ProofContext` with the 7-gap taxonomy `Θ_GT_v1`:
+    `context_integrity_gap`, `delegation_authority_gap`, `completion_evidence_gap`,
+    `escalation_validity_gap`, `merge_safety_gap`, `authority_chain_gap`, and
+    `experiment_scope_gap` (induced only when `bead.type=experiment`, making AEX structurally
+    unreachable for non-experiment beads without adapter-level gating)
+  - `adapter/seance.py` — seance staleness certificates (BOUNDED-only; closes_gaps always
+    empty; bounds context_integrity_gap when staleness_seconds ≤ 3600 and commits_elapsed ≤ 10)
+  - `adapter/provenance.py` — five-id provenance binding `(token, gap, claim, bead_id, run_id+rig+git_commit)`
+  - `adapter/authority_registry.py` — role → authority ceiling mapping
+    (dog/boot→DIA, witness→REV, deacon→ESC, polecat/refinery→ALR, mayor/crew→AAA)
+  - `acs/compiler.py` — thin wrapper around `t.compile()`; exports `build_candidates()` for
+    evaluator reuse (prevents MEET_VIOLATION checks from silently diverging)
+  - `harness/evaluator.py` — eight-verdict classifier (SOUND_CORRECT, SOUND_MISSED,
+    UNSOUND_CAUGHT Cases 1/2/3, UNSOUND_MISSED, TAXONOMY_GAP, COMPILER_BUG, ORDERING_VIOLATION,
+    ADAPTER_FAILURE) with COMPILER_BUG detection superseding all other verdicts
+  - `harness/runner.py` and `harness/collector.py` — corpus runner, aggregate metrics,
+    window-sensitivity re-runs at three W_evidence/W_grace settings
+  - `gastown_benchmark_spec.md` — full benchmark specification (v6.0): corpus design,
+    laundering patterns L1–L8, adversarial families A1–A5, six hypotheses H1–H6,
+    two-track ground truth protocol (Track A real traces, Track B synthetic)
+  - 212 TDD tests across 4 files covering all laundering patterns, adversarial families,
+    permission algebra coverage, seance staleness bounds, provenance enforcement, evaluator
+    verdict classification, and harness aggregation
+
 ### Changed
 
 - **`docs/guide/` — split introduction into focused files**: the single `introduction.md` is
