@@ -50,6 +50,23 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - `corpus/component2/prompts.json` — five locked prompts for Component 2 (G1–G5):
     boolean theorem prover → tic tac toe → scoreboard API → scoreboard+frontend → Oregon Trail;
     locked before any GasTown run begins per spec §3.2 independence requirement
+
+- **`examples/gastown/gastown_benchmark_spec.md` — updated to v8.0**: adds pre-registration
+  protocol that converts Component 2 from "here's what we observed" to "here's what we
+  predicted and here's what happened":
+  - §3.3 Pre-Registration: epistemic basis (Component 1 as Monte Carlo prior), locking
+    protocol (commit hash before any C2 trace), predicted permission distributions per
+    G1–G5, gradient invariant (context_integrity/delegation_authority/authority_chain gaps
+    predicted stable across gradient), falsification conditions table, and "what confirmation
+    establishes" framing
+  - §6.10 Prediction vs Actual table: per-prediction CONFIRMED/FALSIFIED outcomes with
+    three root-cause categories (profile miscalibration / taxonomy gap / GasTown behavioral
+    finding)
+  - Directory structure updated: `corpus/component2/preregistration.md` added as locked
+    artifact between Phase 2 (C1 results) and Phase 4 (C2 runs)
+  - Implementation plan: Phase 3 is now a dedicated pre-registration step
+  - Appendix E: pre-registration template with `[FILL]` fields populated from C1 empirical
+    results
   - 69 TDD tests in `tests/test_corpus.py` covering: PatternLabel schema, all 17 pattern
     families, label field correctness (expected_permission, max_acceptable_permission,
     ceiling_blocked_permission, control_outcome_acceptable), corpus count targets,
