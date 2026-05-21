@@ -162,7 +162,7 @@ When seance-recovered context is the only available evidence for `context_integr
 
 The token type is `gt.seance_staleness_bound.v1`. Its `closes_gaps` list is always empty. It carries: `predecessor_run_id`, `predecessor_prime_timestamp`, `current_timestamp`, `staleness_seconds`, `commits_elapsed` (−1 if unknown), and `staleness_class` (FRESH / STALE / COLD).
 
-Component 1: `commits_elapsed` is embedded by the generator in the seance OTEL record. Component 2: `commits_elapsed = -1`; `staleness_seconds` is the operative bound.
+Track B: `commits_elapsed` is embedded by the generator in the seance OTEL record. Gradient corpus: `commits_elapsed = -1`; `staleness_seconds` is the operative bound.
 
 ### 2.4 Ordering and Concurrency
 

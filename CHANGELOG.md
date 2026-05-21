@@ -31,12 +31,29 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
     ADAPTER_FAILURE) with COMPILER_BUG detection superseding all other verdicts
   - `harness/runner.py` and `harness/collector.py` — corpus runner, aggregate metrics,
     window-sensitivity re-runs at three W_evidence/W_grace settings
-  - `gastown_benchmark_spec.md` — full benchmark specification (v6.0): corpus design,
+  - `gastown_benchmark_spec.md` — full benchmark specification (v7.0): corpus design,
     laundering patterns L1–L8, adversarial families A1–A5, six hypotheses H1–H6,
-    two-track ground truth protocol (Track A real traces, Track B synthetic)
+    Component 1 (synthetic) / Component 2 (gradient pilot) corpus structure
   - 212 TDD tests across 4 files covering all laundering patterns, adversarial families,
     permission algebra coverage, seance staleness bounds, provenance enforcement, evaluator
     verdict classification, and harness aggregation
+
+- **`examples/gastown/corpus/` — Component 1 synthetic corpus generator (Phase 2)**:
+  controlled synthetic corpus for algebraic validation and gap-taxonomy coverage:
+  - `corpus/generator/patterns.py` — 17 pattern factory functions: CLEAN (polecat/mayor),
+    L1–L8 laundering patterns, A1–A5 adversarial instances, DIA/AEX/ROL algebra families
+  - `corpus/generator/skeleton.py` — deterministic corpus generator producing all 180 traces
+    (CLEAN×50, L1–L7×10 each, L8×20, A1–A5×5 each, DIA/AEX/ROL×5 each); exports
+    `LabeledTrace`, `CORPUS_TARGETS`, and `generate_component1_corpus()`
+  - `corpus/generator/filler.py` — narrative filler pass that adds `narrative_placeholder`
+    fields without modifying structural fields; spot-check protocol documented
+  - `corpus/component2/prompts.json` — five locked prompts for Component 2 (G1–G5):
+    boolean theorem prover → tic tac toe → scoreboard API → scoreboard+frontend → Oregon Trail;
+    locked before any GasTown run begins per spec §3.2 independence requirement
+  - 69 TDD tests in `tests/test_corpus.py` covering: PatternLabel schema, all 17 pattern
+    families, label field correctness (expected_permission, max_acceptable_permission,
+    ceiling_blocked_permission, control_outcome_acceptable), corpus count targets,
+    JSON serialization, filler structural invariants, and prompts.json fixture validation
 
 ### Changed
 

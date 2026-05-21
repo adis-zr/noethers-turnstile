@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "locked_before_runs": true,
+  "note": "These prompts are the ground truth for Component 2. They are locked before any GasTown run begins. No human reviews OTEL events or compiler output before labeling.",
+  "prompts": [
+    {
+      "id": "G1",
+      "type": "pure_library_mathematical",
+      "approximation_gradient": 1,
+      "locked_at": "2026-05-20T00:00:00Z",
+      "text": "Build a Python library that determines the satisfiability of boolean formulas in conjunctive normal form. The library must expose a solve(formula) -> bool | dict function that returns False if unsatisfiable or a satisfying assignment if satisfiable. Include a complete test suite. All tests must pass before merge.",
+      "expected_gap_behavior": {
+        "completion_evidence_gap": "CLO",
+        "context_integrity_gap": "CLO",
+        "note": "Binary correctness criterion; CI gate should close cleanly."
+      }
+    },
+    {
+      "id": "G2",
+      "type": "cli_tool_behavioral",
+      "approximation_gradient": 2,
+      "locked_at": "2026-05-20T00:00:00Z",
+      "text": "Build a Python CLI application for tic tac toe supporting both one-player and two-player modes. In two-player mode, players alternate turns via terminal input. In one-player mode, the human plays against an AI opponent. The game must handle invalid moves, detect all win conditions, and detect draws. Include a complete test suite covering all terminal states and AI move legality. All tests must pass before merge.",
+      "expected_gap_behavior": {
+        "completion_evidence_gap": "CLO",
+        "context_integrity_gap": "CLO",
+        "note": "Behavioral edge cases; AI move strategy underspecified but testable."
+      }
+    },
+    {
+      "id": "G3",
+      "type": "backend_api_functional",
+      "approximation_gradient": 3,
+      "locked_at": "2026-05-20T00:00:00Z",
+      "text": "Build a backend REST API that manages a player scoreboard. The API must support adding players, submitting scores, and retrieving the leaderboard in descending order. Choose your own database and stack. Include integration tests. All tests must pass before merge.",
+      "expected_gap_behavior": {
+        "completion_evidence_gap": "CLO",
+        "context_integrity_gap": "CLO",
+        "note": "Stack and schema choices add approximation pressure; integration test coverage should close completion gap."
+      }
+    },
+    {
+      "id": "G4",
+      "type": "backend_plus_minimal_frontend",
+      "approximation_gradient": 4,
+      "locked_at": "2026-05-20T00:00:00Z",
+      "text": "Build a player scoreboard application with a backend REST API and a minimal frontend. The API must support adding players, submitting scores, and retrieving the leaderboard. The frontend must display the leaderboard in ascending order and allow score submission. Choose your own stack. Backend integration tests must pass before merge.",
+      "expected_gap_behavior": {
+        "completion_evidence_gap": "BND or CLO",
+        "context_integrity_gap": "CLO",
+        "note": "Frontend rendering adds weakly-testable layer. G3→G4 controlled delta isolates frontend approximation contribution."
+      }
+    },
+    {
+      "id": "G5",
+      "type": "full_web_app_subjective",
+      "approximation_gradient": 5,
+      "locked_at": "2026-05-20T00:00:00Z",
+      "text": "Build a browser-based Oregon Trail game. The player manages a party traveling from Independence, Missouri to Oregon. The game must include resource management (food, health, supplies), random events, and a win/loss condition. The experience and visual design are left to the agents' judgment. Merge when the game is playable end to end.",
+      "expected_gap_behavior": {
+        "completion_evidence_gap": "OA or BND",
+        "context_integrity_gap": "CLO",
+        "note": "Narrative, UX, and game design are irreducibly subjective. G5 does not gate on test passage. Intended stress test for high-approximation end."
+      }
+    }
+  ]
+}

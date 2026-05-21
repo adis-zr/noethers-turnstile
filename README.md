@@ -23,7 +23,7 @@ This library is for teams building systems where autonomous or consequential act
 | [`docs/guide/a-concrete-example.md`](docs/guide/a-concrete-example.md) | PGM inference memory-budget demo (OOC/DIA/AEX), AEX vs ALR distinction, model specification gap lesson |
 | [`docs/papers/admissibility_compilers_for_approximate_consequential_systems.md`](docs/papers/admissibility_compilers_for_approximate_consequential_systems.md) | Core compiler paper: judgment form, permission algebra, gap/profile/token machinery, 19 structural theorems, PGM benchmark results |
 | [`docs/papers/admissible_compilability_representation_theorem.md`](docs/papers/admissible_compilability_representation_theorem.md) | Representation theorem: characterizes exactly when a domain admits a bounded sharp monotone compiler; WQO and semialgebraic corollaries |
-| [`examples/gastown/gastown_benchmark_spec.md`](examples/gastown/gastown_benchmark_spec.md) | GasTown benchmark specification: multi-agent OTEL telemetry, 7-gap taxonomy, laundering patterns L1–L8, adversarial families A1–A5, two-track corpus design |
+| [`examples/gastown/gastown_benchmark_spec.md`](examples/gastown/gastown_benchmark_spec.md) | GasTown benchmark specification (v7.0): multi-agent OTEL telemetry, 7-gap taxonomy Θ_GT_v1, laundering patterns L1–L8, adversarial families A1–A5, Component 1 synthetic corpus (180 traces), Component 2 gradient pilot (5 real runs G1–G5) |
 
 ---
 
@@ -186,11 +186,11 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p noethers-turnstile-tests
 ```
 
-**1407 tests total — 998 Rust (85 files) + 100 Python (8 files) + 97 PGM example tests (6 files) + 212 GasTown benchmark tests (4 files).** Every test passes on every commit (ubuntu + macos CI matrix).
+**1476 tests total — 998 Rust (85 files) + 100 Python (8 files) + 97 PGM example tests (6 files) + 281 GasTown benchmark tests (5 files).** Every test passes on every commit (ubuntu + macos CI matrix).
 
 The PGM example (`examples/pgm/bridge/certifier.py`) ships a reference certifier implementation: `PGMExactCertifier` self-computes all fingerprints from inputs and runs inference internally before issuing a token; `PGMModelSpecificationCertifier` is a documented stub that raises `NotImplementedError` with an explanation of why domain-expert attestation cannot be automated. See `examples/pgm/README.md` for the full certifier boundary discussion.
 
-The GasTown benchmark (`examples/gastown/`) validates the compiler against multi-agent orchestration telemetry. It reads GasTown OTEL traces as a retrospective auditor (no patching or middleware), maps agent lifecycle events onto the seven-gap taxonomy `Θ_GT_v1`, and runs 212 TDD tests covering provenance binding, authority ceiling enforcement, seance staleness, laundering pattern families L1–L8, adversarial families A1–A5, and permission algebra coverage. See `examples/gastown/gastown_benchmark_spec.md` for the full benchmark specification.
+The GasTown benchmark (`examples/gastown/`) validates the compiler against multi-agent orchestration telemetry. It reads GasTown OTEL traces as a retrospective auditor (no patching or middleware), maps agent lifecycle events onto the seven-gap taxonomy `Θ_GT_v1`, and runs 281 TDD tests covering: provenance binding, authority ceiling enforcement, seance staleness, laundering pattern families L1–L8, adversarial families A1–A5, permission algebra coverage, and the Component 1 synthetic corpus generator (180 labeled traces across 17 pattern families). Component 2 uses five real GasTown runs on the approximation gradient (G1–G5: theorem prover → tic tac toe → scoreboard API → scoreboard+frontend → Oregon Trail) with prompts locked before execution. See `examples/gastown/gastown_benchmark_spec.md` for the full benchmark specification.
 
 ---
 
