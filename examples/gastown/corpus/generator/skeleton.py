@@ -18,9 +18,10 @@ Corpus targets (§3.1):
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
+from adapter.token_registry import TokenRegistry
 from .patterns import (
     PatternLabel,
     make_clean_trace,
@@ -74,6 +75,7 @@ class LabeledTrace:
     label: PatternLabel
     convoy_id: str
     bead_type: str = "normal"
+    token_registry: TokenRegistry | None = field(default=None, repr=False)
 
     def to_dict(self) -> dict:
         return {
@@ -169,9 +171,14 @@ def _gen_adversarial(base_run_id: str, base_ts: float,
         ts = base_ts + i * 120.0
         trace, lbl = factory(run_id=run_id, bead_id=bead_id,
                               rig=_BASE_RIG, git_commit=_BASE_GIT, ts=ts)
+        token_registry = None
+        if family == "A3":
+            token_registry = TokenRegistry()
+            token_registry.revoke_run_id(run_id)
         result.append(LabeledTrace(trace=trace, label=lbl,
                                    convoy_id=_make_convoy_id(family, i),
-                                   bead_type="normal"))
+                                   bead_type="normal",
+                                   token_registry=token_registry))
     return result
 
 
