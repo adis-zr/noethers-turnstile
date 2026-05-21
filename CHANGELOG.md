@@ -9,6 +9,36 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **`examples/gastown/` — GasTown Component 2: G1 real trace analysis and convoy pre-registration (Phase 4)**:
+  first real GasTown 1.1.0 OTEL trace processed through the ACS compiler; F1 falsified;
+  measurement unit changed from per-session permission profiles to convoy admissibility.
+  Key artifacts:
+  - `adapter/real_trace_adapter.py` — new adapter for GasTown 1.1.0 real traces; processes
+    decoded protobuf JSONL; four-pass architecture (index gastown records → build claude-code
+    sessions → correlate by timing+prompt → emit one Judgment per completed session); derives
+    7 gap statuses from structural inference over real events (no sling/seance/resolution events
+    in GasTown 1.1.0 — mapped to agent.instantiate freshness, prompt role extraction, and
+    tool_result success strings); success field handled as string "true"/"false" not bool
+  - `corpus/component2/traces/g1_20260521_110708_decoded.jsonl` — decoded G1 OTEL trace
+    (7269 records, service_name="gastown" + "claude-code"); mayor session aa602165 built Python
+    CNF SAT solver library; refinery session 836f9617 ran 6 patrol cycles confirming empty queue
+  - `corpus/component2/results_g1.json` — per-session judgment output: DIA=71%, REV=14%,
+    AAA=14%, ALR=0%; F1 (predicted ALR ≥ 85%) falsified
+  - `corpus/component2/analysis_g1.md` — full G1 analysis: reconstructed timeline, per-session
+    profile results with root-cause classification (boot session population + profile
+    miscalibration), convoy admissibility judgment (ADMISSIBLE: A CLOSED, B CLOSED,
+    C NOT_REQUIRED, D CLOSED), comparison of per-session vs. convoy framing, and design
+    implications for G2–G5
+  - `corpus/component1/results.json` — Component 1 aggregate results (180 traces, 250
+    judgments, 0 falsifications); basis for pre-registration derivation
+  - `corpus/component2/preregistration_convoy.md` — locked convoy pre-registration for G2–G5:
+    four admissibility dimensions (prompt fidelity, scope containment, merge gate, human
+    cleanliness); three-status merge gate (CLOSED / NOT_REQUIRED / OPEN) with ordering
+    constraint (patrol close must post-date mayor's last tool call); convoy identified by
+    `(mayor_run_id, bead_id)` dual key; per-run predictions G2–G5 with expected topology;
+    6 falsification conditions (C-F1 through C-F6); G1 baseline: ADMISSIBLE, degenerate
+    topology (mayor direct-write, one bead hq-byl, no delegation)
+
 - **`examples/gastown/` — GasTown benchmark harness (Phase 1)**: retrospective ACS compiler
   validation over GasTown multi-agent OTEL telemetry. Reads the OTEL stream as an auditor
   (GasTown runs unchanged; no patching or middleware). Key components:

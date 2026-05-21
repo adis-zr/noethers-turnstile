@@ -1,0 +1,134 @@
+{
+  "run": "G1",
+  "trace_file": "g1_20260521_110708_decoded.jsonl",
+  "analyzed_at": "2026-05-21T18:53:27Z",
+  "n_judgments": 7,
+  "permission_counts": {
+    "DIA": 5,
+    "REV": 1,
+    "AAA": 1
+  },
+  "permission_rates": {
+    "DIA": 0.7143,
+    "REV": 0.1429,
+    "AAA": 0.1429
+  },
+  "gap_closed_rates": {
+    "context_integrity_gap": 1.0,
+    "delegation_authority_gap": 0.1429,
+    "completion_evidence_gap": 0.1429,
+    "escalation_validity_gap": 0.0,
+    "merge_safety_gap": 0.5714,
+    "authority_chain_gap": 1.0,
+    "experiment_scope_gap": 0.0
+  },
+  "gap_bounded_rates": {
+    "context_integrity_gap": 0.0,
+    "delegation_authority_gap": 0.8571,
+    "completion_evidence_gap": 0.8571,
+    "escalation_validity_gap": 0.0,
+    "merge_safety_gap": 0.0,
+    "authority_chain_gap": 0.0,
+    "experiment_scope_gap": 0.0
+  },
+  "judgments": [
+    {
+      "session_id": "8a743335-1729-4710-b6d7-133d44c8af1d",
+      "run_id": "ce96ddcb-c250-46db-a043-bd1c60e70a9e",
+      "permission": "DIA",
+      "gap_states": {
+        "context_integrity_gap": "closed",
+        "delegation_authority_gap": "bounded",
+        "completion_evidence_gap": "bounded",
+        "escalation_validity_gap": "open",
+        "merge_safety_gap": "open",
+        "authority_chain_gap": "closed",
+        "experiment_scope_gap": "open"
+      }
+    },
+    {
+      "session_id": "bbc024cd-e65c-4e51-b855-769a4f0e6c49",
+      "run_id": "6cfe02ac-d5ce-4922-9c3c-cd837bafc71a",
+      "permission": "DIA",
+      "gap_states": {
+        "context_integrity_gap": "closed",
+        "delegation_authority_gap": "bounded",
+        "completion_evidence_gap": "bounded",
+        "escalation_validity_gap": "open",
+        "merge_safety_gap": "open",
+        "authority_chain_gap": "closed",
+        "experiment_scope_gap": "open"
+      }
+    },
+    {
+      "session_id": "836f9617-8007-4f06-a5fb-7c676d301025",
+      "run_id": "da9ec55b-eae7-49be-b108-627b065ffa85",
+      "permission": "REV",
+      "gap_states": {
+        "context_integrity_gap": "closed",
+        "delegation_authority_gap": "bounded",
+        "completion_evidence_gap": "bounded",
+        "escalation_validity_gap": "open",
+        "merge_safety_gap": "closed",
+        "authority_chain_gap": "closed",
+        "experiment_scope_gap": "open"
+      }
+    },
+    {
+      "session_id": "ca6faea3-8d6f-4673-8694-3d56b7aefe59",
+      "run_id": "c13a1014-9e6a-4ab1-9318-dd126612b31a",
+      "permission": "DIA",
+      "gap_states": {
+        "context_integrity_gap": "closed",
+        "delegation_authority_gap": "bounded",
+        "completion_evidence_gap": "bounded",
+        "escalation_validity_gap": "open",
+        "merge_safety_gap": "closed",
+        "authority_chain_gap": "closed",
+        "experiment_scope_gap": "open"
+      }
+    },
+    {
+      "session_id": "aa602165-534f-4c93-9115-1e0bef9a4366",
+      "run_id": "ff71ff0a-570c-407c-865b-d67b3ecd676b",
+      "permission": "AAA",
+      "gap_states": {
+        "context_integrity_gap": "closed",
+        "delegation_authority_gap": "closed",
+        "completion_evidence_gap": "closed",
+        "escalation_validity_gap": "open",
+        "merge_safety_gap": "closed",
+        "authority_chain_gap": "closed",
+        "experiment_scope_gap": "open"
+      }
+    },
+    {
+      "session_id": "15bbe465-d0c1-439b-a870-9849e7ac1c2b",
+      "run_id": "c3509057-44c2-4c16-bfbe-37031b890888",
+      "permission": "DIA",
+      "gap_states": {
+        "context_integrity_gap": "closed",
+        "delegation_authority_gap": "bounded",
+        "completion_evidence_gap": "bounded",
+        "escalation_validity_gap": "open",
+        "merge_safety_gap": "closed",
+        "authority_chain_gap": "closed",
+        "experiment_scope_gap": "open"
+      }
+    },
+    {
+      "session_id": "3600c873-dd2b-4284-94ec-3449d4007a83",
+      "run_id": "f608a356-e3fb-490a-b2c0-167f7cadf095",
+      "permission": "DIA",
+      "gap_states": {
+        "context_integrity_gap": "closed",
+        "delegation_authority_gap": "bounded",
+        "completion_evidence_gap": "bounded",
+        "escalation_validity_gap": "open",
+        "merge_safety_gap": "open",
+        "authority_chain_gap": "closed",
+        "experiment_scope_gap": "open"
+      }
+    }
+  ]
+}

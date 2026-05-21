@@ -1,0 +1,174 @@
+{
+  "generated_at": "2026-05-21T06:31:48Z",
+  "total_traces": 180,
+  "total_judgments": 250,
+  "verdicts": {
+    "SOUND_CORRECT": 165,
+    "UNSOUND_CAUGHT": 80,
+    "SOUND_MISSED": 5
+  },
+  "permission_distribution": {
+    "ALR": 125,
+    "AAA": 30,
+    "REF": 35,
+    "REV": 35,
+    "DIA": 20,
+    "AEX": 5
+  },
+  "permission_by_family": {
+    "CLEAN": {
+      "ALR": 40,
+      "AAA": 10
+    },
+    "L1": {
+      "REF": 10
+    },
+    "L2": {
+      "REV": 10
+    },
+    "L3": {
+      "ALR": 10
+    },
+    "L4": {
+      "REF": 10
+    },
+    "L5": {
+      "DIA": 10
+    },
+    "L6": {
+      "REF": 10
+    },
+    "L7": {
+      "REV": 10
+    },
+    "L8": {
+      "ALR": 70,
+      "AAA": 20
+    },
+    "A1": {
+      "REV": 5
+    },
+    "A2": {
+      "REV": 5
+    },
+    "A3": {
+      "DIA": 5
+    },
+    "A4": {
+      "ALR": 5
+    },
+    "A5": {
+      "REV": 5
+    },
+    "DIA": {
+      "DIA": 5
+    },
+    "AEX": {
+      "AEX": 5
+    },
+    "ROL": {
+      "REF": 5
+    }
+  },
+  "gap_status_distribution": {
+    "context_integrity_gap": {
+      "closed": 210,
+      "open": 25,
+      "bounded": 15
+    },
+    "delegation_authority_gap": {
+      "closed": 230,
+      "bounded": 15,
+      "open": 5
+    },
+    "completion_evidence_gap": {
+      "closed": 225,
+      "open": 25
+    },
+    "escalation_validity_gap": {
+      "closed": 240,
+      "open": 10
+    },
+    "merge_safety_gap": {
+      "open": 240,
+      "closed": 10
+    },
+    "authority_chain_gap": {
+      "closed": 225,
+      "open": 20,
+      "bounded": 5
+    },
+    "experiment_scope_gap": {
+      "open": 245,
+      "closed": 5
+    }
+  },
+  "gap_status_pct": {
+    "context_integrity_gap": {
+      "closed": 84.0,
+      "open": 10.0,
+      "bounded": 6.0
+    },
+    "delegation_authority_gap": {
+      "closed": 92.0,
+      "bounded": 6.0,
+      "open": 2.0
+    },
+    "completion_evidence_gap": {
+      "closed": 90.0,
+      "open": 10.0
+    },
+    "escalation_validity_gap": {
+      "closed": 96.0,
+      "open": 4.0
+    },
+    "merge_safety_gap": {
+      "open": 96.0,
+      "closed": 4.0
+    },
+    "authority_chain_gap": {
+      "closed": 90.0,
+      "open": 8.0,
+      "bounded": 2.0
+    },
+    "experiment_scope_gap": {
+      "open": 98.0,
+      "closed": 2.0
+    }
+  },
+  "clean_family": {
+    "total_judgments": 50,
+    "permission_distribution": {
+      "ALR": 40,
+      "AAA": 10
+    },
+    "permission_pct": {
+      "ALR": 80.0,
+      "AAA": 20.0
+    },
+    "gap_status_pct": {
+      "context_integrity_gap": {
+        "closed": 100.0
+      },
+      "delegation_authority_gap": {
+        "closed": 100.0
+      },
+      "completion_evidence_gap": {
+        "closed": 100.0
+      },
+      "escalation_validity_gap": {
+        "closed": 100.0
+      },
+      "merge_safety_gap": {
+        "open": 100.0
+      },
+      "authority_chain_gap": {
+        "closed": 100.0
+      },
+      "experiment_scope_gap": {
+        "open": 100.0
+      }
+    }
+  },
+  "failures": []
+}
