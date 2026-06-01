@@ -9,6 +9,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **`docs/papers/admissibility_judgement_for_approximate_consequential_systems_v10.md` — §6
+  "A unification conjecture"**: new section formalising the domain-invariance pattern observed
+  across four regulatory traditions (3GPP, FAA, medical AI, ECOA). States the Unification
+  Conjecture: if the evidence space $(\mathcal{E}, \leq)$ is Noetherian and failure regions are
+  upward-closed, each permission's obstruction basis is a finite antichain and the compiler
+  recovers evidence-forced authorization boundaries in finite time regardless of domain
+  presentation. Identifies open questions: verifying the Noetherian condition in continuous
+  (semialgebraic/o-minimal) settings, whether Noetherian is necessary as well as sufficient,
+  and the class of domains where the correspondence result is guaranteed in advance.
+
 - **Repo reorganisation — all examples now under `examples/`**: moved `experiments/ils/` and
   `experiments/inference/` into `examples/`; removed the `experiments/` top-level directory.
   All four examples (`epic`, `credit`, `ils`, `inference`) now live under one tree.

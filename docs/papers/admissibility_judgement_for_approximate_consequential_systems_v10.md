@@ -639,6 +639,27 @@ The compiler reads what the evidence contains. Where the evidence runs out is, i
 
 ---
 
+## 6. A unification conjecture
+
+The experiments in Sections 2–4 establish the correspondence result empirically across four regulatory traditions. Each case has the same structure: the compiler reads the evidence, finds the boundaries the evidence forces, and stops. The boundaries it finds match those that independent regulatory processes — working from different physics, different failure histories, different institutional mandates, over different timescales — converged to independently.
+
+The empirical pattern raises a mathematical question the experiments do not answer: is this domain-invariance a theorem, or a coincidence observed four times?
+
+We conjecture it is a theorem, and that the four traditions are instances of a single algebraic structure.
+
+**The structural observation.** In every domain studied, the compiler's obstruction sets are monotone in the evidence order: if an evidence state fails to support a permission, any strictly weaker evidence state also fails. This is not an assumption imposed on the domains — it follows from the operational meaning of authorization. Stronger evidence cannot make a previously unsound action unsound. The failure regions point downward; the admissible regions point upward.
+
+Monotonicity alone does not guarantee finiteness. What the experiments suggest is that in all four domains, each monotone failure region has a finite set of minimal bad patterns — a finite obstruction basis — and the compiler's boundaries are exactly those minimal elements. The correspondence result then says something precise: the evidence-forced regulatory thresholds are the minimal elements of the failure regions, and independent regulatory processes converge to the same points because those points are determined by the structure of the evidence space, not by the process that found them.
+
+**Conjecture (Unification).** Let $(\mathcal{E}, \leq)$ be a partially ordered evidence space and let $\{O_i\}$ be a family of upward-closed failure regions, one per permission level, each defined by the evidence constraints of the domain. If $(\mathcal{E}, \leq)$ is Noetherian — every ascending chain of admissible regions stabilizes — then each $O_i$ has a finite antichain of minimal elements, the compiler's obstruction basis is exactly that antichain, and the compiler recovers the evidence-forced authorization boundaries in finite time regardless of how the domain is presented.
+
+Under this condition, the domain-invariance of the correspondence result is not an empirical surprise. It is the expected consequence of the evidence space being Noetherian and the failure regions being upward-closed. Any two processes that correctly identify the minimal elements of the same failure regions must agree — whether those processes are a formal compiler, a standards committee, a regulatory agency, or a body of case law.
+
+**What is open.** Whether the four domains in this paper are Noetherian in the relevant sense, or merely behave as if they are at the resolution the experiments probe, has not been established. For discrete evidence spaces the Noetherian condition has a direct combinatorial interpretation and is verifiable in principle. For continuous evidence spaces — where the evidence geometry is semialgebraic or definable in an o-minimal structure — the appropriate tameness condition may differ, and the connection between o-minimal finiteness theorems and the compiler's obstruction basis has not been formalized. Whether Noetherian is necessary as well as sufficient, and whether a weaker condition captures the same class of domains, is also open.
+
+The conjecture, if true, would explain why the same compiler works in telecommunications, aviation, medical AI, and consumer credit without modification. It would also identify the class of domains where the correspondence result is guaranteed in advance — and by exclusion, the domains where it is not, and why.
+
+---
 ## Methods
 
 ### The compiler
