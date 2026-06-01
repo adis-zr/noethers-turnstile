@@ -1,0 +1,64 @@
+{
+  "architectural_claim": "The ILS framework is architecturally different from 3GPP. In 3GPP, the compiler recovered all boundaries from a single evidence axis (mean-like SNR vs worst-case error floor). In ILS, the compiler recovers the CAT I physical floor (EXACT) but cannot recover CAT II/III boundaries \u2014 those require evidence types orthogonal to RVR geometry (human factors certification, autoland qualification). This is a COMPILER_PERMISSIVE failure, not an OFFSET: the evidence axis is wrong, not merely the threshold on a shared axis. Predicted before any FAA document is consulted.",
+  "geometry": {
+    "approach_speed_kt": 130.0,
+    "dh100_saturated": true,
+    "dh_at_rvr1800_ft": 196.7417819925154,
+    "glideslope_deg": 3.0,
+    "predicted_cat1_classification": "EXACT",
+    "predicted_cat2_classification": "OFFSET_DIFFERENT_AXIS",
+    "predicted_cat3a_classification": "COMPILER_PERMISSIVE",
+    "predicted_cat3b_classification": "COMPILER_PERMISSIVE",
+    "predicted_cat3c_classification": "COMPILER_PERMISSIVE",
+    "predicted_sweep_a_transition_rvr_ft": 1800,
+    "predicted_sweep_b_sub_boundaries": false,
+    "roll_bar_dist_ft": 1000.0,
+    "rvr_floor_at_dh100_ft": 0.0,
+    "rvr_floor_at_dh200_ft": 1862.1705031592314,
+    "saturation_dh_ft": 102.40777928304121,
+    "tch_ft": 50.0,
+    "time_to_threshold_cat1_sec": 13.044526151776555,
+    "time_to_threshold_cat2_sec": 4.348175383925518
+  },
+  "predicted_classifications": {
+    "cat_i": {
+      "description": "Standard ILS approach, DH=200 ft",
+      "predicted": "EXACT",
+      "rationale": "f2 floor from geometry equals RVR 1800 ft (at DH ~197 ft); compiler boundary expected to coincide with FAA CAT I minimum. If EXACT: compiler recovered the boundary from geometry alone."
+    },
+    "cat_ii": {
+      "description": "Precision approach, DH=100 ft",
+      "predicted": "OFFSET_DIFFERENT_AXIS",
+      "rationale": "DH=100 ft is below saturation (~102 ft); f2 saturates (roll bar already passed at DH). Compiler has no visual evidence axis to constrain RVR. FAA CAT II RVR minimum is on a different axis (human factors / reaction time at 4.3 sec to threshold), not derivable from the physical geometry available to the compiler."
+    },
+    "cat_iiia": {
+      "description": "Autoland, DH \u2264 100 ft",
+      "predicted": "COMPILER_PERMISSIVE",
+      "rationale": "Autoland certification evidence is structurally orthogonal to RVR measurements. The compiler's evidence space (gap tokens) cannot speak to autoland reliability. Compiler will be permissive relative to any positive RVR minimum FAA imposes."
+    },
+    "cat_iiib": {
+      "description": "Autoland, no DH, reduced RVR",
+      "predicted": "COMPILER_PERMISSIVE",
+      "rationale": "Same as CAT IIIa: autoland certification is orthogonal evidence. Compiler has no basis for any positive RVR floor."
+    },
+    "cat_iiic": {
+      "description": "Zero-zero, no DH, no RVR minimum",
+      "predicted": "COMPILER_PERMISSIVE",
+      "rationale": "Zero-zero: FAA imposes no RVR minimum. Compiler also imposes none (f2 saturated, no visual evidence axis). COMPILER_PERMISSIVE in the sense that the boundary is structurally absent on both sides."
+    }
+  },
+  "protocol": "ils-blind-audit-v1",
+  "sealed_at": "2026-06-01T05:13:50.655722+00:00",
+  "sweep_predictions": {
+    "sweep_a_f3_absent": {
+      "description": "f3 absent \u2014 sub-CAT-I authorization not present",
+      "explanation": "Sweep A: f3 absent. At RVR >= ~1800 ft (geometric floor at DH ~197 ft), f2 clears and compiler grants LAND_MANUAL. Below that, drops to DESCEND_TO_DH. The precise transition RVR is the geometric floor at DH=200 ft, computed before any FAA document is opened.",
+      "predicted_sub_boundaries": false,
+      "predicted_transition_rvr_ft": 1800
+    },
+    "sweep_b_f3_present": {
+      "description": "f3 present \u2014 sub-CAT-I authorization token provided",
+      "explanation": "Sweep B: f3 present. With f3, compiler can reach LAND_ASSISTED and LAND_ZERO_ZERO (f2 not required for those profiles). The permission chain collapses differently: LAND_ZERO_ZERO available from the top of the sweep, since f1+f3 suffice. No RVR-dependent transition expected in Sweep B \u2014 compiler holds at LAND_ZERO_ZERO regardless of RVR, because f2 is not required for that profile."
+    }
+  }
+}

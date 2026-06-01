@@ -9,6 +9,44 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- **Repo reorganisation — all examples now under `examples/`**: moved `experiments/ils/` and
+  `experiments/inference/` into `examples/`; removed the `experiments/` top-level directory.
+  All four examples (`epic`, `credit`, `ils`, `inference`) now live under one tree.
+
+- **READMEs for all examples and Python bindings**:
+  - `python/README.md` — full Python API surface, quick-start, test table, build instructions
+  - `examples/epic/README.md` — induction corpus table, result summary, structure map
+  - `examples/credit/README.md` — ECOA result table, induction cases, structure map
+  - `examples/ils/README.md` — FAA result table, pre-registration protocol, structure map
+  - `examples/inference/README.md` — six test files with counts, domain descriptions, benchmark entry point
+
+- **`docs/papers/archive/`**: old draft versions (v1–v9) of the admissibility judgement paper
+  moved to `docs/papers/archive/`; `v10.md` remains the canonical version at top level.
+
+### Changed
+
+- **`README.md`**: removed dead references to deleted `examples/gastown/` and `examples/pgm/`;
+  updated test count; updated architecture map; linked all four current examples.
+
+- **`.gitignore`**: expanded to cover image files (`*.png`, `*.pdf`, `*.jpg`, `*.gif`, `*.svg`),
+  UAI benchmark data (`*.uai`, `*.uai.evid`), generated benchmark outputs
+  (`examples/*/benchmarks/results/`, `examples/*/figures/`, etc.), macOS artefacts (`.DS_Store`),
+  and editor directories (`.obsidian/`, `.vscode/`).
+
+- **`examples/epic/` run scripts**: fixed stale `medical.*` module imports in
+  `run_induction.py`, `run_stress.py`, and `run_synthetic.py` left over from a prior rename;
+  all three now import directly from `experiment.*`.
+
+### Removed
+
+- **`examples/gastown/`** and **`examples/pgm/`**: deleted from the working tree; these
+  examples are no longer maintained in this repository.
+
+- **`docs/papers/admissibility_compilers_for_approximate_consequential_systems.md`**: superseded
+  by `admissibility_judgement_for_approximate_consequential_systems_v10.md`.
+
+---
+
 - **`examples/gastown/` — GasTown Component 2: G1 real trace analysis and convoy pre-registration (Phase 4)**:
   first real GasTown 1.1.0 OTEL trace processed through the ACS compiler; F1 falsified;
   measurement unit changed from per-session permission profiles to convoy admissibility.

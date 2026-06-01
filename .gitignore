@@ -1,13 +1,49 @@
+# Rust build artifacts
 /target
 /Cargo.lock
+
+# Compiled extensions
 *.so
 *.dylib
 *.dll
 *.pyd
+
+# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
 dist/
 build/
 .venv/
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Editors / IDEs
+.obsidian/
+.vscode/
+.idea/
+
+# Data files (large / binary / generated)
 *.bif
+*.uai
+*.uai.evid
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.whl
+
+# Generated benchmark and experiment outputs
+examples/*/benchmarks/results/
+examples/*/benchmarks/figures/
+examples/*/figures/
+examples/*/ising/results/
+examples/*/named/results/
+examples/*/uai/results/
+examples/*/register2/turbo/results/
+examples/*/data/
+examples/*/corpus/results/

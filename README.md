@@ -23,7 +23,10 @@ This library is for teams building systems where autonomous or consequential act
 | [`docs/guide/a-concrete-example.md`](docs/guide/a-concrete-example.md) | PGM inference memory-budget demo (OOC/DIA/AEX), AEX vs ALR distinction, model specification gap lesson |
 | [`docs/papers/admissibility_compilers_for_approximate_consequential_systems.md`](docs/papers/admissibility_compilers_for_approximate_consequential_systems.md) | Core compiler paper: judgment form, permission algebra, gap/profile/token machinery, 19 structural theorems, PGM benchmark results |
 | [`docs/papers/admissible_compilability_representation_theorem.md`](docs/papers/admissible_compilability_representation_theorem.md) | Representation theorem: characterizes exactly when a domain admits a bounded sharp monotone compiler; WQO and semialgebraic corollaries |
-| [`examples/gastown/gastown_benchmark_spec.md`](examples/gastown/gastown_benchmark_spec.md) | GasTown benchmark specification (v8.0): multi-agent OTEL telemetry, 7-gap taxonomy Θ_GT_v1, laundering patterns L1–L8, adversarial families A1–A5, Component 1 synthetic corpus (180 traces, 0 falsifications), Component 2 gradient pilot (G1 complete, G2–G5 pending), pre-registration protocol |
+| [`examples/epic/README.md`](examples/epic/README.md) | EPIC sepsis model experiment: blind gap induction from deployment failures, 100% FDA/NHS/EU AI Act coverage |
+| [`examples/credit/README.md`](examples/credit/README.md) | Credit adverse-action experiment: 1-step induction recovers ECOA reason-traceability requirement |
+| [`examples/ils/README.md`](examples/ils/README.md) | ILS approach geometry blind audit: compiler recovers FAA CAT I boundary from physics |
+| [`examples/inference/README.md`](examples/inference/README.md) | Probabilistic inference compiler benchmarks: Ising, UAI, named Bayesian networks, 3GPP turbo codes, 150 tests |
 
 ---
 
@@ -186,11 +189,7 @@ All four properties are checked by `proptest` property-based tests on every run:
 cargo test -p noethers-turnstile-tests
 ```
 
-**1476 tests total — 998 Rust (85 files) + 100 Python (8 files) + 97 PGM example tests (6 files) + 281 GasTown benchmark tests (5 files).** Every test passes on every commit (ubuntu + macos CI matrix).
-
-The PGM example (`examples/pgm/bridge/certifier.py`) ships a reference certifier implementation: `PGMExactCertifier` self-computes all fingerprints from inputs and runs inference internally before issuing a token; `PGMModelSpecificationCertifier` is a documented stub that raises `NotImplementedError` with an explanation of why domain-expert attestation cannot be automated. See `examples/pgm/README.md` for the full certifier boundary discussion.
-
-The GasTown benchmark (`examples/gastown/`) validates the compiler against multi-agent orchestration telemetry. It reads GasTown OTEL traces as a retrospective auditor (no patching or middleware), maps agent lifecycle events onto the seven-gap taxonomy `Θ_GT_v1`, and runs 281 TDD tests covering: provenance binding, authority ceiling enforcement, seance staleness, laundering pattern families L1–L8, adversarial families A1–A5, permission algebra coverage, and the Component 1 synthetic corpus generator (180 labeled traces across 17 pattern families). Component 2 uses five real GasTown runs on the approximation gradient (G1–G5: theorem prover → tic tac toe → scoreboard API → scoreboard+frontend → Oregon Trail) with prompts locked before execution. G1 is complete: the per-session pre-registration was falsified (F1: predicted ALR ≥ 85%, actual ALR=0%), root-caused to boot session population and profile miscalibration, and the measurement unit for G2–G5 has been redesigned as convoy admissibility (four dimensions: prompt fidelity, scope containment, merge gate, human cleanliness) with the G2–G5 pre-registration locked before collection. See `examples/gastown/gastown_benchmark_spec.md` for the full benchmark specification and `examples/gastown/corpus/component2/` for G1 results and the convoy pre-registration.
+**1098 tests total — 998 Rust (85 files) + 100 Python (8 files).** Every test passes on every commit (ubuntu + macos CI matrix). The `examples/inference/` benchmark adds a further 150 pytest tests.
 
 ---
 
@@ -349,24 +348,17 @@ docs/guide/              Conceptual guides
   introduction.md        When this design is needed, the basic idea, where it does not fit
   core-concepts.md       Vocabulary: bounded evidence, certifiable claims, gaps, profiles, tokens, algebra
   how-this-is-implemented.md  Judgment form, permission chain, provenance, certifier boundary, getting started
-  a-concrete-example.md  PGM inference demo: OOC/DIA/AEX, AEX vs ALR, model specification gap
+  a-concrete-example.md  Concrete walkthrough: OOC/DIA/AEX, AEX vs ALR, model specification gap
 docs/papers/             Research papers
-  admissibility_compilers_for_approximate_consequential_systems.md
-                         Compiler paper: judgment form, 19 theorems, PGM benchmark
+  admissibility_judgement_for_approximate_consequential_systems_v10.md
+                         Compiler paper: judgment form, 19 theorems, blind recovery results
   admissible_compilability_representation_theorem.md
                          Representation theorem: when a domain admits a sharp compiler
 
-examples/pgm/            PGM inference integration example (97 Python tests)
-  bridge/                domain adapter — token types, fingerprinting, gap profiles
-    certifier.py         PGMExactCertifier + PGMModelSpecificationCertifier (stub)
-  demo/                  self-contained diabetes BIF memory-budget sweep demo
-    inference/           certified inference compiler (copied + stripped from hilbert-flow)
-    bif_loader.py        BIF parser + ModelInstance factory
-    tokens.py            InferenceResult → noethers-turnstile ProofToken translation layer
-    run_demo.py          main script: 3-row OOC/DIA/AEX budget table
-  tests/                 97 tests: bridge (10), demo (4), stress (32), BIF (32), gaps (20), tokens (9)
-  results/               captured test and demo outputs (dated)
-  conftest.py            auto-inserts workspace python/ ahead of any installed wheel
+examples/epic/           EPIC sepsis model: blind gap induction from deployment failures
+examples/credit/         Credit adverse-action: 1-step induction recovers ECOA requirement
+examples/ils/            ILS approach geometry: blind audit recovers FAA CAT I boundary
+examples/inference/      Probabilistic inference benchmarks (Ising/UAI/named nets/3GPP, 150 tests)
 
 noethers-turnstile-core/          Pure Rust library (no PyO3 dependency)
   permission.rs          Permission enum + total order + algebra

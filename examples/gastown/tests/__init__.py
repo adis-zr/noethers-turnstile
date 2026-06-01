@@ -1,1 +1,0 @@
-# GasTown benchmark tests package

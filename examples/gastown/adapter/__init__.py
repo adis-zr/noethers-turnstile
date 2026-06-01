@@ -1,1 +1,0 @@
-# GasTown adapter package
