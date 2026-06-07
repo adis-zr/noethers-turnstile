@@ -40,9 +40,13 @@ def test_c2_valid_token_dia():
     assert live.permission(rt) == t.Permission.DIA
 
 
-# ── C3: Wrong provenance hash → OOC ──────────────────────────────────────────
+# ── C3: Wrong provenance hash → REF (structural blocker, not OOC) ────────────
+#
+# Post chain refactor: wrong-provenance with a profile defined emits REF
+# (via the structural-blocker meet to chain.role(Refused)). OOC is reserved
+# for membership-failure or no-profiles cases.
 
-def test_c3_wrong_provenance_ooc(now, rt):
+def test_c3_wrong_provenance_ref(now, rt):
     ctx = make_ctx(
         gaps=[t.GapRecord("g1", "gap")],
         profiles=[t.Profile(
@@ -62,7 +66,7 @@ def test_c3_wrong_provenance_ooc(now, rt):
         )],
     )
     live = t.compile(ctx)
-    assert live.permission(rt) == t.Permission.OOC
+    assert live.permission(rt) == t.Permission.REF
 
 
 # ── C4: compile() returns LiveJudgment ───────────────────────────────────────

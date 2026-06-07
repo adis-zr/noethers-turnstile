@@ -133,7 +133,16 @@ def test_s7_g1_token_valid_after_compose():
     )
     composed = t.compose(g1_with_tok, g2_ctx)
     j = t.compile_static(composed)
-    assert j.permission == t.Permission.DIA, "S7: g1 token must be valid after composition"
+    # Post chain refactor: composition applies a non-promotion ceiling
+    # (permission_ceiling = meet(compile(g1), compile(g2))). Since g2 has no
+    # token, compile(g2) emits UNS (profile defined, gap unmet, no blocker).
+    # Therefore composed permission ≤ meet(DIA, UNS) = UNS. The g1 token IS
+    # still valid in the composed context (it satisfies the merged g1 gap);
+    # the ceiling is what caps the outcome.
+    assert j.permission == t.Permission.UNS, (
+        "S7: composed permission is the non-promotion ceiling "
+        "meet(compile(g1)=DIA, compile(g2)=UNS) = UNS"
+    )
 
 
 # ── S8: Token issued for g2 is rejected after composition ────────────────────
@@ -173,7 +182,12 @@ def test_s8_g2_token_rejected_after_compose():
     )
     composed = t.compose(g1_ctx, g2_ctx)
     j = t.compile_static(composed)
-    assert j.permission == t.Permission.OOC, "S8: g2 token must be rejected (provenance mismatch)"
+    # Post chain refactor: a wrong-provenance token + profile defined →
+    # structural blocker meets outcome with REF (chain.role(Refused)), not OOC.
+    # OOC is reserved for membership-failure / no-profiles cases.
+    assert j.permission == t.Permission.REF, (
+        "S8: wrong-provenance token triggers structural blocker → REF"
+    )
 
 
 # ── S9: Gaps from both contexts appear in result ─────────────────────────────

@@ -7,9 +7,9 @@ use pyo3::prelude::*;
 
 use noethers_turnstile_core::{
     audit::{Derivation as RustDerivation, DerivationStep as RustDerivationStep},
-    compile as rust_compile,
+    compile as rust_compile, compile_with_chain as rust_compile_with_chain,
     compiler::Judgment as RustJudgment,
-    compose as rust_compose,
+    compose as rust_compose, compose_with_chain as rust_compose_with_chain,
     context::{Membership as RustMembership, ProofContext as RustProofContext, Scope as RustScope},
     expiry::{
         Expiry as RustExpiry, LiveJudgment as RustLiveJudgment,
@@ -19,13 +19,19 @@ use noethers_turnstile_core::{
         Bound as RustBound, GapRecord as RustGapRecord, GapRequirement as RustGapRequirement,
         GapStatus as RustGapStatus, Profile as RustProfile, RequiredStatus as RustRequiredStatus,
     },
-    permission::Permission as RustPermission,
+    permission::{
+        ChainHash as RustChainHash, ChainRole as RustChainRole,
+        InMemoryChainRegistry as RustInMemoryChainRegistry, Permission as RustPermission,
+        PermissionChain as RustPermissionChain,
+    },
     token::{
         compute_provenance_hash as rust_compute_provenance_hash,
         NegativeControlStatus as RustNegativeControlStatus, ProofToken as RustProofToken,
         TokenStatus as RustTokenStatus,
     },
+    verify_published as rust_verify_published, ChainRegistry,
 };
+use std::collections::HashMap;
 
 // ── Python exceptions ─────────────────────────────────────────────────────────
 
@@ -52,6 +58,18 @@ pyo3::create_exception!(
     ProvenanceError,
     TurnstileError,
     "Provenance mismatch."
+);
+pyo3::create_exception!(
+    _noethers_turnstile,
+    ChainError,
+    TurnstileError,
+    "Permission chain construction or use failed."
+);
+pyo3::create_exception!(
+    _noethers_turnstile,
+    AuditError,
+    TurnstileError,
+    "Chain audit verification failed (chain not published or hash mismatch)."
 );
 
 // ── PyNegativeControlStatus ───────────────────────────────────────────────────
@@ -928,10 +946,19 @@ impl PyJudgment {
         }
     }
 
+    /// Hash of the chain that authorized this judgment. Auditors resolve this
+    /// against a `ChainRegistry` to recover the chain content.
+    #[getter]
+    fn chain_hash(&self) -> PyChainHash {
+        PyChainHash {
+            inner: self.inner.chain_hash,
+        }
+    }
+
     fn __repr__(&self) -> String {
         format!(
-            "Judgment(permission={}, expiry={:?})",
-            self.inner.permission, self.inner.expiry.deadline
+            "Judgment(permission={}, expiry={:?}, chain_hash={})",
+            self.inner.permission, self.inner.expiry.deadline, self.inner.chain_hash
         )
     }
 
@@ -1026,10 +1053,18 @@ impl PyLiveJudgment {
         live.permission().as_str().to_owned()
     }
 
+    /// Hash of the chain that authorized this judgment.
+    #[getter]
+    fn chain_hash(&self) -> PyChainHash {
+        PyChainHash {
+            inner: self.judgment.chain_hash,
+        }
+    }
+
     fn __repr__(&self) -> String {
         format!(
-            "LiveJudgment(permission={}, expiry={:?})",
-            self.judgment.permission, self.judgment.expiry.deadline
+            "LiveJudgment(permission={}, expiry={:?}, chain_hash={})",
+            self.judgment.permission, self.judgment.expiry.deadline, self.judgment.chain_hash
         )
     }
 }
@@ -1052,25 +1087,54 @@ fn init_tracing() -> PyResult<()> {
 // ── Module-level functions ────────────────────────────────────────────────────
 
 /// Compile a ProofContext into a LiveJudgment.
+///
+/// If `chain` is None, uses the default chain (and the resulting judgment's
+/// chain_hash is the default chain's hash — the decision is recorded even when
+/// implicit). If `chain` is supplied, the compiler uses that chain explicitly.
 #[pyfunction]
-fn compile(ctx: &PyProofContext) -> PyResult<PyLiveJudgment> {
-    rust_compile(ctx.inner.clone())
+#[pyo3(signature = (ctx, chain=None))]
+fn compile(
+    ctx: &PyProofContext,
+    chain: Option<&PyPermissionChain>,
+) -> PyResult<PyLiveJudgment> {
+    let result = match chain {
+        Some(c) => rust_compile_with_chain(ctx.inner.clone(), &c.inner),
+        None => rust_compile(ctx.inner.clone()),
+    };
+    result
         .map(|j| PyLiveJudgment { judgment: j })
         .map_err(|e| TurnstileError::new_err(format!("{}", e)))
 }
 
 /// Compile a ProofContext into a Judgment (static snapshot, no live-check).
 #[pyfunction]
-fn compile_static(ctx: &PyProofContext) -> PyResult<PyJudgment> {
-    rust_compile(ctx.inner.clone())
+#[pyo3(signature = (ctx, chain=None))]
+fn compile_static(
+    ctx: &PyProofContext,
+    chain: Option<&PyPermissionChain>,
+) -> PyResult<PyJudgment> {
+    let result = match chain {
+        Some(c) => rust_compile_with_chain(ctx.inner.clone(), &c.inner),
+        None => rust_compile(ctx.inner.clone()),
+    };
+    result
         .map(|j| PyJudgment { inner: j })
         .map_err(|e| TurnstileError::new_err(format!("{}", e)))
 }
 
 /// Compose two ProofContexts into one.
 #[pyfunction]
-fn compose(g1: &PyProofContext, g2: &PyProofContext) -> PyResult<PyProofContext> {
-    rust_compose(g1.inner.clone(), g2.inner.clone())
+#[pyo3(signature = (g1, g2, chain=None))]
+fn compose(
+    g1: &PyProofContext,
+    g2: &PyProofContext,
+    chain: Option<&PyPermissionChain>,
+) -> PyResult<PyProofContext> {
+    let result = match chain {
+        Some(c) => rust_compose_with_chain(g1.inner.clone(), g2.inner.clone(), &c.inner),
+        None => rust_compose(g1.inner.clone(), g2.inner.clone()),
+    };
+    result
         .map(|ctx| PyProofContext { inner: ctx })
         .map_err(|e| CompositionError::new_err(format!("{}", e)))
 }
@@ -1086,6 +1150,262 @@ fn compute_provenance_hash(
     rust_compute_provenance_hash(claim_id, candidate_id, context_id, allowed_use)
 }
 
+// ── PyChainRole ───────────────────────────────────────────────────────────────
+//
+// Python-side enum-like class with class attributes for each role.
+
+#[pyclass(name = "ChainRole")]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct PyChainRole {
+    inner: RustChainRole,
+}
+
+#[pymethods]
+impl PyChainRole {
+    fn __eq__(&self, other: &PyChainRole) -> bool {
+        self.inner == other.inner
+    }
+
+    #[classattr]
+    fn Bottom() -> Self {
+        Self { inner: RustChainRole::Bottom }
+    }
+    #[classattr]
+    fn ExpiryFloor() -> Self {
+        Self { inner: RustChainRole::ExpiryFloor }
+    }
+    #[classattr]
+    fn Refused() -> Self {
+        Self { inner: RustChainRole::Refused }
+    }
+    #[classattr]
+    fn Unsatisfied() -> Self {
+        Self { inner: RustChainRole::Unsatisfied }
+    }
+    #[classattr]
+    fn DisallowedUsesCeiling() -> Self {
+        Self { inner: RustChainRole::DisallowedUsesCeiling }
+    }
+    #[classattr]
+    fn BlockerThreshold() -> Self {
+        Self { inner: RustChainRole::BlockerThreshold }
+    }
+    #[classattr]
+    fn Top() -> Self {
+        Self { inner: RustChainRole::Top }
+    }
+
+    fn __repr__(&self) -> String {
+        format!("ChainRole.{:?}", self.inner)
+    }
+
+    fn __hash__(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        format!("{:?}", self.inner).hash(&mut h);
+        h.finish()
+    }
+}
+
+// ── PyChainHash ───────────────────────────────────────────────────────────────
+
+#[pyclass(name = "ChainHash")]
+#[derive(Clone, PartialEq, Eq)]
+pub struct PyChainHash {
+    inner: RustChainHash,
+}
+
+#[pymethods]
+impl PyChainHash {
+    #[staticmethod]
+    fn from_hex(s: &str) -> PyResult<Self> {
+        RustChainHash::from_hex(s)
+            .map(|inner| Self { inner })
+            .ok_or_else(|| PyValueError::new_err(format!("invalid ChainHash hex: {:?}", s)))
+    }
+
+    fn to_hex(&self) -> String {
+        self.inner.to_hex()
+    }
+
+    fn __str__(&self) -> String {
+        self.inner.to_hex()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("ChainHash({})", self.inner.to_hex())
+    }
+
+    fn __eq__(&self, other: &PyChainHash) -> bool {
+        self.inner == other.inner
+    }
+
+    fn __ne__(&self, other: &PyChainHash) -> bool {
+        self.inner != other.inner
+    }
+
+    fn __hash__(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        self.inner.as_bytes().hash(&mut h);
+        h.finish()
+    }
+}
+
+// ── PyPermissionChain ─────────────────────────────────────────────────────────
+
+#[pyclass(name = "PermissionChain")]
+#[derive(Clone)]
+pub struct PyPermissionChain {
+    inner: RustPermissionChain,
+}
+
+#[pymethods]
+impl PyPermissionChain {
+    /// Construct a validated permission chain.
+    ///
+    /// `levels` is a list of distinct level names, ordered from Bottom to Top.
+    /// `roles` is a dict mapping `ChainRole` objects to indices in `levels`.
+    ///
+    /// Raises ChainError if the chain fails validation (rules L1-L9 of the
+    /// chain spec).
+    #[staticmethod]
+    fn new(levels: Vec<String>, roles: &Bound<'_, pyo3::types::PyDict>) -> PyResult<Self> {
+        let rust_levels: Vec<RustPermission> =
+            levels.iter().map(|s| RustPermission::new(s.as_str())).collect();
+        let mut rust_roles: HashMap<RustChainRole, usize> = HashMap::new();
+        for (k, v) in roles.iter() {
+            let py_role: PyChainRole = k.extract()?;
+            let idx: usize = v.extract()?;
+            rust_roles.insert(py_role.inner, idx);
+        }
+        RustPermissionChain::new(rust_levels, rust_roles)
+            .map(|inner| Self { inner })
+            .map_err(|e| ChainError::new_err(format!("{}", e)))
+    }
+
+    /// Return the default 12-level chain (OOC..AAA).
+    #[staticmethod]
+    fn default_chain() -> Self {
+        Self {
+            inner: RustPermissionChain::default_chain().clone(),
+        }
+    }
+
+    /// Look up the permission level bound to a given role.
+    fn role(&self, role: &PyChainRole) -> PyPermission {
+        PyPermission {
+            inner: *self.inner.role(role.inner),
+        }
+    }
+
+    /// Parse a level name. Returns None if the name is not in this chain.
+    fn parse(&self, name: &str) -> Option<PyPermission> {
+        self.inner.parse(name).map(|inner| PyPermission { inner })
+    }
+
+    /// Rank of a level within this chain. Returns None for foreign levels.
+    fn rank(&self, p: &PyPermission) -> Option<u8> {
+        self.inner.rank(&p.inner)
+    }
+
+    /// Meet (min under the chain's order) of two levels.
+    fn meet(&self, a: &PyPermission, b: &PyPermission) -> PyResult<PyPermission> {
+        self.inner
+            .meet(&a.inner, &b.inner)
+            .map(|inner| PyPermission { inner })
+            .map_err(|e| ChainError::new_err(format!("{}", e)))
+    }
+
+    /// All levels from top to bottom.
+    fn descending(&self) -> Vec<PyPermission> {
+        self.inner
+            .descending()
+            .copied()
+            .map(|inner| PyPermission { inner })
+            .collect()
+    }
+
+    /// All levels from bottom to top.
+    fn ascending(&self) -> Vec<PyPermission> {
+        self.inner
+            .ascending()
+            .copied()
+            .map(|inner| PyPermission { inner })
+            .collect()
+    }
+
+    /// Whether this chain contains a level with the given name.
+    fn contains(&self, p: &PyPermission) -> bool {
+        self.inner.contains(&p.inner)
+    }
+
+    fn __len__(&self) -> usize {
+        self.inner.len()
+    }
+
+    fn __eq__(&self, other: &PyPermissionChain) -> bool {
+        self.inner == other.inner
+    }
+
+    /// Content hash over (ordered names, role bindings).
+    fn chain_hash(&self) -> PyChainHash {
+        PyChainHash {
+            inner: self.inner.chain_hash(),
+        }
+    }
+
+    fn __repr__(&self) -> String {
+        let names: Vec<&str> = self.inner.levels().iter().map(|l| l.as_str()).collect();
+        format!("PermissionChain({:?}, hash={})", names, self.inner.chain_hash())
+    }
+}
+
+// ── PyInMemoryChainRegistry ───────────────────────────────────────────────────
+
+#[pyclass(name = "InMemoryChainRegistry")]
+pub struct PyInMemoryChainRegistry {
+    inner: RustInMemoryChainRegistry,
+}
+
+#[pymethods]
+impl PyInMemoryChainRegistry {
+    #[new]
+    fn new() -> Self {
+        Self {
+            inner: RustInMemoryChainRegistry::new(),
+        }
+    }
+
+    fn publish(&mut self, chain: &PyPermissionChain) -> PyChainHash {
+        PyChainHash {
+            inner: self.inner.publish(chain.inner.clone()),
+        }
+    }
+
+    fn lookup(&self, hash: &PyChainHash) -> Option<PyPermissionChain> {
+        self.inner
+            .lookup(&hash.inner)
+            .cloned()
+            .map(|inner| PyPermissionChain { inner })
+    }
+
+    fn __len__(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+// ── verify_published ──────────────────────────────────────────────────────────
+
+#[pyfunction]
+fn verify_published(
+    judgment: &PyJudgment,
+    registry: &PyInMemoryChainRegistry,
+) -> PyResult<()> {
+    rust_verify_published(&judgment.inner, &registry.inner)
+        .map_err(|e| AuditError::new_err(format!("{}", e)))
+}
+
 // ── Module definition ─────────────────────────────────────────────────────────
 
 #[pymodule]
@@ -1095,6 +1415,8 @@ fn _noethers_turnstile(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> 
     m.add("ExpiredError", py.get_type_bound::<ExpiredError>())?;
     m.add("CompositionError", py.get_type_bound::<CompositionError>())?;
     m.add("ProvenanceError", py.get_type_bound::<ProvenanceError>())?;
+    m.add("ChainError", py.get_type_bound::<ChainError>())?;
+    m.add("AuditError", py.get_type_bound::<AuditError>())?;
 
     // Types.
     m.add_class::<PyNegativeControlStatus>()?;
@@ -1112,6 +1434,10 @@ fn _noethers_turnstile(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> 
     m.add_class::<PyJudgment>()?;
     m.add_class::<PyRuntimeContext>()?;
     m.add_class::<PyLiveJudgment>()?;
+    m.add_class::<PyChainRole>()?;
+    m.add_class::<PyChainHash>()?;
+    m.add_class::<PyPermissionChain>()?;
+    m.add_class::<PyInMemoryChainRegistry>()?;
 
     // Functions.
     m.add_function(wrap_pyfunction!(compile, m)?)?;
@@ -1119,6 +1445,7 @@ fn _noethers_turnstile(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> 
     m.add_function(wrap_pyfunction!(compose, m)?)?;
     m.add_function(wrap_pyfunction!(compute_provenance_hash, m)?)?;
     m.add_function(wrap_pyfunction!(init_tracing, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_published, m)?)?;
 
     Ok(())
 }

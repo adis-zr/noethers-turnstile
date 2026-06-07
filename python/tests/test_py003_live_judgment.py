@@ -57,17 +57,20 @@ def test_l4_expired_error_is_subclass():
     assert issubclass(t.ExpiredError, t.TurnstileError)
 
 
-# ── L5: Fingerprint mismatch → EXP, not DIA ──────────────────────────────────
+# ── L5: Fingerprint mismatch → OOC ───────────────────────────────────────────
+#
+# Post chain refactor: fingerprint-mismatch in LiveJudgment returns
+# chain.role(Bottom) = OOC for the default chain (the candidate is out-of-class
+# w.r.t. this runtime context). EXP is reserved for "was valid, now expired";
+# a fingerprint mismatch is "wrong context entirely."
 
-def test_l5_fingerprint_mismatch_returns_exp():
+def test_l5_fingerprint_mismatch_returns_ooc():
     ctx = make_dia_ctx()
     now = time.time()
     live = t.compile(ctx)
-    # Wrong fingerprint
     rt = t.RuntimeContext(now_unix=now, context_fingerprint="WRONG-FP")
-    # permission_str returns "EXP" on mismatch without raising
     result = live.permission_str(rt)
-    assert result == "EXP"
+    assert result == "OOC"
 
 
 # ── L6: permission() is idempotent ────────────────────────────────────────────
@@ -92,11 +95,11 @@ def test_l7_permission_str_never_raises():
     rt1 = t.RuntimeContext(now_unix=now, context_fingerprint="ctx-py")
     assert t.compile(ctx1).permission_str(rt1) == "EXP"
 
-    # Wrong fingerprint
+    # Wrong fingerprint (post chain refactor: returns OOC, not EXP)
     ctx2 = make_dia_ctx()
     rt2 = t.RuntimeContext(now_unix=now, context_fingerprint="bad-fp")
     result = t.compile(ctx2).permission_str(rt2)
-    assert result == "EXP"
+    assert result == "OOC"
 
     # Normal OOC
     ctx3 = make_ctx()

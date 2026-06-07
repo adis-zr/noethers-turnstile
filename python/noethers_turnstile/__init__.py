@@ -35,42 +35,37 @@ Usage::
 
 import logging as _logging
 
-from ._turnstile import (  # noqa: F401
-    # Exceptions
-    TurnstileError,
-    ExpiredError,
-    CompositionError,
-    ProvenanceError,
+try:
+    from ._turnstile import (  # noqa: F401  # Python 3.10 build
+        TurnstileError, ExpiredError, CompositionError, ProvenanceError,
+        ChainError, AuditError,
+        NegativeControlStatus, DerivationStep, Derivation, Permission, Scope,
+        GapRecord, GapRequirement, Profile, ProofToken, Expiry, Membership,
+        ProofContext, Judgment, RuntimeContext, LiveJudgment,
+        ChainRole, ChainHash, PermissionChain, InMemoryChainRegistry,
+        compile, compile_static, compose, compute_provenance_hash, verify_published,
+    )
+except ImportError:
+    from ._noethers_turnstile import (  # noqa: F401  # Python 3.12 build
+        TurnstileError, ExpiredError, CompositionError, ProvenanceError,
+        ChainError, AuditError,
+        NegativeControlStatus, DerivationStep, Derivation, Permission, Scope,
+        GapRecord, GapRequirement, Profile, ProofToken, Expiry, Membership,
+        ProofContext, Judgment, RuntimeContext, LiveJudgment,
+        ChainRole, ChainHash, PermissionChain, InMemoryChainRegistry,
+        compile, compile_static, compose, compute_provenance_hash, verify_published,
+    )
 
-    # Types
-    NegativeControlStatus,
-    DerivationStep,
-    Derivation,
-    Permission,
-    Scope,
-    GapRecord,
-    GapRequirement,
-    Profile,
-    ProofToken,
-    Expiry,
-    Membership,
-    ProofContext,
-    Judgment,
-    RuntimeContext,
-    LiveJudgment,
-
-    # Functions
-    compile,
-    compile_static,
-    compose,
-    compute_provenance_hash,
-)
 
 __all__ = [
+    # Exceptions
     "TurnstileError",
     "ExpiredError",
     "CompositionError",
     "ProvenanceError",
+    "ChainError",
+    "AuditError",
+    # Types
     "NegativeControlStatus",
     "DerivationStep",
     "Derivation",
@@ -86,10 +81,16 @@ __all__ = [
     "Judgment",
     "RuntimeContext",
     "LiveJudgment",
+    "ChainRole",
+    "ChainHash",
+    "PermissionChain",
+    "InMemoryChainRegistry",
+    # Functions
     "compile",
     "compile_static",
     "compose",
     "compute_provenance_hash",
+    "verify_published",
 ]
 
 # Structured logging helpers.
