@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "n_fibers_checked": 669,
+  "n_failures": 0,
+  "failures": [],
+  "note": "Bug check: A(e) must agree with the per-world cost-aware soundness verdict (L_const > C \u2192 AEX; else REV) on every homogeneous-loss fiber. Cost-loss divergence under p_hat-dependence is NOT a bug; it is the expected expectation-vs-meet difference in the heterogeneous case."
+}

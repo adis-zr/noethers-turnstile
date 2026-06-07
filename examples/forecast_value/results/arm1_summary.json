@@ -1,0 +1,11 @@
+{
+  "n_rows": 224,
+  "n_divergences": 100,
+  "divergence_rate": 0.44642857142857145,
+  "n_bins_with_Ae_variation_at_fixed_p_hat": 4,
+  "n_bins_with_cl_variation_at_fixed_p_hat": 0,
+  "n_bins_total": 56,
+  "preregistered_check_arm1_div_exists": true,
+  "preregistered_check_boundary_tracks_heterogeneity": true,
+  "csv_path": "/Users/adis/Workspace/noethers-turnstile/examples/forecast_value/results/arm1_divergence.csv"
+}

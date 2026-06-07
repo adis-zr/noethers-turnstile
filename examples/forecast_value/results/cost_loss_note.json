@@ -1,0 +1,6 @@
+{
+  "note": "Cost-loss is expected-cost-optimal under its stated scalar L_bar by construction (Murphy 1977). The experiment does not contest this. The divergence claim concerns soundness over heterogeneous fibers, not optimality of expectation.",
+  "L_bar": 1.0,
+  "C": 0.1,
+  "cost_loss_threshold": 0.1
+}
