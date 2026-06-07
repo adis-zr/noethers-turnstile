@@ -16,17 +16,37 @@ from __future__ import annotations
 
 from .cases import INDUCTION_CASES, HELD_OUT_CASES
 from .compiler import compile_case
-from .profile import InductionState
+from .profile import BIJECTION, InductionState
 
-_OVER_AUTH_CEILING = {"ALR", "AAA"}
+# Over-authorization ceiling expressed in the NEW native chain. The case
+# library still uses the old default-chain names ("ALR", "AAA") for
+# expert_judgment, so we lift those through the bijection inverse for
+# comparison purposes.
+_OVER_AUTH_CEILING_NEW = {"LIMITED_ROLLOUT", "FULL_AUTHORITY"}
+
+# Inverse bijection: old-chain name → new-chain name (forward direction lives
+# in profile.BIJECTION; here we use it to lift the case library's expert
+# judgments into the new vocabulary so set membership lines up).
+_OLD_TO_NEW = dict(BIJECTION)
 
 
 def _perm_str(p) -> str:
+    """Stringify the compiler's emit — now a native-chain name (e.g.
+    LIMITED_ROLLOUT)."""
     return str(p)
 
 
+def _normalize_expert(expert_old: str) -> str:
+    """Lift an old-chain expert judgment string into the new chain's name."""
+    return _OLD_TO_NEW.get(expert_old, expert_old)
+
+
 def _is_over_authorized(compiler_out: str, expert: str) -> bool:
-    return compiler_out in _OVER_AUTH_CEILING and expert not in _OVER_AUTH_CEILING
+    expert_new = _normalize_expert(expert)
+    return (
+        compiler_out in _OVER_AUTH_CEILING_NEW
+        and expert_new not in _OVER_AUTH_CEILING_NEW
+    )
 
 
 def run_induction() -> tuple[InductionState, list[dict]]:

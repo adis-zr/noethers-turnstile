@@ -29,7 +29,19 @@ _DIV2 = "═" * 72
 
 
 def _perm_label(s: str) -> str:
+    # Labels in both the native credit chain and the historical default-chain
+    # names — accepts either, since reports and traces may stringify either
+    # form depending on the field.
     labels = {
+        # Native credit chain
+        "REFUSE":                "REFUSE (no authorization)",
+        "MODEL_EXISTS":          "MODEL_EXISTS (output produced, nothing else known)",
+        "EXPERT_REVIEW":         "EXPERT_REVIEW (approximation quality bounded)",
+        "EXPERIMENT_AUTHORIZED": "EXPERIMENT_AUTHORIZED (structural skeleton OK)",
+        "LIMITED_ROLLOUT":       "LIMITED_ROLLOUT (induced gaps bounded)",
+        "FULL_AUTHORITY":        "FULL_AUTHORITY",
+        # Historical default-chain names (still appear in case library's
+        # expert_judgment strings).
         "DIA": "DIA (document exists)",
         "REV": "REV (expert review only)",
         "AEX": "AEX (experiment authorized)",

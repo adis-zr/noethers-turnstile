@@ -19,7 +19,7 @@ if _WORKSPACE_PY.exists() and str(_WORKSPACE_PY) not in sys.path:
 
 import noethers_turnstile as t
 
-from .profile import InductionState
+from .profile import CREDIT_CHAIN, InductionState, PERM_ROLLOUT
 
 _NOW = 1_748_736_000.0   # 2025-06-01 00:00:00 UTC — fixed for reproducibility
 
@@ -41,7 +41,10 @@ def compile_case(case: dict, state: InductionState) -> t.Permission:
         context_id=f"context-cred-ind-001-{state.version_str()}",
         allowed_use="credit_adverse_action",
         membership=t.Membership.InClass,
-        authority_ceiling=t.Permission.ALR,
+        # Authority ceiling pinned at LIMITED_ROLLOUT — the historical code
+        # used t.Permission.ALR which equals LIMITED_ROLLOUT under the
+        # bijection.
+        authority_ceiling=PERM_ROLLOUT,
         expiry=t.Expiry.never(),
         gaps=gap_records,
         profiles=profiles,
@@ -49,10 +52,11 @@ def compile_case(case: dict, state: InductionState) -> t.Permission:
         context_fingerprint=fingerprint,
     )
 
-    judgment = t.compile(ctx)
+    # Compile against the native credit chain.
+    judgment = t.compile(ctx, chain=CREDIT_CHAIN)
     rt = t.RuntimeContext(now_unix=_NOW, context_fingerprint=fingerprint)
     try:
         perm = judgment.permission(rt)
     except t.ExpiredError:
-        perm = t.Permission.EXP
+        perm = CREDIT_CHAIN.role(t.ChainRole.ExpiryFloor)
     return perm
