@@ -10,9 +10,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use noethers_turnstile_core::{
     compile,
     context::{Membership, ProofContext, Scope},
+    default_levels,
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
-    permission::Permission,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
 
@@ -57,11 +57,12 @@ fn base_ctx(n_gaps: usize, closed: bool, bad_provenance: bool) -> ProofContext {
 
     let profiles = if n_gaps > 0 {
         vec![Profile {
-            permission: Permission::DIA,
+            permission: default_levels::DIA(),
             required_gaps: (0..n_gaps)
                 .map(|i| GapRequirement {
                     gap_id: format!("g{}", i),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 })
                 .collect(),
         }]
@@ -81,9 +82,10 @@ fn base_ctx(n_gaps: usize, closed: bool, bad_provenance: bool) -> ProofContext {
         profiles,
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: None,
+        permission_ceiling: None,
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     if n_gaps == 0 || !closed {
