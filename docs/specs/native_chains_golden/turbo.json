@@ -1,0 +1,181 @@
+{
+  "audit_3gpp_correspondence_table": [
+    {
+      "classification": "CORRESPONDENCE",
+      "compiler_snr_bler": "2.95",
+      "compiler_tau_ber": "2.39e-06",
+      "compiler_tau_bler": "0.1",
+      "gap_width": "9.7e-05",
+      "interpretation": "SNR discrepancy=+0.00 dB, BLER ratio=1.00x",
+      "ref_bler": "0.1",
+      "ref_snr_db": "2.95",
+      "service_class": "eMBB CSI reporting target",
+      "source": "3GPP Rel.15 TR 38.913",
+      "threshold_name": "eMBB_CSI"
+    },
+    {
+      "classification": "CORRESPONDENCE",
+      "compiler_snr_bler": "2.95",
+      "compiler_tau_ber": "2.39e-06",
+      "compiler_tau_bler": "0.1",
+      "gap_width": "9.7e-05",
+      "interpretation": "SNR discrepancy=+0.00 dB, BLER ratio=1.00x",
+      "ref_bler": "0.1",
+      "ref_snr_db": "2.95",
+      "service_class": "Radio link monitoring out-of-sync",
+      "source": "3GPP TS 38.133",
+      "threshold_name": "RLM_Qout"
+    },
+    {
+      "classification": "CORRESPONDENCE",
+      "compiler_snr_bler": "3.19",
+      "compiler_tau_ber": "3.1e-07",
+      "compiler_tau_bler": "0.02",
+      "gap_width": "9e-06",
+      "interpretation": "SNR discrepancy=+0.00 dB, BLER ratio=1.00x",
+      "ref_bler": "0.02",
+      "ref_snr_db": "3.19",
+      "service_class": "Radio link monitoring in-sync",
+      "source": "3GPP TS 38.133",
+      "threshold_name": "RLM_Qin"
+    },
+    {
+      "classification": "COMPILER_PERMISSIVE",
+      "compiler_snr_bler": "3.49",
+      "compiler_tau_ber": "2e-08",
+      "compiler_tau_bler": "0.001",
+      "gap_width": "0.0003",
+      "interpretation": "3GPP is 0.50 dB more conservative than compiler",
+      "ref_bler": "1e-05",
+      "ref_snr_db": "4.0",
+      "service_class": "URLLC general reliability",
+      "source": "3GPP Rel.15 TR 38.913",
+      "threshold_name": "URLLC_Rel15"
+    },
+    {
+      "classification": "COMPILER_PERMISSIVE",
+      "compiler_snr_bler": "3.49",
+      "compiler_tau_ber": "2e-08",
+      "compiler_tau_bler": "0.001",
+      "gap_width": "0.0003",
+      "interpretation": "3GPP is 1.35 dB more conservative than compiler",
+      "ref_bler": "1e-06",
+      "ref_snr_db": "4.85",
+      "service_class": "Factory automation (URLLC+)",
+      "source": "3GPP Rel.16",
+      "threshold_name": "factory_Rel16"
+    }
+  ],
+  "distinct_perm_ber_seen": [
+    0,
+    3
+  ],
+  "distinct_perm_bler_seen": [
+    0,
+    3
+  ],
+  "example": "turbo",
+  "surface_perm_histogram": {
+    "perm_ber=0,perm_bler=0": 109,
+    "perm_ber=3,perm_bler=0": 1440,
+    "perm_ber=3,perm_bler=3": 851
+  },
+  "surface_sample_cells": [
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": -1.0,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": -0.5,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 0.0,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 0.5,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 1.0,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 1.5,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 2.0,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 2.5,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 3.0,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 3.5,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 4.0,
+      "tau": 0.0
+    },
+    {
+      "perm_ber": 0,
+      "perm_ber_name": "REFUSE",
+      "perm_bler": 0,
+      "perm_bler_name": "REFUSE",
+      "snr_db": 5.0,
+      "tau": 0.0
+    }
+  ]
+}

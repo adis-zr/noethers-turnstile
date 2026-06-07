@@ -1,0 +1,71 @@
+{
+  "distinct_emits_seen": [
+    "AEX",
+    "ALR",
+    "DIA"
+  ],
+  "example": "credit",
+  "n_rows": 12,
+  "rows": [
+    {
+      "case_id": "C01",
+      "old_chain_emit": "ALR",
+      "state_version": "v0"
+    },
+    {
+      "case_id": "C02",
+      "old_chain_emit": "ALR",
+      "state_version": "v0"
+    },
+    {
+      "case_id": "H01",
+      "old_chain_emit": "ALR",
+      "state_version": "v0"
+    },
+    {
+      "case_id": "H02",
+      "old_chain_emit": "ALR",
+      "state_version": "v0"
+    },
+    {
+      "case_id": "H03",
+      "old_chain_emit": "ALR",
+      "state_version": "v0"
+    },
+    {
+      "case_id": "H04",
+      "old_chain_emit": "DIA",
+      "state_version": "v0"
+    },
+    {
+      "case_id": "C01",
+      "old_chain_emit": "ALR",
+      "state_version": "v1"
+    },
+    {
+      "case_id": "C02",
+      "old_chain_emit": "AEX",
+      "state_version": "v1"
+    },
+    {
+      "case_id": "H01",
+      "old_chain_emit": "ALR",
+      "state_version": "v1"
+    },
+    {
+      "case_id": "H02",
+      "old_chain_emit": "AEX",
+      "state_version": "v1"
+    },
+    {
+      "case_id": "H03",
+      "old_chain_emit": "ALR",
+      "state_version": "v1"
+    },
+    {
+      "case_id": "H04",
+      "old_chain_emit": "DIA",
+      "state_version": "v1"
+    }
+  ]
+}

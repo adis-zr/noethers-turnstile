@@ -1,0 +1,26 @@
+{
+  "arm1_counts": {
+    "n_bins_total": 56,
+    "n_bins_with_Ae_variation_at_fixed_p_hat": 4,
+    "n_divergences": 100,
+    "n_rows": 224
+  },
+  "arm1_preregistered_checks": {
+    "preregistered_check_arm1_div_exists": true,
+    "preregistered_check_boundary_tracks_heterogeneity": true
+  },
+  "arm2_counts": {
+    "Ae_monotone_along_L0_to_L3": "56/56",
+    "DRO_matches_Ae_at_L0": "56/56",
+    "manufactured_permission_witness_fires_at_L3": "56/56",
+    "n_evidence_states": 56
+  },
+  "arm2_preregistered_checks": {
+    "preregistered_check_1_Ae_conserved": true,
+    "preregistered_check_2_manufactured_witness_fires": true,
+    "preregistered_check_3_cost_loss_no_flag": true,
+    "preregistered_check_4_DRO_matches_Ae_at_L0": true
+  },
+  "example": "forecast_value",
+  "verdict": "strong"
+}
