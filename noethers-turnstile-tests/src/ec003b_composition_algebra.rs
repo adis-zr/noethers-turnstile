@@ -130,7 +130,12 @@ fn compose_authority_commutative_all_pairs() {
 
 #[test]
 fn compose_authority_associative_sampled_triples() {
-    let perms = [Permission::OOC(), Permission::DIA(), Permission::REV(), Permission::AAA()];
+    let perms = [
+        Permission::OOC(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AAA(),
+    ];
     for p1 in perms {
         for p2 in perms {
             for p3 in perms {

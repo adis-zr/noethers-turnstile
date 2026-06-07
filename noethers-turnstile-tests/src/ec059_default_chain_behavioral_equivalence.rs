@@ -38,8 +38,8 @@ fn load_corpus() -> Vec<Golden> {
             continue;
         }
         let bytes = fs::read(&path).unwrap_or_else(|e| panic!("read {:?}: {e}", path));
-        let g: Golden = serde_json::from_slice(&bytes)
-            .unwrap_or_else(|e| panic!("parse {:?}: {e}", path));
+        let g: Golden =
+            serde_json::from_slice(&bytes).unwrap_or_else(|e| panic!("parse {:?}: {e}", path));
         goldens.push(g);
     }
     assert!(!goldens.is_empty(), "fixture corpus is empty");
@@ -76,7 +76,8 @@ fn t_default_02_pre_refactor_golden_outputs_match() {
             j.permission.as_str(),
             g.expected_permission,
             "[{}] {}",
-            g.name, g.description
+            g.name,
+            g.description
         );
     }
 }

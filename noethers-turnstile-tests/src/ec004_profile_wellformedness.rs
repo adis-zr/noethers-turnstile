@@ -289,7 +289,7 @@ fn multi_level_profile_descending_search_exhaustive() {
             authority_ceiling: Some(Permission::AAA()),
             permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
-        expected_chain_hash: None,
+            expected_chain_hash: None,
         };
 
         let tok_low = make_token("g_low", &ctx);

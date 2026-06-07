@@ -22,20 +22,22 @@ use noethers_turnstile_core::{
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
 
-fn all() -> [Permission; 12] { [
-    Permission::OOC(),
-    Permission::EXP(),
-    Permission::REF(),
-    Permission::UNS(),
-    Permission::ETA(),
-    Permission::ESC(),
-    Permission::ROL(),
-    Permission::DIA(),
-    Permission::REV(),
-    Permission::AEX(),
-    Permission::ALR(),
-    Permission::AAA(),
-] }
+fn all() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 fn ctx_for_permission(target_permission: Permission) -> ProofContext {
     let claim_id = "c";

@@ -394,7 +394,6 @@ fn w12_composed_context_serde_roundtrip() {
     ctx2.gaps.push(GapRecord::open("g2", "t"));
     ctx2.authority_ceiling = Some(Permission::DIA());
 
-
     let composed = compose(ctx1, ctx2).unwrap();
     let json = serde_json::to_string(&composed).expect("Composed context must serialize");
     let ctx2_deser: ProofContext =

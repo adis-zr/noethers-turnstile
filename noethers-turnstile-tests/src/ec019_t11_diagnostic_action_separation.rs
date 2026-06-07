@@ -272,7 +272,8 @@ fn composed_authority_ceiling_equals_meet_of_inputs() {
             let composed = compose(ctx1, ctx2).unwrap();
             let expected_ceiling = c1.meet(c2);
             assert_eq!(
-                composed.authority_ceiling, Some(expected_ceiling),
+                composed.authority_ceiling,
+                Some(expected_ceiling),
                 "composed ceiling must be meet({c1}, {c2}) = {expected_ceiling}; got {:?}",
                 composed.authority_ceiling
             );

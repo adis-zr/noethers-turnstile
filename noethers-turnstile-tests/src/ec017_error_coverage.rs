@@ -70,7 +70,10 @@ fn use_conflict_is_reachable() {
     let ctx1 = base_ctx("uc-a", "use-A");
     let ctx2 = base_ctx("uc-b", "use-B");
     let err = compose(ctx1, ctx2).unwrap_err();
-    assert!(matches!(err, TurnstileError::Composition(CompositionError::UseConflict)));
+    assert!(matches!(
+        err,
+        TurnstileError::Composition(CompositionError::UseConflict)
+    ));
 }
 
 #[test]
@@ -160,7 +163,10 @@ fn token_conflict_display_contains_token_id() {
 #[test]
 fn empty_composition_is_reachable() {
     let err = noethers_turnstile_core::compose_n(std::iter::empty::<ProofContext>()).unwrap_err();
-    assert!(matches!(err, TurnstileError::Composition(CompositionError::EmptyComposition)));
+    assert!(matches!(
+        err,
+        TurnstileError::Composition(CompositionError::EmptyComposition)
+    ));
 }
 
 #[test]
@@ -214,7 +220,10 @@ fn use_conflict_propagates_through_compose_n() {
     let ctx2 = base_ctx("cn-uc-2", "use-B"); // conflict
     let result = noethers_turnstile_core::compose_n([ctx1, ctx2]);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(CompositionError::UseConflict))
+        ),
         "UseConflict must propagate through compose_n"
     );
 }

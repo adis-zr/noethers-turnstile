@@ -785,7 +785,8 @@ fn a9_n_contexts_ceiling_is_meet_of_all() {
 
     let composed = noethers_turnstile_core::compose_n(contexts).unwrap();
     assert_eq!(
-        composed.authority_ceiling, Some(expected_meet),
+        composed.authority_ceiling,
+        Some(expected_meet),
         "A9: N-ary composed authority ceiling is meet of all inputs"
     );
 }

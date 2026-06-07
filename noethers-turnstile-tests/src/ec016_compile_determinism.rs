@@ -246,7 +246,7 @@ fn d6_structurally_identical_contexts_same_permission() {
             authority_ceiling: Some(Permission::AAA()),
             permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
-        expected_chain_hash: None,
+            expected_chain_hash: None,
         }
     };
 

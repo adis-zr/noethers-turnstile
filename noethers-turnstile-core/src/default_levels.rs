@@ -122,14 +122,36 @@ where
 /// All twelve default levels, ordered OOC..AAA.
 pub fn ascending() -> [Permission; 12] {
     [
-        OOC(), EXP(), REF(), UNS(), ETA(), ESC(), ROL(), DIA(), REV(), AEX(), ALR(), AAA(),
+        OOC(),
+        EXP(),
+        REF(),
+        UNS(),
+        ETA(),
+        ESC(),
+        ROL(),
+        DIA(),
+        REV(),
+        AEX(),
+        ALR(),
+        AAA(),
     ]
 }
 
 /// All twelve default levels, ordered AAA..OOC.
 pub fn descending() -> [Permission; 12] {
     [
-        AAA(), ALR(), AEX(), REV(), DIA(), ROL(), ESC(), ETA(), UNS(), REF(), EXP(), OOC(),
+        AAA(),
+        ALR(),
+        AEX(),
+        REV(),
+        DIA(),
+        ROL(),
+        ESC(),
+        ETA(),
+        UNS(),
+        REF(),
+        EXP(),
+        OOC(),
     ]
 }
 
@@ -148,7 +170,18 @@ mod tests {
     #[test]
     fn default_levels_distinct() {
         let levels = [
-            OOC(), EXP(), REF(), UNS(), ETA(), ESC(), ROL(), DIA(), REV(), AEX(), ALR(), AAA(),
+            OOC(),
+            EXP(),
+            REF(),
+            UNS(),
+            ETA(),
+            ESC(),
+            ROL(),
+            DIA(),
+            REV(),
+            AEX(),
+            ALR(),
+            AAA(),
         ];
         let mut names: Vec<&str> = levels.iter().map(|p| p.as_str()).collect();
         names.sort();

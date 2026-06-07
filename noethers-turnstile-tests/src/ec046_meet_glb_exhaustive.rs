@@ -15,20 +15,22 @@ use noethers_turnstile_core::permission::Permission;
 ///   Prop  — GLB property holds for random triples (proptest)
 use proptest::prelude::*;
 
-fn all() -> [Permission; 12] { [
-    Permission::OOC(),
-    Permission::EXP(),
-    Permission::REF(),
-    Permission::UNS(),
-    Permission::ETA(),
-    Permission::ESC(),
-    Permission::ROL(),
-    Permission::DIA(),
-    Permission::REV(),
-    Permission::AEX(),
-    Permission::ALR(),
-    Permission::AAA(),
-] }
+fn all() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 // ── GLB1: meet(a,b) ≤ a and meet(a,b) ≤ b for all 144 pairs ─────────────────
 

@@ -68,10 +68,7 @@ impl Judgment {
 ///   - `ctx.allowed_use` is empty.
 ///   - Any `Permission` field references a name not in the chain.
 ///   - `ctx.expected_chain_hash` is `Some` and differs from `chain.chain_hash()`.
-fn validate_context(
-    ctx: &ProofContext,
-    chain: &PermissionChain,
-) -> Result<(), TurnstileError> {
+fn validate_context(ctx: &ProofContext, chain: &PermissionChain) -> Result<(), TurnstileError> {
     if ctx.allowed_use.is_empty() {
         return Err(TurnstileError::MalformedContext(
             "allowed_use must not be empty".into(),

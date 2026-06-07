@@ -13,20 +13,22 @@
 ///   TR5 — Split-fold: meet_n([a,b,c]) = meet_n([meet_n([a,b]), c])
 use noethers_turnstile_core::permission::Permission;
 
-fn all() -> [Permission; 12] { [
-    Permission::OOC(),
-    Permission::EXP(),
-    Permission::REF(),
-    Permission::UNS(),
-    Permission::ETA(),
-    Permission::ESC(),
-    Permission::ROL(),
-    Permission::DIA(),
-    Permission::REV(),
-    Permission::AEX(),
-    Permission::ALR(),
-    Permission::AAA(),
-] }
+fn all() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 // ── TR1: Associativity over all 1728 triples ──────────────────────────────────
 

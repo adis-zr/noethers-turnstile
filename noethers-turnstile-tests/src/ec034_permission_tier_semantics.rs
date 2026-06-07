@@ -107,13 +107,22 @@ fn t3_uns_dominates_approval_tier() {
 
 #[test]
 fn t4_rol_and_esc_are_below_dia() {
-    assert!(Permission::ROL() < Permission::DIA(), "ROL must be below DIA");
-    assert!(Permission::ESC() < Permission::DIA(), "ESC must be below DIA");
+    assert!(
+        Permission::ROL() < Permission::DIA(),
+        "ROL must be below DIA"
+    );
+    assert!(
+        Permission::ESC() < Permission::DIA(),
+        "ESC must be below DIA"
+    );
 }
 
 #[test]
 fn t4_eta_is_below_esc() {
-    assert!(Permission::ETA() < Permission::ESC(), "ETA must be below ESC");
+    assert!(
+        Permission::ETA() < Permission::ESC(),
+        "ETA must be below ESC"
+    );
 }
 
 // ── T5: DIA is the boundary between action and non-action ────────────────────
@@ -156,16 +165,31 @@ fn t5_dia_separates_action_from_non_action() {
 
 #[test]
 fn t6_action_permissions_are_above_rev() {
-    assert!(Permission::AEX() > Permission::REV(), "AEX must be above REV");
-    assert!(Permission::ALR() > Permission::AEX(), "ALR must be above AEX");
-    assert!(Permission::AAA() > Permission::ALR(), "AAA must be above ALR");
+    assert!(
+        Permission::AEX() > Permission::REV(),
+        "AEX must be above REV"
+    );
+    assert!(
+        Permission::ALR() > Permission::AEX(),
+        "ALR must be above AEX"
+    );
+    assert!(
+        Permission::AAA() > Permission::ALR(),
+        "AAA must be above ALR"
+    );
 }
 
 #[test]
 fn t6_rev_is_minimum_action_permission() {
     // REV is the lowest action-level permission
-    assert!(Permission::REV() > Permission::DIA(), "REV must be above DIA");
-    assert!(Permission::REV() < Permission::AEX(), "REV must be below AEX");
+    assert!(
+        Permission::REV() > Permission::DIA(),
+        "REV must be above DIA"
+    );
+    assert!(
+        Permission::REV() < Permission::AEX(),
+        "REV must be below AEX"
+    );
 }
 
 // ── T7: Cross-tier meet always returns the lower-tier value ──────────────────

@@ -148,11 +148,7 @@ impl Permission {
     /// For custom chains, use `chain.descending()`.
     pub fn descending() -> impl Iterator<Item = Permission> {
         let chain = PermissionChain::default_chain();
-        chain
-            .descending()
-            .cloned()
-            .collect::<Vec<_>>()
-            .into_iter()
+        chain.descending().cloned().collect::<Vec<_>>().into_iter()
     }
 
     /// Parse a default-chain level name. **Case-insensitive** for backward
@@ -237,7 +233,10 @@ pub enum NameRejectionReason {
     /// Name exceeds the 64-byte length limit.
     TooLong { length: usize, max: usize },
     /// Name contains a character outside `[A-Za-z0-9_-]`, or starts with `-`.
-    CharsetViolation { offending_char: char, position: usize },
+    CharsetViolation {
+        offending_char: char,
+        position: usize,
+    },
 }
 
 /// Errors returned by `PermissionChain::new`.
@@ -410,8 +409,7 @@ impl TryFrom<RawChain> for PermissionChain {
 
 impl From<PermissionChain> for RawChain {
     fn from(c: PermissionChain) -> Self {
-        let mut roles: Vec<(ChainRole, usize)> =
-            c.roles.into_iter().collect();
+        let mut roles: Vec<(ChainRole, usize)> = c.roles.into_iter().collect();
         // Sort by ChainRole for deterministic serialization.
         roles.sort_by_key(|(r, _)| match r {
             ChainRole::Bottom => 0u8,
@@ -548,8 +546,7 @@ impl PermissionChain {
                 index: disallowed_uses,
                 constraint: format!(
                     "DisallowedUsesCeiling index ({}) must be strictly less than Top index ({})",
-                    disallowed_uses,
-                    last
+                    disallowed_uses, last
                 ),
             });
         }
@@ -714,10 +711,7 @@ fn validate_name(name: &str) -> Result<(), ChainError> {
     Ok(())
 }
 
-fn compute_chain_hash(
-    levels: &[Permission],
-    roles: &HashMap<ChainRole, usize>,
-) -> ChainHash {
+fn compute_chain_hash(levels: &[Permission], roles: &HashMap<ChainRole, usize>) -> ChainHash {
     let mut hasher = Sha256::new();
     // Levels in order, null-delimited.
     for level in levels {
@@ -725,7 +719,7 @@ fn compute_chain_hash(
         hasher.update(b"\x00");
     }
     hasher.update(b"\xff"); // boundary marker between levels and roles
-    // Roles in fixed order (ChainRole::ALL) so the hash is deterministic.
+                            // Roles in fixed order (ChainRole::ALL) so the hash is deterministic.
     for role in ChainRole::ALL.iter().copied() {
         let idx = roles[&role];
         hasher.update(&(idx as u32).to_be_bytes());
@@ -943,10 +937,7 @@ mod tests {
         roles.insert(ChainRole::DisallowedUsesCeiling, 0);
         roles.insert(ChainRole::BlockerThreshold, 1);
         roles.insert(ChainRole::Top, 1);
-        let res = PermissionChain::new(
-            vec![Permission::new(""), Permission::new("TOP")],
-            roles,
-        );
+        let res = PermissionChain::new(vec![Permission::new(""), Permission::new("TOP")], roles);
         match res {
             Err(ChainError::InvalidName {
                 reason: NameRejectionReason::Empty,
@@ -966,10 +957,7 @@ mod tests {
         roles.insert(ChainRole::Unsatisfied, 0);
         roles.insert(ChainRole::DisallowedUsesCeiling, 0);
         roles.insert(ChainRole::BlockerThreshold, 1);
-        let res = PermissionChain::new(
-            vec![Permission::new("A"), Permission::new("B")],
-            roles,
-        );
+        let res = PermissionChain::new(vec![Permission::new("A"), Permission::new("B")], roles);
         assert!(matches!(res, Err(ChainError::MissingRole(ChainRole::Top))));
     }
 
@@ -1157,13 +1145,14 @@ mod tests {
         roles.insert(ChainRole::BlockerThreshold, 1);
         roles.insert(ChainRole::Top, 1);
         // Space is not in charset.
-        let res = PermissionChain::new(
-            vec![Permission::new("A B"), Permission::new("TOP")],
-            roles,
-        );
+        let res = PermissionChain::new(vec![Permission::new("A B"), Permission::new("TOP")], roles);
         match res {
             Err(ChainError::InvalidName {
-                reason: NameRejectionReason::CharsetViolation { offending_char: ' ', .. },
+                reason:
+                    NameRejectionReason::CharsetViolation {
+                        offending_char: ' ',
+                        ..
+                    },
                 ..
             }) => {}
             other => panic!("expected CharsetViolation, got {:?}", other),
@@ -1181,10 +1170,7 @@ mod tests {
         roles.insert(ChainRole::DisallowedUsesCeiling, 0);
         roles.insert(ChainRole::BlockerThreshold, 1);
         roles.insert(ChainRole::Top, 1);
-        let res = PermissionChain::new(
-            vec![Permission::new(long), Permission::new("TOP")],
-            roles,
-        );
+        let res = PermissionChain::new(vec![Permission::new(long), Permission::new("TOP")], roles);
         match res {
             Err(ChainError::InvalidName {
                 reason: NameRejectionReason::TooLong { .. },

@@ -166,7 +166,14 @@ fn three_way_compose_grouping_independent() {
 
 #[test]
 fn self_composition_non_promoting() {
-    for &p in &[Permission::AAA(), Permission::DIA(), Permission::REV(), Permission::ROL(), Permission::ETA(), Permission::OOC()] {
+    for &p in &[
+        Permission::AAA(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::ROL(),
+        Permission::ETA(),
+        Permission::OOC(),
+    ] {
         let ctx = make_ctx_with_permission(p, "self");
         let p_orig = compile(ctx.clone()).unwrap().permission;
 

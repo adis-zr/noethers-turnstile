@@ -168,7 +168,10 @@ fn au6_compose_mismatched_allowed_use_is_use_conflict() {
     let ctx_b = ctx_with_use("purpose-beta");
     let result = compose(ctx_a, ctx_b);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(CompositionError::UseConflict))
+        ),
         "AU6: different allowed_use must yield UseConflict"
     );
 }
@@ -179,8 +182,14 @@ fn au6_use_conflict_is_symmetric() {
     let ctx_b = ctx_with_use("use-y");
     let fwd = compose(ctx_a.clone(), ctx_b.clone());
     let rev = compose(ctx_b, ctx_a);
-    assert!(matches!(fwd, Err(TurnstileError::Composition(CompositionError::UseConflict))));
-    assert!(matches!(rev, Err(TurnstileError::Composition(CompositionError::UseConflict))));
+    assert!(matches!(
+        fwd,
+        Err(TurnstileError::Composition(CompositionError::UseConflict))
+    ));
+    assert!(matches!(
+        rev,
+        Err(TurnstileError::Composition(CompositionError::UseConflict))
+    ));
 }
 
 // ── AU7: Matching allowed_use succeeds ───────────────────────────────────────
@@ -208,7 +217,10 @@ fn au8_compose_n_fails_on_any_mismatch() {
     ];
     let result = compose_n(ctxs);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(CompositionError::UseConflict))
+        ),
         "AU8: compose_n must fail closed when any context has different allowed_use"
     );
 }

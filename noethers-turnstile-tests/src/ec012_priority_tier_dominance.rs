@@ -336,7 +336,7 @@ fn authority_ceiling_clips_profile_permission_all_pairs() {
 
                 permission_ceiling: Some(Permission::AAA()),
                 membership: Membership::InClass,
-        expected_chain_hash: None,
+                expected_chain_hash: None,
             };
 
             let j = compile(ctx).unwrap();

@@ -7,14 +7,13 @@
 use std::collections::HashMap;
 
 use noethers_turnstile_core::{
-    compile_with_chain,
+    compile_with_chain, compose_with_chain,
     context::{Membership, ProofContext, Scope},
     error::{CompositionError, TurnstileError},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::{ChainRole, Permission, PermissionChain},
     token::{compute_provenance_hash, ProofToken, TokenStatus},
-    compose_with_chain,
 };
 
 /// Build chain X: ["FOO", "DIA", "BAR", "BAZ", "TOP"] — "DIA" at rank 1.

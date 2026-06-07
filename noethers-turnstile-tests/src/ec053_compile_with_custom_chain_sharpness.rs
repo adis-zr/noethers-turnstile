@@ -15,11 +15,7 @@ use noethers_turnstile_core::{
 };
 use noethers_turnstile_tests::chain_helpers::{anon_16_level_distinct_anchors, paper_5_level};
 
-fn closed_gap_ctx(
-    chain: &PermissionChain,
-    profile_perms: Vec<&str>,
-    suffix: &str,
-) -> ProofContext {
+fn closed_gap_ctx(chain: &PermissionChain, profile_perms: Vec<&str>, suffix: &str) -> ProofContext {
     let claim_id = format!("c-{suffix}");
     let candidate_id = format!("z-{suffix}");
     let context_id = format!("ctx-{suffix}");

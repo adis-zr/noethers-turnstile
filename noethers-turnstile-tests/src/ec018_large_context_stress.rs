@@ -159,7 +159,7 @@ fn l3_compose_n_twenty_contexts_non_promotion() {
                 authority_ceiling: Some(Permission::AAA()),
                 permission_ceiling: Some(Permission::AAA()),
                 membership: Membership::InClass,
-        expected_chain_hash: None,
+                expected_chain_hash: None,
             }
         })
         .collect();
@@ -318,7 +318,7 @@ fn l6_compose_n_50_contexts_ceiling_is_meet_of_all() {
                 authority_ceiling: Some(ceiling),
                 permission_ceiling: Some(Permission::AAA()),
                 membership: Membership::InClass,
-        expected_chain_hash: None,
+                expected_chain_hash: None,
             }
         })
         .collect();
@@ -330,7 +330,8 @@ fn l6_compose_n_50_contexts_ceiling_is_meet_of_all() {
 
     let composed = compose_n(ctxs).unwrap();
     assert_eq!(
-        composed.authority_ceiling, Some(expected_ceiling),
+        composed.authority_ceiling,
+        Some(expected_ceiling),
         "L6: authority_ceiling of composed context must be meet of all input ceilings"
     );
 }

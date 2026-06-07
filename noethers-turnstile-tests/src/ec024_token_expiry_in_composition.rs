@@ -222,7 +222,12 @@ fn x4_different_token_type_triggers_conflict() {
 
     let result = compose(g1, g2);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(
+                CompositionError::TokenConflict { .. }
+            ))
+        ),
         "X4: different token_type for same token_id must produce TokenConflict"
     );
 }

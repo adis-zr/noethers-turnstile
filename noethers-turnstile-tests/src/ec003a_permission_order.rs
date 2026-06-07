@@ -27,20 +27,22 @@ pub fn arb_permission() -> impl Strategy<Value = Permission> {
     ]
 }
 
-fn all() -> [Permission; 12] { [
-    Permission::OOC(),
-    Permission::EXP(),
-    Permission::REF(),
-    Permission::UNS(),
-    Permission::ETA(),
-    Permission::ESC(),
-    Permission::ROL(),
-    Permission::DIA(),
-    Permission::REV(),
-    Permission::AEX(),
-    Permission::ALR(),
-    Permission::AAA(),
-] }
+fn all() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 // ── Exhaustive order tests (finite domain, 12 elements) ──────────────────────
 

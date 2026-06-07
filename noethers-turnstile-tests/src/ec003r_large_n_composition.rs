@@ -173,7 +173,6 @@ fn compose_100_monotone_with_one_weaker() {
     let mut base = dia_ctx("mono100-0");
     base.authority_ceiling = Some(Permission::DIA());
 
-
     for i in 1..99usize {
         let mut next = dia_ctx(&format!("mono100-{i}"));
         next.authority_ceiling = Some(Permission::DIA());

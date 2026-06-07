@@ -77,7 +77,12 @@ fn base_ctx(suffix: &str) -> ProofContext {
 fn compose_n_empty_returns_error() {
     let result = compose_n(std::iter::empty::<ProofContext>());
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::EmptyComposition))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(
+                CompositionError::EmptyComposition
+            ))
+        ),
         "compose_n([]) must return EmptyComposition; got {result:?}"
     );
 }
@@ -242,7 +247,6 @@ fn compose_n_takes_meet_of_ceilings() {
 
     c3.authority_ceiling = Some(Permission::REV());
 
-
     let composed = compose_n(vec![c1, c2, c3]).unwrap();
     assert_eq!(
         composed.authority_ceiling,
@@ -261,7 +265,10 @@ fn compose_n_fails_on_use_conflict() {
 
     let result = compose_n(vec![c1, c2]);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(CompositionError::UseConflict))
+        ),
         "compose_n must propagate UseConflict"
     );
 }

@@ -7,9 +7,7 @@
 
 use std::collections::HashMap;
 
-use noethers_turnstile_core::permission::{
-    ChainRole, Permission, PermissionChain, MAX_LEVELS,
-};
+use noethers_turnstile_core::permission::{ChainRole, Permission, PermissionChain, MAX_LEVELS};
 
 #[test]
 fn c_valid_01_default_chain_constructs() {

@@ -202,7 +202,7 @@ fn ooc_is_independent_of_token_count() {
             authority_ceiling: Some(Permission::AAA()),
             permission_ceiling: Some(Permission::AAA()),
             membership: Membership::OutOfClassExact,
-        expected_chain_hash: None,
+            expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
         assert_eq!(

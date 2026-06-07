@@ -118,9 +118,18 @@ fn ctx_with_profiles_and_closed_gaps(
 #[test]
 fn t2_1_each_permission_level_as_highest_satisfiable() {
     let all_perms = [
-        Permission::OOC(), Permission::EXP(), Permission::REF(), Permission::UNS(),
-        Permission::ETA(), Permission::ESC(), Permission::ROL(), Permission::DIA(),
-        Permission::REV(), Permission::AEX(), Permission::ALR(), Permission::AAA(),
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
     ];
 
     // For each permission p (excluding Permission::OOC() which is the fallback), create a profile
@@ -254,7 +263,11 @@ fn t2_4_closing_gap_upgrades_permission() {
         "t2-4-partial",
     );
     let p_partial = compile(ctx_partial).unwrap().permission;
-    assert_eq!(p_partial, Permission::DIA(), "T2-4: g1 only → Permission::DIA()");
+    assert_eq!(
+        p_partial,
+        Permission::DIA(),
+        "T2-4: g1 only → Permission::DIA()"
+    );
 
     // Both closed → Permission::REV()
     let ctx_full = ctx_with_profiles_and_closed_gaps(
@@ -289,7 +302,11 @@ fn t2_5_no_profiles_yields_ooc() {
         "t2-5",
     );
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC(), "T2-5: no profiles → Permission::OOC()");
+    assert_eq!(
+        j.permission,
+        Permission::OOC(),
+        "T2-5: no profiles → Permission::OOC()"
+    );
 }
 
 // ── T2-6: Partial evidence satisfies only lower profile ───────────────────────
@@ -479,7 +496,8 @@ fn t2_10_empty_requirements_always_satisfied() {
         permission: Permission::DIA(),
         required_gaps: vec![],
     }];
-    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA(), "t2-10");
+    let ctx =
+        ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA(), "t2-10");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
@@ -502,7 +520,8 @@ fn t2_11_empty_requirements_aaa_profile_gives_aaa() {
             required_gaps: vec![],
         },
     ];
-    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA(), "t2-11");
+    let ctx =
+        ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA(), "t2-11");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,

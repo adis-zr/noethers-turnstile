@@ -104,10 +104,7 @@ fn c_invalid_05_missing_top_role() {
     roles.insert(ChainRole::Unsatisfied, 0);
     roles.insert(ChainRole::DisallowedUsesCeiling, 0);
     roles.insert(ChainRole::BlockerThreshold, 1);
-    let result = PermissionChain::new(
-        vec![Permission::new("A"), Permission::new("B")],
-        roles,
-    );
+    let result = PermissionChain::new(vec![Permission::new("A"), Permission::new("B")], roles);
     match result {
         Err(ChainError::MissingRole(ChainRole::Top)) => {}
         other => panic!("expected MissingRole(Top), got {:?}", other),

@@ -84,7 +84,10 @@ fn use_conflict_blocks_composition() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(CompositionError::UseConflict))
+        ),
         "differing allowed_use must produce UseConflict; got {:?}",
         result
     );
@@ -100,8 +103,14 @@ fn use_conflict_is_symmetric() {
 
     let r1 = compose(ctx1.clone(), ctx2.clone());
     let r2 = compose(ctx2, ctx1);
-    assert!(matches!(r1, Err(TurnstileError::Composition(CompositionError::UseConflict))));
-    assert!(matches!(r2, Err(TurnstileError::Composition(CompositionError::UseConflict))));
+    assert!(matches!(
+        r1,
+        Err(TurnstileError::Composition(CompositionError::UseConflict))
+    ));
+    assert!(matches!(
+        r2,
+        Err(TurnstileError::Composition(CompositionError::UseConflict))
+    ));
 }
 
 #[test]
@@ -164,7 +173,12 @@ fn token_conflict_same_id_different_type_blocks_composition() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(
+                CompositionError::TokenConflict { .. }
+            ))
+        ),
         "same token_id with different type must produce TokenConflict; got {:?}",
         result
     );
@@ -200,7 +214,12 @@ fn token_conflict_same_id_different_issuer_blocks_composition() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(
+                CompositionError::TokenConflict { .. }
+            ))
+        ),
         "same token_id with different issuer must produce TokenConflict; got {:?}",
         result
     );
@@ -254,7 +273,12 @@ fn identical_token_in_both_contexts_deduplicates_successfully() {
 fn compose_n_empty_returns_empty_composition_error() {
     let result = compose_n(std::iter::empty::<ProofContext>());
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::EmptyComposition))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(
+                CompositionError::EmptyComposition
+            ))
+        ),
         "compose_n with 0 contexts must return EmptyComposition; got {:?}",
         result
     );

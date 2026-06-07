@@ -147,7 +147,11 @@ fn d3_authority_ceiling_step_appears_when_active() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA(), "D3: ceiling must cap at DIA");
+    assert_eq!(
+        j.permission,
+        Permission::DIA(),
+        "D3: ceiling must cap at DIA"
+    );
 
     let phases: Vec<&str> = j
         .derivation

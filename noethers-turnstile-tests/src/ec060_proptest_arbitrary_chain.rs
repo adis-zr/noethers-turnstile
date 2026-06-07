@@ -20,30 +20,31 @@ fn arb_chain() -> impl Strategy<Value = PermissionChain> {
         let names: Vec<String> = (0..n).map(|i| format!("L{:03}", i)).collect();
         // Random role assignments satisfying L1–L9:
         // Bottom=0, Top=n-1, BlockerThreshold in 1..=n-1.
-        (Just(names), 1..n).prop_flat_map(move |(names, threshold)| {
-            (
-                Just(names),
-                Just(threshold),
-                // ExpiryFloor, Refused, Unsatisfied each ∈ [0, threshold-1] = [0, threshold).
-                0..threshold,
-                0..threshold,
-                0..threshold,
-            )
-        })
-        .prop_map(|(names, threshold, ef, refused, unsat)| {
-            let levels: Vec<Permission> =
-                names.iter().map(|n| Permission::new(n.clone())).collect();
-            let n = levels.len();
-            let mut roles = HashMap::new();
-            roles.insert(ChainRole::Bottom, 0);
-            roles.insert(ChainRole::ExpiryFloor, ef);
-            roles.insert(ChainRole::Refused, refused);
-            roles.insert(ChainRole::Unsatisfied, unsat);
-            roles.insert(ChainRole::DisallowedUsesCeiling, 0);
-    roles.insert(ChainRole::BlockerThreshold, threshold);
-            roles.insert(ChainRole::Top, n - 1);
-            PermissionChain::new(levels, roles).expect("generator must produce valid chains")
-        })
+        (Just(names), 1..n)
+            .prop_flat_map(move |(names, threshold)| {
+                (
+                    Just(names),
+                    Just(threshold),
+                    // ExpiryFloor, Refused, Unsatisfied each ∈ [0, threshold-1] = [0, threshold).
+                    0..threshold,
+                    0..threshold,
+                    0..threshold,
+                )
+            })
+            .prop_map(|(names, threshold, ef, refused, unsat)| {
+                let levels: Vec<Permission> =
+                    names.iter().map(|n| Permission::new(n.clone())).collect();
+                let n = levels.len();
+                let mut roles = HashMap::new();
+                roles.insert(ChainRole::Bottom, 0);
+                roles.insert(ChainRole::ExpiryFloor, ef);
+                roles.insert(ChainRole::Refused, refused);
+                roles.insert(ChainRole::Unsatisfied, unsat);
+                roles.insert(ChainRole::DisallowedUsesCeiling, 0);
+                roles.insert(ChainRole::BlockerThreshold, threshold);
+                roles.insert(ChainRole::Top, n - 1);
+                PermissionChain::new(levels, roles).expect("generator must produce valid chains")
+            })
     })
 }
 

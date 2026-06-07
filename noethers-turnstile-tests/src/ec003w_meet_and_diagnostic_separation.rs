@@ -181,7 +181,7 @@ fn t11_dia_context_cannot_compose_into_action_permission() {
             authority_ceiling: Some(Permission::AAA()),
             permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
-        expected_chain_hash: None,
+            expected_chain_hash: None,
         }
     };
 

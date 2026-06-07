@@ -383,7 +383,7 @@ fn t19_compiler_does_not_validate_details_json_schema() {
             authority_ceiling: Some(Permission::AAA()),
             permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
-        expected_chain_hash: None,
+            expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
         assert_eq!(

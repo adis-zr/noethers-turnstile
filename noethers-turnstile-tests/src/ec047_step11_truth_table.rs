@@ -27,20 +27,22 @@
 ///   S18 — OOC absorbs N-ary compose_n across all 12 values
 use noethers_turnstile_core::permission::Permission;
 
-fn all() -> [Permission; 12] { [
-    Permission::OOC(),
-    Permission::EXP(),
-    Permission::REF(),
-    Permission::UNS(),
-    Permission::ETA(),
-    Permission::ESC(),
-    Permission::ROL(),
-    Permission::DIA(),
-    Permission::REV(),
-    Permission::AEX(),
-    Permission::ALR(),
-    Permission::AAA(),
-] }
+fn all() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 // ── S1: UNSUPPORTED + ETA → UNSUPPORTED ──────────────────────────────────────
 
@@ -79,7 +81,8 @@ fn s4_aaa_plus_eta_is_eta() {
 
 #[test]
 fn s5_aaa_plus_ref_plus_eta_is_ref() {
-    let result = Permission::meet_n([Permission::AAA(), Permission::REF(), Permission::ETA()]).unwrap();
+    let result =
+        Permission::meet_n([Permission::AAA(), Permission::REF(), Permission::ETA()]).unwrap();
     assert_eq!(result, Permission::REF(), "S5: AAA+REF+ETA must be REF");
 }
 
@@ -227,7 +230,11 @@ fn s16_uns_beats_every_higher_tier() {
     ];
     for &p in &uns_beats {
         let result = Permission::UNS().meet(p);
-        assert_eq!(result, Permission::UNS(), "S16: UNS.meet({p:?}) must be UNS");
+        assert_eq!(
+            result,
+            Permission::UNS(),
+            "S16: UNS.meet({p:?}) must be UNS"
+        );
     }
 
     // OOC and EXP beat UNS
@@ -271,7 +278,11 @@ fn s17_exp_absorbs_all_non_ooc() {
 fn s18_ooc_absorbs_meet_n_of_all_12() {
     // meet_n of all 12 permissions (including OOC) must be OOC
     let result = Permission::meet_n(all()).unwrap();
-    assert_eq!(result, Permission::OOC(), "S18: meet_n of all 12 must be OOC");
+    assert_eq!(
+        result,
+        Permission::OOC(),
+        "S18: meet_n of all 12 must be OOC"
+    );
 }
 
 #[test]

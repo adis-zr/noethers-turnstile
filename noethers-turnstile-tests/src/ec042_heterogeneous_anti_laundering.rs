@@ -237,7 +237,6 @@ fn h9_highest_ceiling_plus_ooc_yields_ooc() {
     let mut fresh = in_class_ctx("h9-fresh");
     fresh.authority_ceiling = Some(Permission::AAA());
 
-
     let ooc = ooc_ctx(Membership::OutOfClassExact, "h9-ooc");
 
     let composed = compose(fresh, ooc).unwrap();

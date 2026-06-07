@@ -259,7 +259,7 @@ fn a4_1_duplicate_permission_level_rejected_for_all_12() {
             authority_ceiling: Some(Permission::AAA()),
             permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
-        expected_chain_hash: None,
+            expected_chain_hash: None,
         };
         let result = compile(ctx);
         assert!(
@@ -349,7 +349,7 @@ fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
 
             permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
-        expected_chain_hash: None,
+            expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
         assert!(

@@ -336,7 +336,6 @@ fn authority_ceiling_hard_caps_outcome() {
     });
     ctx.authority_ceiling = Some(Permission::DIA());
 
-
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::DIA());
 }

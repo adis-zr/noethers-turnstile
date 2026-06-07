@@ -81,7 +81,6 @@ fn ci1_compose_self_authority_ceiling_idempotent() {
     let mut ctx = base_ctx("ci1");
     ctx.authority_ceiling = Some(Permission::DIA());
 
-
     let composed = compose(ctx.clone(), ctx.clone()).unwrap();
     assert_eq!(
         composed.authority_ceiling,
@@ -166,7 +165,6 @@ fn ci5_authority_ceiling_is_associative() {
 
     let mut c = base_ctx("ci5c");
     c.authority_ceiling = Some(Permission::REV());
-
 
     // (A ∩ B) ∩ C
     let lhs = {
@@ -318,7 +316,6 @@ fn ci9_right_associative_equals_compose_n() {
     let mut c = base_ctx("ci9c");
     c.authority_ceiling = Some(Permission::REV());
 
-
     let right_fold = {
         let bc = compose(b.clone(), c.clone()).unwrap();
         compose(a.clone(), bc).unwrap()
@@ -342,7 +339,10 @@ fn ci10_use_conflict_always_fails_closed() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(CompositionError::UseConflict))
+        ),
         "CI10: UseConflict must fail closed"
     );
 }
@@ -356,8 +356,14 @@ fn ci10_use_conflict_is_symmetric() {
     let fwd = compose(ctx_a.clone(), ctx_b.clone());
     let rev = compose(ctx_b, ctx_a);
 
-    assert!(matches!(fwd, Err(TurnstileError::Composition(CompositionError::UseConflict))));
-    assert!(matches!(rev, Err(TurnstileError::Composition(CompositionError::UseConflict))));
+    assert!(matches!(
+        fwd,
+        Err(TurnstileError::Composition(CompositionError::UseConflict))
+    ));
+    assert!(matches!(
+        rev,
+        Err(TurnstileError::Composition(CompositionError::UseConflict))
+    ));
 }
 
 // ── CI11: TokenConflict always fails closed ───────────────────────────────────
@@ -378,7 +384,12 @@ fn ci11_token_conflict_always_fails_closed() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
+        matches!(
+            result,
+            Err(TurnstileError::Composition(
+                CompositionError::TokenConflict { .. }
+            ))
+        ),
         "CI11: TokenConflict must fail closed"
     );
 }

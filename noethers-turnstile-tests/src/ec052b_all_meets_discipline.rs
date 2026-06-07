@@ -309,7 +309,10 @@ fn am_04_refused_meet_lowers_outcome_at_threshold() {
     // So outcome stays at L1_EF — confirming the meet does not raise.
     let outcome_rank = chain.rank(&j.permission).unwrap();
     let l1_ef_rank = chain.rank(chain.role(ChainRole::Unsatisfied)).unwrap();
-    assert_eq!(outcome_rank, l1_ef_rank, "AM-04: meet picks lower of the two");
+    assert_eq!(
+        outcome_rank, l1_ef_rank,
+        "AM-04: meet picks lower of the two"
+    );
 }
 
 // ── AM-05/06: Composition non-promotion + derivation step monotonicity ──────
@@ -322,8 +325,12 @@ fn am_05_compose_non_promotion_mid_chain_anchors() {
     let ctx_a = make_satisfied_ctx(&chain, "a", chain.parse("L10").unwrap());
     let ctx_b = make_satisfied_ctx(&chain, "b", chain.parse("L08").unwrap());
 
-    let p_a = compile_with_chain(ctx_a.clone(), &chain).unwrap().permission;
-    let p_b = compile_with_chain(ctx_b.clone(), &chain).unwrap().permission;
+    let p_a = compile_with_chain(ctx_a.clone(), &chain)
+        .unwrap()
+        .permission;
+    let p_b = compile_with_chain(ctx_b.clone(), &chain)
+        .unwrap()
+        .permission;
     let expected_min = chain.meet(&p_a, &p_b).unwrap();
 
     let composed = compose_with_chain(ctx_a, ctx_b, &chain).unwrap();
@@ -334,7 +341,10 @@ fn am_05_compose_non_promotion_mid_chain_anchors() {
     assert!(
         p_c_rank <= expected_rank,
         "AM-05: composed permission {} must be ≤ meet({}, {}) = {}",
-        p_c, p_a, p_b, expected_min
+        p_c,
+        p_a,
+        p_b,
+        expected_min
     );
 }
 
@@ -418,7 +428,9 @@ fn am_06_derivation_steps_are_monotone() {
                     assert!(
                         r <= p,
                         "AM-06: derivation step {} ranks {} > previous {} (non-monotone)",
-                        step.phase, r, p
+                        step.phase,
+                        r,
+                        p
                     );
                 }
                 prev_rank = Some(r);
@@ -501,7 +513,9 @@ fn am_07_collapsed_anchor_multi_blocker_compile_is_monotone() {
             assert!(
                 r <= p,
                 "AM-07: derivation step {} ranks {} > previous {} (non-monotone)",
-                step.phase, r, p
+                step.phase,
+                r,
+                p
             );
         }
         prev_rank = Some(r);

@@ -109,7 +109,11 @@ fn l2_fresh_live_judgment_from_cloned_judgment_reflects_new_runtime() {
     let rt1 = RuntimeContext::new(Utc::now(), &fp);
     {
         let live1 = LiveJudgment::new(j.clone(), &rt1);
-        assert_eq!(live1.permission(), Permission::REV(), "L2: first runtime ok");
+        assert_eq!(
+            live1.permission(),
+            Permission::REV(),
+            "L2: first runtime ok"
+        );
     }
 
     // New runtime with wrong fingerprint.

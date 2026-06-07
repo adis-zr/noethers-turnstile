@@ -10,7 +10,7 @@ use noethers_turnstile_core::{
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
 use noethers_turnstile_tests::chain_helpers::{
-    anon_8_level, anon_16_level_distinct_anchors, paper_5_level,
+    anon_16_level_distinct_anchors, anon_8_level, paper_5_level,
 };
 
 fn ctx_with_open_gap_and_profile_at(

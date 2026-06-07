@@ -14,11 +14,7 @@ use noethers_turnstile_tests::chain_helpers::{
     am_expiry_mid_chain, anon_16_level_distinct_anchors, paper_5_level,
 };
 
-fn satisfied_ctx(
-    chain: &PermissionChain,
-    profile_perm: Permission,
-    suffix: &str,
-) -> ProofContext {
+fn satisfied_ctx(chain: &PermissionChain, profile_perm: Permission, suffix: &str) -> ProofContext {
     let claim_id = format!("c-{suffix}");
     let candidate_id = format!("z-{suffix}");
     let context_id = format!("ctx-{suffix}");
@@ -73,8 +69,12 @@ fn t_nonpromo_01_compose_under_three_chains() {
     for (name, chain, a_level, b_level) in chains_and_perms {
         let ctx_a = satisfied_ctx(&chain, chain.parse(a_level).unwrap(), "a");
         let ctx_b = satisfied_ctx(&chain, chain.parse(b_level).unwrap(), "b");
-        let p_a = compile_with_chain(ctx_a.clone(), &chain).unwrap().permission;
-        let p_b = compile_with_chain(ctx_b.clone(), &chain).unwrap().permission;
+        let p_a = compile_with_chain(ctx_a.clone(), &chain)
+            .unwrap()
+            .permission;
+        let p_b = compile_with_chain(ctx_b.clone(), &chain)
+            .unwrap()
+            .permission;
         let meet = chain.meet(&p_a, &p_b).unwrap();
         let composed = compose_with_chain(ctx_a, ctx_b, &chain).unwrap();
         let p_c = compile_with_chain(composed, &chain).unwrap().permission;
@@ -83,7 +83,10 @@ fn t_nonpromo_01_compose_under_three_chains() {
         assert!(
             r_c <= r_meet,
             "T-NONPROMO-01 ({name}): composed {} > meet({}, {}) = {}",
-            p_c, p_a, p_b, meet
+            p_c,
+            p_a,
+            p_b,
+            meet
         );
     }
 }
