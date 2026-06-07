@@ -1,8 +1,24 @@
 """Admissibility compiler for turbo code decoding results.
 
-This is the same compiler as Register 1, instantiated with the permission
-vocabulary appropriate for a communications system. The structure is identical:
-a failure vector, a threshold scan, and a judgment.
+Phase A of the 3GPP audit. Phase B (5-level) lives in compiler_blind.py.
+
+Native turbo Phase-A chain — REFUSE < HOLD < TRANSMIT_MONITORED < TRANSMIT —
+is declared via the library's PermissionChain (see TURBO_PHASE_A_CHAIN below)
+so a downstream auditor receives judgments with a chain_hash they can pin to
+this script.
+
+The internal compile_turbo() function continues to use integer codes + a
+threshold-scan implementation for backwards compatibility with sweep_turbo.py
+and audit_3gpp.py, which downstream-consume the integer codes. The integer
+codes correspond 1:1 with the named levels via PERMISSION_NAMES below;
+auditors who want the native chain's level objects can call
+TURBO_PHASE_A_CHAIN.parse(PERMISSION_NAMES[level]).
+
+Bijection (identity on level NAMES; integer encoding for sweep performance):
+  REFUSE             ↔ chain.parse("REFUSE")
+  HOLD               ↔ chain.parse("HOLD")
+  TRANSMIT_MONITORED ↔ chain.parse("TRANSMIT_MONITORED")
+  TRANSMIT           ↔ chain.parse("TRANSMIT")
 
 Permission chain (3GPP TS 36.212 §5.1.3 thresholds, voice/data standards):
   TRANSMIT          — BER ≤ 10^-5 and/or BLER ≤ 10^-3  (voice: BER; data: BLER)
@@ -12,22 +28,37 @@ Permission chain (3GPP TS 36.212 §5.1.3 thresholds, voice/data standards):
 
 Failure vector:
   f1: convergence_failure    — turbo decoder iterations did not converge
-                               (structural analogue of BP non-convergence)
-                               For published curves: always False (curves are converged)
   f2: ber_exceeds_threshold  — d_BER > τ_BER
   f3: bler_exceeds_threshold — d_BLER > τ_BLER
-
-The gap is the SNR interval where f2 is False (BER acceptable) but f3 is True
-(BLER still unacceptable). This is the structural analogue of the Register 1
-gap: d1 (mean TV) clears while d2 (max TV) blocks.
-
-Analogy:
-  d_BER  ≡  d1 (mean TV):  averages bit errors over the block, hides block failures
-  d_BLER ≡  d2 (max TV):   a block fails if any bit fails — worst-case component
 """
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+from pathlib import Path
+
+_WORKSPACE_PY = Path(__file__).resolve().parents[4] / "python"
+if _WORKSPACE_PY.exists() and str(_WORKSPACE_PY) not in sys.path:
+    sys.path.insert(0, str(_WORKSPACE_PY))
+
+import noethers_turnstile as t  # noqa: E402
+
+# ── Native Phase-A chain ─────────────────────────────────────────────────────
+
+_TURBO_PHASE_A_LEVELS = ["REFUSE", "HOLD", "TRANSMIT_MONITORED", "TRANSMIT"]
+
+TURBO_PHASE_A_CHAIN = t.PermissionChain.new(
+    levels=_TURBO_PHASE_A_LEVELS,
+    roles={
+        t.ChainRole.Bottom: 0,                  # REFUSE
+        t.ChainRole.ExpiryFloor: 0,
+        t.ChainRole.Refused: 0,
+        t.ChainRole.Unsatisfied: 0,
+        t.ChainRole.DisallowedUsesCeiling: 0,
+        t.ChainRole.BlockerThreshold: 1,        # HOLD
+        t.ChainRole.Top: 3,                     # TRANSMIT
+    },
+)
 
 # Permission levels (ordered: REFUSE < HOLD < TRANSMIT_MONITORED < TRANSMIT)
 TRANSMIT           = 3

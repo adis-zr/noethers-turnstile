@@ -1,5 +1,19 @@
 """Blind 5-level permission chain for the 3GPP audit experiment.
 
+Phase B chain — REFUSE < HOLD < TRANSMIT_MONITORED < TRANSMIT_DATA <
+TRANSMIT_CRITICAL — declared via the library's PermissionChain
+(TURBO_PHASE_B_CHAIN below). The internal compile path still uses integer
+codes for sweep performance; auditors can look up the corresponding
+PermissionChain level via TURBO_PHASE_B_CHAIN.parse(PERMISSION_NAMES[code]).
+
+Bijection (identity on level names; integer encoding for sweep performance):
+  REFUSE              ↔ chain.parse("REFUSE")
+  HOLD                ↔ chain.parse("HOLD")
+  TRANSMIT_MONITORED  ↔ chain.parse("TRANSMIT_MONITORED")
+  TRANSMIT_DATA       ↔ chain.parse("TRANSMIT_DATA")
+  TRANSMIT_CRITICAL   ↔ chain.parse("TRANSMIT_CRITICAL")
+
+
 Specified by operational meaning only. No 3GPP threshold values appear here.
 The τ values that map operations to permission levels are NOT set in this file —
 they are discovered by the sweep from the gap geometry. This is Phase B of the
@@ -20,7 +34,34 @@ Cross-register chain (Phase A) is in compiler_turbo.py. This file is Phase B onl
 """
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+from pathlib import Path
+
+_WORKSPACE_PY = Path(__file__).resolve().parents[4] / "python"
+if _WORKSPACE_PY.exists() and str(_WORKSPACE_PY) not in sys.path:
+    sys.path.insert(0, str(_WORKSPACE_PY))
+
+import noethers_turnstile as t  # noqa: E402
+
+# ── Native Phase-B chain ─────────────────────────────────────────────────────
+
+_TURBO_PHASE_B_LEVELS = [
+    "REFUSE", "HOLD", "TRANSMIT_MONITORED", "TRANSMIT_DATA", "TRANSMIT_CRITICAL",
+]
+
+TURBO_PHASE_B_CHAIN = t.PermissionChain.new(
+    levels=_TURBO_PHASE_B_LEVELS,
+    roles={
+        t.ChainRole.Bottom: 0,
+        t.ChainRole.ExpiryFloor: 0,
+        t.ChainRole.Refused: 0,
+        t.ChainRole.Unsatisfied: 0,
+        t.ChainRole.DisallowedUsesCeiling: 0,
+        t.ChainRole.BlockerThreshold: 1,
+        t.ChainRole.Top: 4,
+    },
+)
 
 # Permission levels (ordered: REFUSE < HOLD < TRANSMIT_MONITORED < TRANSMIT_DATA < TRANSMIT_CRITICAL)
 TRANSMIT_CRITICAL  = 4
