@@ -39,6 +39,7 @@ fn t_sound_01_paper_chain_unsatisfied_profile_emits_unsatisfied() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![],
@@ -80,6 +81,7 @@ fn t_sound_02_minimal_chain_unsatisfied_emits_role() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],

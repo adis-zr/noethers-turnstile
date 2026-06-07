@@ -67,6 +67,7 @@ fn base_ctx(with_token: bool, gap_status_fn: impl Fn() -> GapRecord) -> ProofCon
             required_gaps: vec![GapRequirement {
                 gap_id,
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens,
@@ -132,6 +133,7 @@ fn t6_bounded_gap_does_not_satisfy_closed_required() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -184,7 +186,8 @@ fn t6_bounded_gap_satisfies_bounded_required() {
             permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
-                minimum_status: RequiredStatus::BoundedRequired, // only bounded needed
+                minimum_status: RequiredStatus::BoundedRequired, // only bounded needed,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -244,10 +247,12 @@ fn t5_emitted_permission_implies_all_required_gaps_satisfied() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         }],
@@ -309,10 +314,12 @@ fn t5_partial_gap_satisfaction_falls_to_lower_profile() {
                     GapRequirement {
                         gap_id: "g1".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                     GapRequirement {
                         gap_id: "g2".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                 ],
             },
@@ -321,6 +328,7 @@ fn t5_partial_gap_satisfaction_falls_to_lower_profile() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             },
         ],
@@ -379,6 +387,7 @@ fn t5_wrong_gap_id_in_token_does_not_satisfy_profile() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(), // requires g1
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -434,6 +443,7 @@ fn t6_empty_gap_claim_in_token_satisfies_nothing() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -497,14 +507,17 @@ fn greatest_satisfiable_permission_is_emitted() {
                     GapRequirement {
                         gap_id: "g1".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                     GapRequirement {
                         gap_id: "g2".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                     GapRequirement {
                         gap_id: "g3".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                 ],
             },
@@ -514,10 +527,12 @@ fn greatest_satisfiable_permission_is_emitted() {
                     GapRequirement {
                         gap_id: "g1".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                     GapRequirement {
                         gap_id: "g2".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                 ],
             },
@@ -526,6 +541,7 @@ fn greatest_satisfiable_permission_is_emitted() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             },
         ],

@@ -44,6 +44,7 @@ fn ctx_with_schema_version(schema_version: &str) -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

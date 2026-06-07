@@ -503,6 +503,7 @@ impl PyGapRequirement {
             inner: RustGapRequirement {
                 gap_id,
                 minimum_status: req,
+                any_of: None,
             },
         })
     }
@@ -520,12 +521,33 @@ impl PyGapRequirement {
         }
     }
 
+    /// Construct a disjunctive requirement satisfied by any of the supplied arms.
+    /// Each arm is itself a GapRequirement (which may itself be `any_of`).
+    /// The derivation step records which arm fired by gap_id.
+    #[staticmethod]
+    fn any_of(arms: Vec<PyGapRequirement>) -> Self {
+        let inner_arms: Vec<RustGapRequirement> = arms.into_iter().map(|a| a.inner).collect();
+        Self {
+            inner: RustGapRequirement::any_of(inner_arms),
+        }
+    }
+
+    #[getter]
+    fn is_any_of(&self) -> bool {
+        self.inner.is_any_of()
+    }
+
     fn __repr__(&self) -> String {
-        format!(
-            "GapRequirement(gap_id={:?}, minimum_status={:?})",
-            self.inner.gap_id,
-            self.minimum_status()
-        )
+        if self.inner.is_any_of() {
+            let n = self.inner.any_of.as_ref().map(|a| a.len()).unwrap_or(0);
+            format!("GapRequirement(any_of=[{} arms])", n)
+        } else {
+            format!(
+                "GapRequirement(gap_id={:?}, minimum_status={:?})",
+                self.inner.gap_id,
+                self.minimum_status()
+            )
+        }
     }
 }
 

@@ -69,6 +69,7 @@ proptest! {
                 .map(|i| GapRequirement {
                     gap_id: format!("gap-{}", i),
                     minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                 })
                 .collect(),
         }];
@@ -159,6 +160,7 @@ fn wrong_provenance_token_does_not_lower_permission() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],

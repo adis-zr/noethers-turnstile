@@ -97,10 +97,12 @@ fn monotone_profiles_pass_validation() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -109,6 +111,7 @@ fn monotone_profiles_pass_validation() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             }],
         },
     ];
@@ -125,6 +128,7 @@ fn monotone_equal_requirements_pass_validation() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -132,6 +136,7 @@ fn monotone_equal_requirements_pass_validation() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
     ];
@@ -148,14 +153,16 @@ fn non_monotone_profile_violation_detected() {
             permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
-                minimum_status: RequiredStatus::BoundedRequired, // weaker than DIA!
+                minimum_status: RequiredStatus::BoundedRequired, // weaker than DIA!,
+                any_of: None,
             }],
         },
         Profile {
             permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
-                minimum_status: RequiredStatus::ClosedRequired, // stricter at lower permission
+                minimum_status: RequiredStatus::ClosedRequired, // stricter at lower permission,
+                any_of: None,
             }],
         },
     ];
@@ -176,6 +183,7 @@ fn single_profile_is_trivially_monotone() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     assert!(validate_profile_monotonicity(&profiles).is_none());
@@ -221,6 +229,7 @@ fn compiler_with_non_monotone_profiles_emits_lower_if_higher_fails() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::BoundedRequired,
+                    any_of: None,
                 }],
             },
             Profile {
@@ -228,6 +237,7 @@ fn compiler_with_non_monotone_profiles_emits_lower_if_higher_fails() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             },
         ],
@@ -317,6 +327,7 @@ fn make_ctx(gap_closed: bool, permission: Permission) -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens,
@@ -363,6 +374,7 @@ proptest! {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }];
         prop_assert!(validate_profile_monotonicity(&profiles).is_none());

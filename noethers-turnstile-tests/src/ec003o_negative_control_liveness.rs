@@ -49,6 +49,7 @@ fn base_ctx() -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],
@@ -245,6 +246,7 @@ fn multiple_nc_tokens_all_live_passes() {
     ctx.profiles[0].required_gaps.push(GapRequirement {
         gap_id: "g2".into(),
         minimum_status: RequiredStatus::ClosedRequired,
+        any_of: None,
     });
 
     let hash = compute_provenance_hash(
@@ -300,6 +302,7 @@ fn multiple_nc_tokens_one_non_live_floors_to_ref() {
     ctx.profiles[0].required_gaps.push(GapRequirement {
         gap_id: "g2".into(),
         minimum_status: RequiredStatus::ClosedRequired,
+        any_of: None,
     });
 
     let hash = compute_provenance_hash(

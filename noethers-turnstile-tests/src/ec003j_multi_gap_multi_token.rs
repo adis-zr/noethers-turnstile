@@ -81,14 +81,17 @@ fn three_gap_profile_requires_all_closed() {
             GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g2".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g3".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -120,14 +123,17 @@ fn three_gap_profile_all_closed_satisfies() {
             GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g2".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g3".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -158,14 +164,17 @@ fn two_tier_profile_partial_evidence_lands_on_lower() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g3".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -174,6 +183,7 @@ fn two_tier_profile_partial_evidence_lands_on_lower() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
     ];
@@ -204,14 +214,17 @@ fn two_tier_profile_full_evidence_lands_on_higher() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g3".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -220,6 +233,7 @@ fn two_tier_profile_full_evidence_lands_on_higher() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
     ];
@@ -249,6 +263,7 @@ fn bounding_token_satisfies_bounded_required() {
         required_gaps: vec![GapRequirement {
             gap_id: gap_id.into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     }];
 
@@ -290,7 +305,8 @@ fn bounding_token_does_not_satisfy_closed_required() {
         permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: gap_id.into(),
-            minimum_status: RequiredStatus::ClosedRequired, // stricter requirement
+            minimum_status: RequiredStatus::ClosedRequired, // stricter requirement,
+            any_of: None,
         }],
     }];
 
@@ -336,10 +352,12 @@ fn single_token_closing_multiple_gaps() {
             GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g2".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -391,14 +409,14 @@ proptest! {
             Profile {
                 permission: p_high,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g_low".into(), minimum_status: RequiredStatus::ClosedRequired },
-                    GapRequirement { gap_id: "g_high".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement { gap_id: "g_low".into(), minimum_status: RequiredStatus::ClosedRequired, any_of: None },
+                    GapRequirement { gap_id: "g_high".into(), minimum_status: RequiredStatus::ClosedRequired, any_of: None },
                 ],
             },
             Profile {
                 permission: p_low,
                 required_gaps: vec![
-                    GapRequirement { gap_id: "g_low".into(), minimum_status: RequiredStatus::ClosedRequired },
+                    GapRequirement { gap_id: "g_low".into(), minimum_status: RequiredStatus::ClosedRequired, any_of: None },
                 ],
             },
         ];

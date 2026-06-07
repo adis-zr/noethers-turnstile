@@ -126,10 +126,12 @@ fn p1_approximate_inference_with_kl_bound_compiles_to_dia() {
             GapRequirement {
                 gap_id: "g-calibration".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-support".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -171,10 +173,12 @@ fn p1_inference_without_calibration_bound_stays_ooc() {
             GapRequirement {
                 gap_id: "g-calibration".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-support".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -220,10 +224,12 @@ fn p2_ope_causal_claim_compiles_to_rev() {
             GapRequirement {
                 gap_id: "g-proxy".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-interference".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -268,10 +274,12 @@ fn p3_marketplace_allocation_with_guardrail_compiles_to_rol() {
             GapRequirement {
                 gap_id: "g-guardrail".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-nc".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -318,10 +326,12 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
                 GapRequirement {
                     gap_id: "g-cal".into(),
                     minimum_status: RequiredStatus::BoundedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g-boundary".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -331,10 +341,12 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
                 GapRequirement {
                     gap_id: "g-cal".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g-boundary".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -386,10 +398,12 @@ fn p5_fraud_score_with_drift_compiles_to_esc() {
             GapRequirement {
                 gap_id: "g-drift".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-query".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -436,10 +450,12 @@ fn p6_cybersecurity_threat_with_rollback_compiles_to_rol() {
             GapRequirement {
                 gap_id: "g-threat".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-rollback".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -484,10 +500,12 @@ fn p7_trading_signal_with_missing_data_compiles_to_eta() {
             GapRequirement {
                 gap_id: "g-data".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-authority".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -535,14 +553,17 @@ fn p8_llm_agent_with_full_evidence_compiles_to_aex() {
             GapRequirement {
                 gap_id: "g-coverage".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-execution".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-rollback".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -586,14 +607,17 @@ fn p8_llm_agent_with_missing_rollback_stays_below_aex() {
             GapRequirement {
                 gap_id: "g-coverage".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-execution".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-rollback".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -637,10 +661,12 @@ fn p9_scientific_surrogate_with_boundary_compiles_to_dia() {
             GapRequirement {
                 gap_id: "g-truth".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-boundary".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];
@@ -687,10 +713,12 @@ fn p10_constrained_planning_with_composition_gap_compiles_to_rev() {
             GapRequirement {
                 gap_id: "g-support".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-composition".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     }];

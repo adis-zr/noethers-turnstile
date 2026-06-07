@@ -55,6 +55,7 @@ fn make_ctx_with_profile(membership: Membership, profile_perm: Permission) -> Pr
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -198,6 +199,7 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![good_token, expired_token],
@@ -243,6 +245,7 @@ fn context_expiry_fired_yields_exp() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -315,6 +318,7 @@ fn authority_ceiling_clips_profile_permission_all_pairs() {
                     required_gaps: vec![GapRequirement {
                         gap_id: "g1".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     }],
                 }],
                 tokens: vec![ProofToken {
@@ -375,6 +379,7 @@ fn disallowed_uses_ceiling_rol_applied_correctly() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

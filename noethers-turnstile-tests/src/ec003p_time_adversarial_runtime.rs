@@ -56,6 +56,7 @@ fn dia_ctx_at(deadline_offset_secs: i64, base_now: chrono::DateTime<Utc>) -> Pro
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

@@ -88,6 +88,7 @@ fn a1_fake_token_cannot_promote_ooc_system() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-a1", vec!["g1".into()], &ctx);
@@ -117,6 +118,7 @@ fn a1_all_ooc_variants_block_even_with_full_evidence() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let tok = valid_token("tok", vec!["g1".into()], &ctx);
@@ -147,6 +149,7 @@ fn a2_diagnostic_ceiling_blocks_action_profile() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-a2", vec!["g1".into()], &ctx);
@@ -175,6 +178,7 @@ fn a2_composition_of_dia_and_action_stays_dia() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok1 = valid_token("tok-c1", vec!["g1".into()], &ctx1);
@@ -187,6 +191,7 @@ fn a2_composition_of_dia_and_action_stays_dia() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok2 = valid_token("tok-c2", vec!["g1".into()], &ctx2);
@@ -215,6 +220,7 @@ fn a3_expired_context_blocks_despite_valid_tokens() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-a3", vec!["g1".into()], &ctx);
@@ -237,6 +243,7 @@ fn a3_stale_runtime_fingerprint_blocks_via_live_judgment() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-a3rt", vec!["g1".into()], &ctx);
@@ -272,6 +279,7 @@ fn a4_wrong_provenance_hash_leaves_gap_open() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // Token for a different candidate
@@ -310,6 +318,7 @@ fn a4_recycled_token_from_different_claim_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // ctx has claim_id "claim-a4r" but token says "claim-X"
@@ -434,7 +443,8 @@ fn a6_bounding_token_does_not_satisfy_closed_required() {
         permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
-            minimum_status: RequiredStatus::ClosedRequired, // must be CLOSED
+            minimum_status: RequiredStatus::ClosedRequired, // must be CLOSED,
+            any_of: None,
         }],
     });
 
@@ -479,6 +489,7 @@ fn a6_bounding_token_satisfies_bounded_required() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     });
 
@@ -527,10 +538,12 @@ fn a7_missing_required_coupling_gap_blocks_permission() {
             GapRequirement {
                 gap_id: "g-calibration".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-coupling".into(),
-                minimum_status: RequiredStatus::ClosedRequired, // attacker forgot this
+                minimum_status: RequiredStatus::ClosedRequired, // attacker forgot this,
+                any_of: None,
             },
         ],
     });
@@ -577,6 +590,7 @@ fn a8_stale_nc_token_floors_to_ref_in_strict_mode() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash(
@@ -629,6 +643,7 @@ fn a8_missing_nc_token_floors_to_ref_in_strict_mode() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash(
@@ -672,6 +687,7 @@ fn a8_nc_token_passes_when_live_in_strict_mode() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash(
@@ -723,6 +739,7 @@ fn a9_authority_ceiling_always_caps_after_composition() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok1 = valid_token("tok-a9a", vec!["g1".into()], &ctx1);
@@ -738,6 +755,7 @@ fn a9_authority_ceiling_always_caps_after_composition() {
         required_gaps: vec![GapRequirement {
             gap_id: "g2".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok2 = valid_token("tok-a9b", vec!["g2".into()], &ctx2);
@@ -804,7 +822,8 @@ fn a10_audit_derivation_does_not_grant_authority() {
         permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
-            minimum_status: RequiredStatus::ClosedRequired, // will not be met
+            minimum_status: RequiredStatus::ClosedRequired, // will not be met,
+            any_of: None,
         }],
     });
     // No tokens — gap stays open
@@ -835,6 +854,7 @@ fn a10_judgment_permission_equals_last_derivation_step() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-a10f", vec!["g1".into()], &ctx);

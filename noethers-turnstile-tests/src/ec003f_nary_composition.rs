@@ -39,6 +39,7 @@ fn make_ctx_with_permission(target: Permission, suffix: &str) -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

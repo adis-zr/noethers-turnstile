@@ -66,6 +66,7 @@ fn build_ctx(
                 .map(|(i, _)| GapRequirement {
                     gap_id: format!("gap-{}", i),
                     minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
                 })
                 .collect(),
         });

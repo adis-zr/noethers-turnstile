@@ -111,6 +111,7 @@ fn v2_profile_referencing_absent_gap_id_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "nonexistent_gap".into(), // not in ctx.gaps
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     assert!(
@@ -129,10 +130,12 @@ fn v2_profile_with_one_valid_and_one_invalid_gap_ref_is_rejected() {
             GapRequirement {
                 gap_id: "g1".into(), // valid
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "ghost".into(), // invalid
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     });
@@ -152,6 +155,7 @@ fn v2_multiple_profiles_one_bad_ref_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // Invalid profile (references missing gap).
@@ -160,6 +164,7 @@ fn v2_multiple_profiles_one_bad_ref_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "missing".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     assert!(
@@ -205,6 +210,7 @@ fn v4_two_profiles_at_same_permission_level_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -212,6 +218,7 @@ fn v4_two_profiles_at_same_permission_level_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "g2".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     assert!(
@@ -231,6 +238,7 @@ fn v4_three_profiles_one_duplicate_level_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -238,6 +246,7 @@ fn v4_three_profiles_one_duplicate_level_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "g2".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -245,6 +254,7 @@ fn v4_three_profiles_one_duplicate_level_is_rejected() {
         required_gaps: vec![GapRequirement {
             gap_id: "g3".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     assert!(
@@ -274,6 +284,7 @@ fn v5_context_with_multiple_valid_profiles_compiles_ok() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -281,6 +292,7 @@ fn v5_context_with_multiple_valid_profiles_compiles_ok() {
         required_gaps: vec![GapRequirement {
             gap_id: "g2".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     assert!(
@@ -298,6 +310,7 @@ fn v5_context_with_tokens_and_gaps_compiles_ok() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = make_token("v5c", vec!["g1".into()], &ctx);
@@ -377,6 +390,7 @@ fn v8_bad_gap_ref_error_message_names_the_gap() {
         required_gaps: vec![GapRequirement {
             gap_id: "phantom_gap_id".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let err = compile(ctx).unwrap_err();

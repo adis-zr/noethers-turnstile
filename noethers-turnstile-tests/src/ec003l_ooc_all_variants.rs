@@ -40,6 +40,7 @@ fn saturated_ctx(membership: Membership) -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

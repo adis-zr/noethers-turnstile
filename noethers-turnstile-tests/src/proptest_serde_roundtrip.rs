@@ -75,10 +75,12 @@ fn base_ctx(suffix: &str, permission: Permission) -> ProofContext {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::BoundedRequired,
+                    any_of: None,
                 },
             ],
         }],

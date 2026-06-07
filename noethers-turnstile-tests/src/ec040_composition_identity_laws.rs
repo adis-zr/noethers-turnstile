@@ -432,6 +432,7 @@ fn compile_compose_non_promotion_end_to_end() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok1 = valid_token("tok-e2e1", vec!["g1"], &ctx1);
@@ -445,6 +446,7 @@ fn compile_compose_non_promotion_end_to_end() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok2 = valid_token("tok-e2e2", vec!["g1"], &ctx2);

@@ -45,6 +45,7 @@ fn make_large_ctx(
         .map(|i| GapRequirement {
             gap_id: format!("g{i}"),
             minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
         })
         .collect();
 
@@ -139,6 +140,7 @@ fn l3_compose_n_twenty_contexts_non_promotion() {
                     required_gaps: vec![GapRequirement {
                         gap_id: format!("g-n{i}"),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     }],
                 }],
                 tokens: vec![ProofToken {
@@ -237,6 +239,7 @@ fn l4_200_tokens_only_one_valid_provenance_emits_dia() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens,

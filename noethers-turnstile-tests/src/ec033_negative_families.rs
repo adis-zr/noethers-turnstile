@@ -79,6 +79,7 @@ fn with_fake_proof(mut ctx: ProofContext) -> ProofContext {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = full_evidence_token(&ctx);
@@ -205,6 +206,7 @@ fn in_class_system_with_proof_is_admitted() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],

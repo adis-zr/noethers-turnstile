@@ -71,6 +71,7 @@ fn ctx_with_full_evidence_and_ceiling(ceiling: Permission, suffix: &str) -> Proo
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             },
             // AAA profile also requires g1 closed (same evidence satisfies both)
@@ -79,6 +80,7 @@ fn ctx_with_full_evidence_and_ceiling(ceiling: Permission, suffix: &str) -> Proo
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             },
         ],
@@ -299,6 +301,7 @@ fn c10_ceiling_applied_after_gap_resolution() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],
@@ -365,6 +368,7 @@ fn c14_ceiling_above_profiles_gives_best_profile() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

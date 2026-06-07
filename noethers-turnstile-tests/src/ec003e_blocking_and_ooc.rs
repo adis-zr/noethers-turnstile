@@ -84,6 +84,7 @@ fn profile_without_token_gives_uns() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // No token supplied → gap stays Open → profile not satisfied → UNS (in-class, profile defined)
@@ -100,6 +101,7 @@ fn open_gap_blocks_profile() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // Open gap → ClosedRequired not satisfied → UNS (in-class, profile defined)
@@ -120,6 +122,7 @@ fn bounded_gap_satisfies_bounded_required() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     });
     // Bounded gap satisfies BoundedRequired
@@ -146,6 +149,7 @@ fn bounded_gap_does_not_satisfy_closed_required() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let j = compile(ctx).unwrap();
@@ -165,6 +169,7 @@ fn malformed_token_does_not_satisfy_profile() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.tokens.push(ProofToken {
@@ -199,6 +204,7 @@ fn out_of_class_exact_gives_ooc() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash("c", "z", "ctx", "use");
@@ -247,6 +253,7 @@ fn disallowed_uses_caps_at_rol() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash("c", "z", "ctx", "use");
@@ -282,6 +289,7 @@ fn disallowed_uses_only_cap_if_above_rol() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash("c", "z", "ctx", "use");
@@ -317,6 +325,7 @@ fn authority_ceiling_hard_caps_outcome() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash("c", "z", "ctx", "use");
@@ -363,6 +372,7 @@ proptest! {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![],
@@ -388,6 +398,7 @@ proptest! {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let hash = compute_provenance_hash("c", "z", "ctx", "use");

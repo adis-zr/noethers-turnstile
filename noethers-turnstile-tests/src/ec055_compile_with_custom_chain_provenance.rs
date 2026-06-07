@@ -32,6 +32,7 @@ fn ctx_with_open_gap_and_profile_at(
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],
@@ -132,6 +133,7 @@ fn t_prov_02_correct_provenance_above_threshold_suppresses_blocker() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![good_tok, bad_tok],

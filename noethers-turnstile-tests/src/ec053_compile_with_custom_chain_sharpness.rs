@@ -28,6 +28,7 @@ fn closed_gap_ctx(chain: &PermissionChain, profile_perms: Vec<&str>, suffix: &st
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         })
         .collect();

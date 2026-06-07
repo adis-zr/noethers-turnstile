@@ -83,6 +83,7 @@ fn s1_strongest_satisfied_profile_wins() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -91,10 +92,12 @@ fn s1_strongest_satisfied_profile_wins() {
             GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g2".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     });
@@ -125,10 +128,12 @@ fn s2_skips_unsatisfied_profiles() {
             GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g2".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     });
@@ -138,6 +143,7 @@ fn s2_skips_unsatisfied_profiles() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
 
@@ -164,6 +170,7 @@ fn s3_no_satisfied_profile_produces_ooc() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // No tokens → gap stays open → profile not satisfied
@@ -189,6 +196,7 @@ fn s4_full_evidence_for_aex_compiles_to_aex() {
         required_gaps: vec![GapRequirement {
             gap_id: "g-dia".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -197,10 +205,12 @@ fn s4_full_evidence_for_aex_compiles_to_aex() {
             GapRequirement {
                 gap_id: "g-dia".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-aex".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     });
@@ -229,6 +239,7 @@ fn s5_dia_evidence_only_compiles_to_dia() {
         required_gaps: vec![GapRequirement {
             gap_id: "g-dia".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -237,10 +248,12 @@ fn s5_dia_evidence_only_compiles_to_dia() {
             GapRequirement {
                 gap_id: "g-dia".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
             GapRequirement {
                 gap_id: "g-aex".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             },
         ],
     });
@@ -268,6 +281,7 @@ fn s6_adding_evidence_never_lowers_permission() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // No token
@@ -299,6 +313,7 @@ fn s7_profile_order_is_irrelevant_to_outcome() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         };
         let aex_profile = Profile {
@@ -307,10 +322,12 @@ fn s7_profile_order_is_irrelevant_to_outcome() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         };
@@ -374,6 +391,7 @@ fn s9_bounded_required_satisfied_by_closed() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     });
     let tok = closing_token("tok-s9c", vec!["g1"], &ctx);
@@ -396,6 +414,7 @@ fn s9_bounded_required_not_satisfied_by_open() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     });
 
@@ -417,6 +436,7 @@ fn s9_bounded_required_satisfied_by_bounded_status_with_token() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash(
@@ -478,6 +498,7 @@ fn s11_duplicate_permission_levels_are_malformed() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     ctx.profiles.push(Profile {
@@ -514,6 +535,7 @@ fn s12_all_non_ooc_permissions_are_reachable_via_profiles() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let tok = closing_token(&format!("tok-{p}"), vec!["g1"], &ctx);

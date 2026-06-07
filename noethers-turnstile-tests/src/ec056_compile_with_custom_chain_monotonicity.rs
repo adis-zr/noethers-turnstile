@@ -41,6 +41,7 @@ fn ctx_with_two_gaps(
     required.push(GapRequirement {
         gap_id: "g1".into(),
         minimum_status: RequiredStatus::ClosedRequired,
+        any_of: None,
     });
     if g1_closed {
         tokens.push(make_tok("tok-g1", "g1", &hash));
@@ -55,6 +56,7 @@ fn ctx_with_two_gaps(
     required.push(GapRequirement {
         gap_id: "g2".into(),
         minimum_status: RequiredStatus::ClosedRequired,
+        any_of: None,
     });
     if g2_closed {
         tokens.push(make_tok("tok-g2", "g2", &hash));

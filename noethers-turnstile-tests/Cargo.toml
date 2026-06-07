@@ -404,6 +404,10 @@ path = "src/ec060_proptest_arbitrary_chain.rs"
 name = "ec060b_publication_smoke"
 path = "src/ec060b_publication_smoke.rs"
 
+[[test]]
+name = "ec061_any_of_arm_attribution"
+path = "src/ec061_any_of_arm_attribution.rs"
+
 [dependencies]
 noethers-turnstile-core = { path = "../noethers-turnstile-core" }
 serde = { workspace = true }

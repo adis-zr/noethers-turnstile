@@ -86,6 +86,7 @@ fn adding_closed_token_raises_permission_from_ooc() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     let p_before = compile(ctx.clone()).unwrap().permission;
@@ -117,10 +118,12 @@ fn adding_second_token_enables_higher_profile() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -129,6 +132,7 @@ fn adding_second_token_enables_higher_profile() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
     ];
@@ -159,6 +163,7 @@ fn adding_disallowed_use_lowers_permission() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     let tok = make_closing_token("g1", &ctx);
@@ -187,6 +192,7 @@ fn lowering_authority_ceiling_never_raises() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     let tok = make_closing_token("g1", &ctx);
@@ -218,6 +224,7 @@ fn closing_gaps_incrementally_never_lowers() {
                 .map(|id| GapRequirement {
                     gap_id: id.to_string(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 })
                 .collect(),
         },
@@ -228,6 +235,7 @@ fn closing_gaps_incrementally_never_lowers() {
                 .map(|id| GapRequirement {
                     gap_id: id.to_string(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 })
                 .collect(),
         },
@@ -236,6 +244,7 @@ fn closing_gaps_incrementally_never_lowers() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
     ];
@@ -293,6 +302,7 @@ proptest! {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![],
@@ -374,6 +384,7 @@ proptest! {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![tok.clone()],

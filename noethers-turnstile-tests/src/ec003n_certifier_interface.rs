@@ -247,6 +247,7 @@ fn certifier_issued_token_accepted_by_compiler() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![token],
@@ -290,6 +291,7 @@ fn token_for_z1_not_accepted_for_z2_end_to_end() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![token_for_z1],

@@ -54,6 +54,7 @@ fn base_ctx() -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -120,6 +121,7 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -175,6 +177,7 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -259,6 +262,7 @@ fn a4_profile_referencing_missing_gap_is_malformed() {
         required_gaps: vec![GapRequirement {
             gap_id: "nonexistent-gap".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // REV references a gap_id not in ctx.gaps → MalformedContext (validation step).
@@ -394,6 +398,7 @@ fn a9_large_profile_compiles_in_finite_time() {
                     .map(|j| GapRequirement {
                         gap_id: format!("g{j}"),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     })
                     .collect(),
             })

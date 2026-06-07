@@ -48,6 +48,7 @@ fn base_ctx(id: &str) -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],
@@ -284,6 +285,7 @@ fn l10_one_expired_valid_token_triggers_exp_regardless_of_others() {
     ctx.profiles[0].required_gaps.push(GapRequirement {
         gap_id: "g2".into(),
         minimum_status: RequiredStatus::ClosedRequired,
+        any_of: None,
     });
 
     let hash = compute_provenance_hash(

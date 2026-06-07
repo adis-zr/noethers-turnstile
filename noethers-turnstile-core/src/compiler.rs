@@ -106,12 +106,7 @@ fn validate_context(ctx: &ProofContext, chain: &PermissionChain) -> Result<(), T
             )));
         }
         for req in &profile.required_gaps {
-            if ctx.find_gap(&req.gap_id).is_none() {
-                return Err(TurnstileError::MalformedContext(format!(
-                    "profile for {} references unknown gap_id '{}'",
-                    profile.permission, req.gap_id
-                )));
-            }
+            validate_requirement(ctx, req, &profile.permission)?;
         }
     }
 
@@ -145,6 +140,35 @@ fn validate_context(ctx: &ProofContext, chain: &PermissionChain) -> Result<(), T
     }
 
     Ok(())
+}
+
+/// Validate a single `GapRequirement` (conjunctive or disjunctive) against ctx.
+/// Conjunctive: gap_id must exist in ctx.gaps.
+/// Disjunctive: every arm validates recursively; an empty arm list is rejected.
+fn validate_requirement(
+    ctx: &ProofContext,
+    req: &crate::gap::GapRequirement,
+    profile_perm: &Permission,
+) -> Result<(), TurnstileError> {
+    if let Some(arms) = &req.any_of {
+        if arms.is_empty() {
+            return Err(TurnstileError::MalformedContext(format!(
+                "profile for {}: any_of requirement has zero arms",
+                profile_perm
+            )));
+        }
+        for arm in arms {
+            validate_requirement(ctx, arm, profile_perm)?;
+        }
+        Ok(())
+    } else if ctx.find_gap(&req.gap_id).is_none() {
+        Err(TurnstileError::MalformedContext(format!(
+            "profile for {} references unknown gap_id '{}'",
+            profile_perm, req.gap_id
+        )))
+    } else {
+        Ok(())
+    }
 }
 
 /// Compile a proof context using the default chain. Equivalent to
@@ -246,18 +270,33 @@ pub fn compile_with_chain(
     let mut had_any_profile = false;
     let mut provenance_mismatch_seen = false;
     let mut dead_credential_seen = false;
+    let mut satisfied_arms: Vec<String> = vec![];
 
     'outer: for p in chain.descending() {
+        let mut arms_for_this_profile: Vec<String> = vec![];
         match profile_satisfied(
             &ctx,
             p,
             &mut consulted_tokens,
             &mut provenance_mismatch_seen,
             &mut dead_credential_seen,
+            &mut arms_for_this_profile,
         ) {
             ProfileCheckResult::Satisfied => {
                 outcome = p.clone();
-                search_note = format!("profile satisfied at {}", p);
+                if arms_for_this_profile.is_empty() {
+                    search_note = format!("profile satisfied at {}", p);
+                } else {
+                    // Arm attribution: record which disjunct fired for each
+                    // any_of requirement. This is the audit-granularity
+                    // contract from spec §2.2.5 / Phase 1b.
+                    search_note = format!(
+                        "profile satisfied at {} via any_of arm(s): {}",
+                        p,
+                        arms_for_this_profile.join(", ")
+                    );
+                }
+                satisfied_arms = arms_for_this_profile;
                 had_any_profile = true;
                 break 'outer;
             }
@@ -286,11 +325,18 @@ pub fn compile_with_chain(
         note = %search_note,
         "descending search complete"
     );
+    // Token-IDs include both consulted tokens and any_of arm attributions
+    // (prefixed `any_of_arm:`). Auditors distinguish them by the prefix and
+    // can also read the satisfied-arm gap_ids from `note`.
+    let mut all_attribution = consulted_tokens.clone();
+    for arm in &satisfied_arms {
+        all_attribution.push(format!("any_of_arm:{}", arm));
+    }
     derivation.push(DerivationStep {
         phase: "descending_search".into(),
         permission_after: outcome.clone(),
         note: search_note,
-        token_ids: consulted_tokens.clone(),
+        token_ids: all_attribution,
     });
 
     // Step 4: structural blockers. Both PROVENANCE_MISMATCH and DEAD_CREDENTIAL
@@ -483,12 +529,17 @@ enum ProfileCheckResult {
 
 /// Check whether all gap requirements in the profile for permission `p` are met
 /// in context `ctx`.
+///
+/// `satisfied_arms` collects the gap_id of the satisfied arm for each
+/// disjunctive (`any_of`) requirement. Used by the caller to record arm
+/// attribution in the derivation step.
 fn profile_satisfied(
     ctx: &ProofContext,
     p: &Permission,
     consulted: &mut Vec<String>,
     provenance_mismatch: &mut bool,
     dead_credential: &mut bool,
+    satisfied_arms: &mut Vec<String>,
 ) -> ProfileCheckResult {
     let profile = match ctx.profiles.iter().find(|pr| &pr.permission == p) {
         Some(pr) => pr,
@@ -496,20 +547,62 @@ fn profile_satisfied(
     };
 
     for req in &profile.required_gaps {
-        let gap = match ctx.find_gap(&req.gap_id) {
-            Some(g) => g,
-            None => return ProfileCheckResult::GapNotMet,
-        };
-
-        let effective_status =
-            effective_gap_status(ctx, gap, consulted, provenance_mismatch, dead_credential);
-
-        if !req.minimum_status.satisfied_by(&effective_status) {
+        if !check_requirement(
+            ctx,
+            req,
+            consulted,
+            provenance_mismatch,
+            dead_credential,
+            satisfied_arms,
+        ) {
             return ProfileCheckResult::GapNotMet;
         }
     }
 
     ProfileCheckResult::Satisfied
+}
+
+/// Check a single `GapRequirement` (conjunctive or disjunctive). Returns true
+/// iff satisfied. For disjunctive (`any_of`) requirements, the satisfied arm's
+/// gap_id (or a nested-disjunction label) is appended to `satisfied_arms`.
+fn check_requirement(
+    ctx: &ProofContext,
+    req: &crate::gap::GapRequirement,
+    consulted: &mut Vec<String>,
+    provenance_mismatch: &mut bool,
+    dead_credential: &mut bool,
+    satisfied_arms: &mut Vec<String>,
+) -> bool {
+    if let Some(arms) = &req.any_of {
+        for arm in arms {
+            let mut nested: Vec<String> = vec![];
+            if check_requirement(
+                ctx,
+                arm,
+                consulted,
+                provenance_mismatch,
+                dead_credential,
+                &mut nested,
+            ) {
+                let label = if arm.any_of.is_some() {
+                    format!("any_of[{}]", nested.join(","))
+                } else {
+                    arm.gap_id.clone()
+                };
+                satisfied_arms.push(label);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    let gap = match ctx.find_gap(&req.gap_id) {
+        Some(g) => g,
+        None => return false,
+    };
+    let effective_status =
+        effective_gap_status(ctx, gap, consulted, provenance_mismatch, dead_credential);
+    req.minimum_status.satisfied_by(&effective_status)
 }
 
 /// Compute the effective gap status for a gap, considering only tokens whose
@@ -635,6 +728,7 @@ mod tests {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let tok = make_token(vec!["g1".into()], &ctx);
@@ -652,6 +746,7 @@ mod tests {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let tok = make_token(vec!["g1".into()], &ctx);
@@ -670,6 +765,7 @@ mod tests {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let bad_token = ProofToken {
@@ -700,6 +796,7 @@ mod tests {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let tok = make_token(vec!["g1".into()], &ctx);

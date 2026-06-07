@@ -111,6 +111,7 @@ fn d2_satisfied_profile_produces_descending_search_step() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-d2", vec!["g1"], &ctx);
@@ -141,6 +142,7 @@ fn d3_authority_ceiling_step_appears_when_active() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-d3", vec!["g1"], &ctx);
@@ -177,6 +179,7 @@ fn d4_expiry_blocker_step_appears_when_token_expired() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash(
@@ -231,6 +234,7 @@ fn d5_structural_blockers_step_appears_when_disallowed_uses_present() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-d5", vec!["g1"], &ctx);
@@ -265,6 +269,7 @@ fn d6_nc_registration_step_appears_when_nc_token_present() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let hash = compute_provenance_hash(
@@ -315,6 +320,7 @@ fn d7_derivation_steps_are_non_increasing() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-d7", vec!["g1"], &ctx);
@@ -355,6 +361,7 @@ fn d8_final_step_matches_emitted_permission() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let tok = valid_token("tok-d8-dia", vec!["g1"], &ctx);
@@ -400,6 +407,7 @@ fn d10_derivation_provenance_hash_matches_context() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-d10", vec!["g1"], &ctx);
@@ -430,6 +438,7 @@ fn d11_t18_audit_record_does_not_alter_permission() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok = valid_token("tok-d11", vec!["g1"], &ctx);
@@ -485,6 +494,7 @@ fn d12_derivation_token_ids_are_consulted_tokens() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     let tok_id = "tok-d12-consulted";

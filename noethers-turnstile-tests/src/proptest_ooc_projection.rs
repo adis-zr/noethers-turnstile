@@ -76,14 +76,17 @@ fn maximally_permissive_ctx(membership: Membership, ceiling: Permission) -> Proo
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g3".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         }],
@@ -180,6 +183,7 @@ fn ooc_is_independent_of_token_count() {
                     .map(|i| GapRequirement {
                         gap_id: format!("g{i}"),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     })
                     .collect(),
             }]
@@ -253,6 +257,7 @@ proptest! {
                 required_gaps: (0..n_gaps).map(|i| GapRequirement {
                     gap_id: format!("g{i}"),
                     minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                 }).collect(),
             }]
         } else {

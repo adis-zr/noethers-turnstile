@@ -51,6 +51,7 @@ fn ctx_with_tokens(suffix: &str, tokens: Vec<ProofToken>) -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens,

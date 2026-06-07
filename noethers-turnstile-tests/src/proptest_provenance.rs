@@ -44,6 +44,7 @@ proptest! {
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![ProofToken {
@@ -108,6 +109,7 @@ proptest! {
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![ProofToken {

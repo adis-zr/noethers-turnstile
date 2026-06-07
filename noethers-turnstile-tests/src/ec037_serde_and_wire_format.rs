@@ -91,6 +91,7 @@ fn w1_judgment_serde_roundtrip_all_permissions() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let tok = valid_token(&format!("tok-{p}"), vec!["g1"], &c);

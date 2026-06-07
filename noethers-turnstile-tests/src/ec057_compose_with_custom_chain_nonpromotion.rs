@@ -48,6 +48,7 @@ fn satisfied_ctx(chain: &PermissionChain, profile_perm: Permission, suffix: &str
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![tok],

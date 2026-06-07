@@ -49,6 +49,7 @@ fn t_expiry_01_floors_to_chain_role_not_hardcoded_exp() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![tok],
@@ -119,6 +120,7 @@ fn t_expiry_02_expiry_meet_only_lowers_never_raises() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g_met".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![met_tok, expired_tok],

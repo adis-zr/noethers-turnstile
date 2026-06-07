@@ -104,6 +104,7 @@ fn bounded_required_profile_satisfied_by_bounding_token() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     }];
     let tok = bounding_token("g1", &ctx);
@@ -126,6 +127,7 @@ fn bounded_required_profile_fails_with_no_token() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     }];
     // No token → BoundedRequired not met → UNS (in-class, profile defined)
@@ -148,6 +150,7 @@ fn closed_required_profile_not_satisfied_by_bounding_token() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     let tok = bounding_token("g1", &ctx);
@@ -173,6 +176,7 @@ fn closing_token_satisfies_bounded_required() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     }];
     let tok = closing_token("g1", &ctx);
@@ -195,6 +199,7 @@ fn closing_token_satisfies_closed_required() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     let tok = closing_token("g1", &ctx);
@@ -219,6 +224,7 @@ fn pre_bounded_gap_satisfies_bounded_required_without_token() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     }];
     // No token: gap record itself is already Bounded.
@@ -239,6 +245,7 @@ fn pre_closed_gap_satisfies_closed_required_without_token() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     // No token needed: gap record already closed.
@@ -261,6 +268,7 @@ fn closing_wins_over_bounding_for_same_gap() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     // Both bounding and closing tokens present.
@@ -291,6 +299,7 @@ fn expired_bounding_token_provides_no_support() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     }];
     let hash = compute_provenance_hash(
@@ -339,6 +348,7 @@ fn expired_closing_token_floors_to_exp_when_profile_would_otherwise_pass() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     let hash = compute_provenance_hash(
@@ -387,6 +397,7 @@ fn invalid_bounding_token_provides_no_support() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     }];
     for bad_status in [
@@ -462,6 +473,7 @@ fn two_profile_hierarchy_bounding_token_reaches_lower_permission_only() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -469,6 +481,7 @@ fn two_profile_hierarchy_bounding_token_reaches_lower_permission_only() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             }],
         },
     ];
@@ -494,6 +507,7 @@ fn two_profile_hierarchy_closing_token_reaches_highest_permission() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -501,6 +515,7 @@ fn two_profile_hierarchy_closing_token_reaches_highest_permission() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
+                any_of: None,
             }],
         },
     ];

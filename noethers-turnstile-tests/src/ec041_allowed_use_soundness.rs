@@ -72,6 +72,7 @@ fn ctx_with_token_use(ctx_use: &str, tok_use: &str) -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -302,6 +303,7 @@ fn au12_two_tokens_wrong_use_neither_closes() {
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![

@@ -205,12 +205,60 @@ impl RequiredStatus {
 }
 
 /// A single gap requirement within a profile.
+///
+/// Two forms:
+///   - Conjunctive single-gap: `gap_id` + `minimum_status`, `any_of = None`.
+///     Satisfied iff that gap's effective status meets `minimum_status`.
+///   - Disjunctive: `any_of = Some(arms)`. Satisfied iff at least one arm is
+///     satisfied. Outer `gap_id`/`minimum_status` are ignored when `any_of`
+///     is set.
+///
+/// The disjunctive form preserves audit granularity: the derivation step
+/// records the satisfied arm's gap_id.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GapRequirement {
-    /// The gap_id this requirement applies to.
+    /// The gap_id this requirement applies to. Ignored when `any_of` is set.
     pub gap_id: String,
-    /// The minimum status required.
+    /// The minimum status required. Ignored when `any_of` is set.
     pub minimum_status: RequiredStatus,
+    /// Optional disjunction. When `Some`, the requirement is satisfied iff at
+    /// least one arm is satisfied.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub any_of: Option<Vec<GapRequirement>>,
+}
+
+impl Default for GapRequirement {
+    fn default() -> Self {
+        Self {
+            gap_id: String::new(),
+            minimum_status: RequiredStatus::OpenAllowed,
+            any_of: None,
+        }
+    }
+}
+
+impl GapRequirement {
+    /// Construct a conjunctive single-gap requirement.
+    pub fn single(gap_id: impl Into<String>, minimum_status: RequiredStatus) -> Self {
+        Self {
+            gap_id: gap_id.into(),
+            minimum_status,
+            any_of: None,
+        }
+    }
+
+    /// Construct a disjunctive requirement satisfied by any of the arms.
+    pub fn any_of(arms: Vec<GapRequirement>) -> Self {
+        Self {
+            gap_id: String::new(),
+            minimum_status: RequiredStatus::OpenAllowed,
+            any_of: Some(arms),
+        }
+    }
+
+    pub fn is_any_of(&self) -> bool {
+        self.any_of.is_some()
+    }
 }
 
 /// A permission profile: the set of gap requirements that must be met for a

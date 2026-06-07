@@ -86,6 +86,7 @@ fn am_01_mid_chain_expiry_floor_meet_does_not_promote_from_below() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g_unmet".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             },
             Profile {
@@ -154,6 +155,7 @@ fn am_02_expiry_meet_does_lower_from_above_threshold() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g_met".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],
@@ -214,6 +216,7 @@ fn am_03_mid_chain_refused_meet_does_not_promote_from_below() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],
@@ -277,6 +280,7 @@ fn am_04_refused_meet_lowers_outcome_at_threshold() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],
@@ -386,6 +390,7 @@ fn make_satisfied_ctx(
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![tok],
@@ -464,6 +469,7 @@ fn am_07_collapsed_anchor_multi_blocker_compile_is_monotone() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![],

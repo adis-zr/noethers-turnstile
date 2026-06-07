@@ -141,6 +141,7 @@ fn t2_1_each_permission_level_as_highest_satisfiable() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }];
         let ctx = ctx_with_profiles_and_closed_gaps(
@@ -169,6 +170,7 @@ fn t2_2_all_gaps_open_weakest_satisfied() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
     let ctx = ctx_with_profiles_and_closed_gaps(
@@ -196,6 +198,7 @@ fn t2_3_all_gaps_closed_highest_profile() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -204,10 +207,12 @@ fn t2_3_all_gaps_closed_highest_profile() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -237,6 +242,7 @@ fn t2_4_closing_gap_upgrades_permission() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -245,10 +251,12 @@ fn t2_4_closing_gap_upgrades_permission() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -319,6 +327,7 @@ fn t2_6_partial_evidence_gives_lower_profile() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -327,10 +336,12 @@ fn t2_6_partial_evidence_gives_lower_profile() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -361,6 +372,7 @@ fn t2_7_full_evidence_gives_highest_profile() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -369,10 +381,12 @@ fn t2_7_full_evidence_gives_highest_profile() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -402,6 +416,7 @@ fn t2_8_three_profiles_intermediate_evidence_gives_middle() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -410,10 +425,12 @@ fn t2_8_three_profiles_intermediate_evidence_gives_middle() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -423,14 +440,17 @@ fn t2_8_three_profiles_intermediate_evidence_gives_middle() {
                 GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g2".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
                 GapRequirement {
                     gap_id: "g3".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 },
             ],
         },
@@ -461,6 +481,7 @@ fn t2_9_ceiling_caps_greatest_satisfiable() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
         Profile {
@@ -468,6 +489,7 @@ fn t2_9_ceiling_caps_greatest_satisfiable() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         },
     ];

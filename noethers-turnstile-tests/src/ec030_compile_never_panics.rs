@@ -72,6 +72,7 @@ fn n2_unsatisfied_gap_does_not_panic() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
     // No token that closes g1.
@@ -100,6 +101,7 @@ fn n3_all_token_status_variants_do_not_panic() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         });
         let hash = compute_provenance_hash(
@@ -157,6 +159,7 @@ fn n5_positive_infinity_bound_does_not_panic() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
+            any_of: None,
         }],
     });
     let result = compile(ctx);
@@ -245,6 +248,7 @@ fn n10_thousand_token_context_does_not_panic() {
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     });
 
@@ -322,6 +326,7 @@ fn n12_profile_with_100_gap_requirements_does_not_panic() {
             .map(|i| GapRequirement {
                 gap_id: format!("g{i}"),
                 minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
             })
             .collect(),
     });

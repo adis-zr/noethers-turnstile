@@ -161,6 +161,7 @@ fn t11_dia_context_cannot_compose_into_action_permission() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![ProofToken {
@@ -232,10 +233,12 @@ fn t11_dia_ceiling_prevents_action_permission() {
                     GapRequirement {
                         gap_id: "g1".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                     GapRequirement {
                         gap_id: "g2".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
+                        any_of: None,
                     },
                 ],
             },
@@ -244,6 +247,7 @@ fn t11_dia_ceiling_prevents_action_permission() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             },
         ],
@@ -311,6 +315,7 @@ fn t11_compose_dia_ceiling_with_aaa_stays_at_dia() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

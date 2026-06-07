@@ -48,6 +48,7 @@ fn build_ctx(ceiling: Permission, membership: Membership, with_token: bool) -> P
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     }];
 

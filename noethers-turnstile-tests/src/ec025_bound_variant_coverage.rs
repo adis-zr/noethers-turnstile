@@ -268,7 +268,8 @@ fn b15_bounding_token_upgrades_gap_to_bounded() {
             permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
-                minimum_status: RequiredStatus::BoundedRequired, // Bounded is sufficient
+                minimum_status: RequiredStatus::BoundedRequired, // Bounded is sufficient,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {

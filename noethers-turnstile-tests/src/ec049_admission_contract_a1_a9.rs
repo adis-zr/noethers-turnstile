@@ -64,6 +64,7 @@ fn clean_ctx() -> ProofContext {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -136,6 +137,7 @@ fn a1_2_different_gap_ids_same_type_accepted() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1-alpha".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -328,6 +330,7 @@ fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
+                    any_of: None,
                 }],
             }],
             tokens: vec![ProofToken {
@@ -408,6 +411,7 @@ fn a9_1_million_char_allowed_use_terminates() {
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
+                any_of: None,
             }],
         }],
         tokens: vec![ProofToken {
@@ -485,6 +489,7 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
             required_gaps: vec![GapRequirement {
                 gap_id: format!("gap-{}", i % 20),
                 minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
             }],
         })
         .collect();
@@ -510,6 +515,7 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
         required_gaps: vec![GapRequirement {
             gap_id: "gap-0".into(),
             minimum_status: RequiredStatus::ClosedRequired,
+            any_of: None,
         }],
     })
     .collect();
