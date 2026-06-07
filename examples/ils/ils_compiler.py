@@ -26,7 +26,7 @@ from geometry import rvr_floor
 from profiles import (
     GAP_SIGNAL, GAP_VISUAL, GAP_AUTH,
     GAP_TYPE_SIGNAL, GAP_TYPE_VISUAL, GAP_TYPE_AUTH,
-    build_profiles,
+    build_profiles, ILS_CHAIN,
 )
 
 _CLAIM_ID    = "ils.approach.v1"
@@ -88,11 +88,14 @@ def compile_approach(
         context_id=_CONTEXT_ID,
         allowed_use=_ALLOWED_USE,
         membership=t.Membership.InClass,
-        authority_ceiling=t.Permission.AAA,
+        # Authority ceiling is the chain's Top — unconstrained by delegation.
+        authority_ceiling=ILS_CHAIN.role(t.ChainRole.Top),
         expiry=t.Expiry.never(),
         gaps=gaps,
         profiles=build_profiles(),
         tokens=tokens,
     )
 
-    return t.compile_static(ctx)
+    # Compile against the native ILS chain. The judgment's chain_hash records
+    # the chain that authorized the decision.
+    return t.compile_static(ctx, chain=ILS_CHAIN)

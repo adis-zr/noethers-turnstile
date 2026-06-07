@@ -1,6 +1,6 @@
 # ILS Blind Audit — Report
 
-Generated: 2026-06-01T06:05:25.478177+00:00
+Generated: 2026-06-07T23:22:09.431792+00:00
 Pre-registration sealed: 2026-06-01T05:13:50.655722+00:00
 
 ## Setup
@@ -27,34 +27,34 @@ The compiler was run on sweeps and compared against FAA thresholds afterward.
 === Sweep_A_f3_absent (DH=200.0 ft, f3=absent) ===
   RVR (ft)     f2    Permission
 ----------------------------------
-      2400      Y           REV
-      2300      Y           REV
-      2200      Y           REV
-      2100      Y           REV
-      2000      Y           REV
-      1900      Y           REV
-      1800      N           DIA
-      1700      N           DIA
-      1600      N           DIA
-      1500      N           DIA
-      1400      N           DIA
-      1300      N           DIA
-      1200      N           DIA
-      1100      N           DIA
-      1000      N           DIA
-       900      N           DIA
-       800      N           DIA
-       700      N           DIA
-       600      N           DIA
-       500      N           DIA
-       400      N           DIA
-       300      N           DIA
-       200      N           DIA
-       100      N           DIA
-         0      N           DIA
+      2400      Y   LAND_MANUAL
+      2300      Y   LAND_MANUAL
+      2200      Y   LAND_MANUAL
+      2100      Y   LAND_MANUAL
+      2000      Y   LAND_MANUAL
+      1900      Y   LAND_MANUAL
+      1800      N  DESCEND_TO_DH
+      1700      N  DESCEND_TO_DH
+      1600      N  DESCEND_TO_DH
+      1500      N  DESCEND_TO_DH
+      1400      N  DESCEND_TO_DH
+      1300      N  DESCEND_TO_DH
+      1200      N  DESCEND_TO_DH
+      1100      N  DESCEND_TO_DH
+      1000      N  DESCEND_TO_DH
+       900      N  DESCEND_TO_DH
+       800      N  DESCEND_TO_DH
+       700      N  DESCEND_TO_DH
+       600      N  DESCEND_TO_DH
+       500      N  DESCEND_TO_DH
+       400      N  DESCEND_TO_DH
+       300      N  DESCEND_TO_DH
+       200      N  DESCEND_TO_DH
+       100      N  DESCEND_TO_DH
+         0      N  DESCEND_TO_DH
 
 Transitions (RVR where permission changes):
-  1800 ft: REV → DIA
+  1800 ft: LAND_MANUAL → DESCEND_TO_DH
 ```
 
 ## Sweep B (f3 present)
@@ -63,31 +63,31 @@ Transitions (RVR where permission changes):
 === Sweep_B_f3_present (DH=200.0 ft, f3=present) ===
   RVR (ft)     f2    Permission
 ----------------------------------
-      2400      Y           ALR
-      2300      Y           ALR
-      2200      Y           ALR
-      2100      Y           ALR
-      2000      Y           ALR
-      1900      Y           ALR
-      1800      N           ALR
-      1700      N           ALR
-      1600      N           ALR
-      1500      N           ALR
-      1400      N           ALR
-      1300      N           ALR
-      1200      N           ALR
-      1100      N           ALR
-      1000      N           ALR
-       900      N           ALR
-       800      N           ALR
-       700      N           ALR
-       600      N           ALR
-       500      N           ALR
-       400      N           ALR
-       300      N           ALR
-       200      N           ALR
-       100      N           ALR
-         0      N           ALR
+      2400      Y  LAND_ZERO_ZERO
+      2300      Y  LAND_ZERO_ZERO
+      2200      Y  LAND_ZERO_ZERO
+      2100      Y  LAND_ZERO_ZERO
+      2000      Y  LAND_ZERO_ZERO
+      1900      Y  LAND_ZERO_ZERO
+      1800      N  LAND_ZERO_ZERO
+      1700      N  LAND_ZERO_ZERO
+      1600      N  LAND_ZERO_ZERO
+      1500      N  LAND_ZERO_ZERO
+      1400      N  LAND_ZERO_ZERO
+      1300      N  LAND_ZERO_ZERO
+      1200      N  LAND_ZERO_ZERO
+      1100      N  LAND_ZERO_ZERO
+      1000      N  LAND_ZERO_ZERO
+       900      N  LAND_ZERO_ZERO
+       800      N  LAND_ZERO_ZERO
+       700      N  LAND_ZERO_ZERO
+       600      N  LAND_ZERO_ZERO
+       500      N  LAND_ZERO_ZERO
+       400      N  LAND_ZERO_ZERO
+       300      N  LAND_ZERO_ZERO
+       200      N  LAND_ZERO_ZERO
+       100      N  LAND_ZERO_ZERO
+         0      N  LAND_ZERO_ZERO
 
 No transitions (permission constant across sweep)
 ```

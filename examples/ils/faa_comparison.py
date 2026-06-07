@@ -84,17 +84,17 @@ def classify_cat1(sweep_a: SweepResult) -> BoundaryClassification:
     # We want the RVR at which permission drops from LAND_MANUAL to DESCEND_TO_DH
     manual_to_descend = None
     for rvr, from_p, to_p in transitions:
-        if "REV" in from_p and "DIA" in to_p:
+        if from_p == "LAND_MANUAL" and to_p == "DESCEND_TO_DH":
             manual_to_descend = rvr
             break
-        if "AEX" in from_p and "DIA" in to_p:
+        if from_p == "LAND_ASSISTED" and to_p == "DESCEND_TO_DH":
             manual_to_descend = rvr
             break
 
     # Also accept if top of sweep is already LAND_MANUAL and we find the drop
     if manual_to_descend is None:
         for rvr, from_p, to_p in transitions:
-            if "DIA" in to_p:
+            if to_p == "DESCEND_TO_DH":
                 manual_to_descend = rvr
                 break
 
