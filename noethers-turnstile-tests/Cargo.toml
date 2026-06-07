@@ -346,10 +346,70 @@ path = "src/ec049_admission_contract_a1_a9.rs"
 name = "ec050_schema_version_adversarial"
 path = "src/ec050_schema_version_adversarial.rs"
 
+# ── Chain parameterization (refactor) ────────────────────────────────────────
+
+[[test]]
+name = "ec051a_chain_valid_default"
+path = "src/ec051a_chain_valid_default.rs"
+
+[[test]]
+name = "ec051b_chain_invalid_rejected"
+path = "src/ec051b_chain_invalid_rejected.rs"
+
+[[test]]
+name = "ec052_compile_with_custom_chain_soundness"
+path = "src/ec052_compile_with_custom_chain_soundness.rs"
+
+[[test]]
+name = "ec052b_all_meets_discipline"
+path = "src/ec052b_all_meets_discipline.rs"
+
+[[test]]
+name = "ec053_compile_with_custom_chain_sharpness"
+path = "src/ec053_compile_with_custom_chain_sharpness.rs"
+
+[[test]]
+name = "ec054_compile_with_custom_chain_expiry"
+path = "src/ec054_compile_with_custom_chain_expiry.rs"
+
+[[test]]
+name = "ec055_compile_with_custom_chain_provenance"
+path = "src/ec055_compile_with_custom_chain_provenance.rs"
+
+[[test]]
+name = "ec055b_chain_identity"
+path = "src/ec055b_chain_identity.rs"
+
+[[test]]
+name = "ec056_compile_with_custom_chain_monotonicity"
+path = "src/ec056_compile_with_custom_chain_monotonicity.rs"
+
+[[test]]
+name = "ec057_compose_with_custom_chain_nonpromotion"
+path = "src/ec057_compose_with_custom_chain_nonpromotion.rs"
+
+[[test]]
+name = "ec058_representation_theorem_under_chains"
+path = "src/ec058_representation_theorem_under_chains.rs"
+
+[[test]]
+name = "ec059_default_chain_behavioral_equivalence"
+path = "src/ec059_default_chain_behavioral_equivalence.rs"
+
+[[test]]
+name = "ec060_proptest_arbitrary_chain"
+path = "src/ec060_proptest_arbitrary_chain.rs"
+
+[[test]]
+name = "ec060b_publication_smoke"
+path = "src/ec060b_publication_smoke.rs"
+
 [dependencies]
 noethers-turnstile-core = { path = "../noethers-turnstile-core" }
+serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
+proptest = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }

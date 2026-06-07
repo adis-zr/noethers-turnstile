@@ -265,7 +265,7 @@ fn b15_bounding_token_upgrades_gap_to_bounded() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired, // Bounded is sufficient
@@ -286,15 +286,16 @@ fn b15_bounding_token_upgrades_gap_to_bounded() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "B15: a bounding token with BoundedRequired profile must satisfy the requirement and emit DIA"
     );
 }

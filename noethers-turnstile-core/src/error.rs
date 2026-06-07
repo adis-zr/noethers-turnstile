@@ -1,5 +1,7 @@
-/// TurnstileError hierarchy.
+//! TurnstileError hierarchy.
 use thiserror::Error;
+
+use crate::permission::ChainError;
 
 /// Error returned by the composition operator.
 #[derive(Debug, Error)]
@@ -12,6 +14,9 @@ pub enum CompositionError {
 
     #[error("empty composition: at least one context is required")]
     EmptyComposition,
+
+    #[error("chain mismatch: input contexts/judgments authorized under a different chain")]
+    ChainMismatch,
 }
 
 /// The top-level error type for all Turnstile operations.
@@ -40,4 +45,13 @@ pub enum TurnstileError {
 
     #[error("expired: judgment expired at {deadline}")]
     Expired { deadline: String },
+
+    #[error("chain error: {0}")]
+    Chain(ChainError),
+}
+
+impl From<ChainError> for TurnstileError {
+    fn from(e: ChainError) -> Self {
+        TurnstileError::Chain(e)
+    }
 }

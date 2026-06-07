@@ -45,9 +45,10 @@ fn base_ctx(id: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -82,7 +83,7 @@ fn d1_ooc_membership_produces_single_step() {
     ctx.membership = Membership::OutOfClassExact;
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
     assert_eq!(
         j.derivation.steps.len(),
         1,
@@ -94,7 +95,7 @@ fn d1_ooc_membership_produces_single_step() {
     );
     assert_eq!(
         j.derivation.steps[0].permission_after,
-        Permission::OOC,
+        Permission::OOC(),
         "D1: membership_check step must record OOC"
     );
 }
@@ -106,7 +107,7 @@ fn d2_satisfied_profile_produces_descending_search_step() {
     let mut ctx = base_ctx("d2");
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -133,10 +134,10 @@ fn d2_satisfied_profile_produces_descending_search_step() {
 #[test]
 fn d3_authority_ceiling_step_appears_when_active() {
     let mut ctx = base_ctx("d3");
-    ctx.authority_ceiling = Permission::DIA; // lower than AAA
+    ctx.authority_ceiling = Some(Permission::DIA()); // lower than AAA
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::AEX, // would compile to AEX without ceiling
+        permission: Permission::AEX(), // would compile to AEX without ceiling
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -146,7 +147,7 @@ fn d3_authority_ceiling_step_appears_when_active() {
     ctx.tokens.push(tok);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA, "D3: ceiling must cap at DIA");
+    assert_eq!(j.permission, Permission::DIA(), "D3: ceiling must cap at DIA");
 
     let phases: Vec<&str> = j
         .derivation
@@ -168,7 +169,7 @@ fn d4_expiry_blocker_step_appears_when_token_expired() {
     let mut ctx = base_ctx("d4");
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -198,7 +199,7 @@ fn d4_expiry_blocker_step_appears_when_token_expired() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "D4: expired token must floor to EXP"
     );
 
@@ -222,7 +223,7 @@ fn d5_structural_blockers_step_appears_when_disallowed_uses_present() {
     ctx.disallowed_uses = vec!["dangerous-write".into()];
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::AEX, // AEX would be blocked by disallowed_uses
+        permission: Permission::AEX(), // AEX would be blocked by disallowed_uses
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -233,7 +234,7 @@ fn d5_structural_blockers_step_appears_when_disallowed_uses_present() {
 
     let j = compile(ctx).unwrap();
     assert!(
-        j.permission <= Permission::ROL,
+        j.permission <= Permission::ROL(),
         "D5: disallowed_uses must cap at ROL"
     );
 
@@ -256,7 +257,7 @@ fn d6_nc_registration_step_appears_when_nc_token_present() {
     let mut ctx = base_ctx("d6");
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -301,11 +302,12 @@ fn d6_nc_registration_step_appears_when_nc_token_present() {
 #[test]
 fn d7_derivation_steps_are_non_increasing() {
     let mut ctx = base_ctx("d7");
-    ctx.authority_ceiling = Permission::DIA;
+    ctx.authority_ceiling = Some(Permission::DIA());
+
     ctx.disallowed_uses = vec!["write".into()];
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::AEX,
+        permission: Permission::AEX(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -339,13 +341,13 @@ fn d8_final_step_matches_emitted_permission() {
         // OOC scenario
         let mut ctx = base_ctx("d8-ooc");
         ctx.membership = Membership::OutOfClassExact;
-        scenarios.push((ctx, Permission::OOC));
+        scenarios.push((ctx, Permission::OOC()));
 
         // DIA scenario
         let mut ctx = base_ctx("d8-dia");
         ctx.gaps.push(GapRecord::closed("g1", "t"));
         ctx.profiles.push(Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -353,7 +355,7 @@ fn d8_final_step_matches_emitted_permission() {
         });
         let tok = valid_token("tok-d8-dia", vec!["g1"], &ctx);
         ctx.tokens.push(tok);
-        scenarios.push((ctx, Permission::DIA));
+        scenarios.push((ctx, Permission::DIA()));
 
         scenarios
     };
@@ -390,7 +392,7 @@ fn d10_derivation_provenance_hash_matches_context() {
     let mut ctx = base_ctx("d10");
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -420,7 +422,7 @@ fn d11_t18_audit_record_does_not_alter_permission() {
     let mut ctx = base_ctx("d11");
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -475,7 +477,7 @@ fn d12_derivation_token_ids_are_consulted_tokens() {
     let mut ctx = base_ctx("d12");
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,

@@ -40,7 +40,23 @@ OOC < EXP < REF < UNS < ETA < ESC < ROL < DIA < REV < AEX < ALR < AAA
 
 ---
 
-## Quick Start — Rust
+## Parameterized permission chains
+
+The compiler is parameterized over a **permission chain** — a validated total
+order of named levels plus role anchors (`Bottom`, `ExpiryFloor`, `Refused`,
+`Unsatisfied`, `DisallowedUsesCeiling`, `BlockerThreshold`, `Top`). The
+historical 12-level chain is the **default** and lives at
+`PermissionChain::default_chain()`. Callers may supply their own chain via
+`compile_with_chain` / `compose_with_chain`.
+
+Every emitted `Judgment` carries the `chain_hash` of the chain that authorized
+it. A `ChainRegistry` trait + `verify_published` function let auditors
+mechanically check that the chain referenced by a judgment is published —
+publication is API, not prose.
+
+See `docs/specs/permission_chain_refactor_spec.md` for the full design.
+
+## Quick Start — Rust (default chain)
 
 ```rust
 use noethers_turnstile_core::{
@@ -71,7 +87,7 @@ let ctx = ProofContext {
     scope: Scope::default(),
     gaps: vec![GapRecord::closed("calibration-gap", "calibration_gap")],
     profiles: vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "calibration-gap".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -92,19 +108,71 @@ let ctx = ProofContext {
         is_negative_control: false,
     }],
     expiry: Expiry::never(),
-    authority_ceiling: Permission::AAA,
-    permission_ceiling: Permission::AAA,
+    authority_ceiling: None,           // None = chain top (unconstrained)
+    permission_ceiling: None,
     membership: Membership::InClass,
+    expected_chain_hash: None,
 };
 
-// 2. Compile.
+// 2. Compile. The bare `compile` uses the default chain and stamps the
+//    judgment with default_chain().chain_hash() so the decision is recorded
+//    even when the default is implicit.
 let judgment = compile(ctx).unwrap();
-assert_eq!(judgment.permission, Permission::DIA);
+assert_eq!(judgment.permission, Permission::DIA());
 
 // 3. Read through LiveJudgment (expiry check enforced by Rust borrow checker).
 let rt = RuntimeContext::new(Utc::now(), "fp-001");
 let live = noethers_turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
-assert_eq!(live.permission(), Permission::DIA);
+assert_eq!(live.permission(), Permission::DIA());
+```
+
+## Quick Start — Rust (custom chain)
+
+```rust
+use std::collections::HashMap;
+use noethers_turnstile_core::{
+    compile_with_chain,
+    permission::{ChainRole, Permission, PermissionChain},
+};
+
+// Paper-style 5-level chain: REF < DIA < REV < AEX < ALR.
+let levels = vec![
+    Permission::new("REF"),
+    Permission::new("DIA"),
+    Permission::new("REV"),
+    Permission::new("AEX"),
+    Permission::new("ALR"),
+];
+let mut roles = HashMap::new();
+roles.insert(ChainRole::Bottom, 0);
+roles.insert(ChainRole::ExpiryFloor, 0);
+roles.insert(ChainRole::Refused, 0);
+roles.insert(ChainRole::Unsatisfied, 0);
+roles.insert(ChainRole::DisallowedUsesCeiling, 0);
+roles.insert(ChainRole::BlockerThreshold, 1);  // DIA
+roles.insert(ChainRole::Top, 4);                // ALR
+let chain = PermissionChain::new(levels, roles).expect("valid");
+
+// Now compile against `chain` — the compiler's structural anchors come from
+// the chain, never from naming a level literal.
+// let judgment = compile_with_chain(ctx, &chain)?;
+```
+
+## Audit-time publication check
+
+```rust
+use noethers_turnstile_core::{
+    compile_with_chain, verify_published,
+    permission::{InMemoryChainRegistry, PermissionChain},
+};
+
+let mut registry = InMemoryChainRegistry::new();
+let chain = PermissionChain::default_chain().clone();
+let hash = registry.publish(chain.clone());
+
+// Compile a judgment under that chain.
+// let judgment = compile_with_chain(ctx, &chain)?;
+// verify_published(&judgment, &registry)?; // Ok — chain is published.
 ```
 
 ### Composition

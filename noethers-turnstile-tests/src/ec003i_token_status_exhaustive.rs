@@ -38,7 +38,7 @@ fn ctx_with_status(status: TokenStatus) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -59,9 +59,10 @@ fn ctx_with_status(status: TokenStatus) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -73,7 +74,7 @@ fn valid_token_closes_gap() {
     // Update gap to Closed (the token attests it)
     ctx.gaps[0] = GapRecord::closed("g1", "t");
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 #[test]
@@ -81,7 +82,7 @@ fn invalid_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Invalid)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "Invalid token must not close gap; in-class with unmet profile → REF"
     );
 }
@@ -91,7 +92,7 @@ fn expired_status_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Expired)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "Expired status token must not close gap; in-class with unmet profile → REF"
     );
 }
@@ -101,7 +102,7 @@ fn revoked_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Revoked)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "Revoked token must not close gap; in-class with unmet profile → REF"
     );
 }
@@ -111,7 +112,7 @@ fn malformed_token_does_not_close_gap() {
     let j = compile(ctx_with_status(TokenStatus::Malformed)).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "Malformed token must not close gap; in-class with unmet profile → REF"
     );
 }
@@ -137,7 +138,7 @@ fn token_expired_by_timestamp_gives_exp_at_compile() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -158,14 +159,15 @@ fn token_expired_by_timestamp_gives_exp_at_compile() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "token expired by timestamp must floor to EXP"
     );
 }
@@ -189,7 +191,7 @@ fn token_not_yet_expired_contributes_normally() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -210,14 +212,15 @@ fn token_not_yet_expired_contributes_normally() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "non-expired token must contribute"
     );
 }
@@ -243,7 +246,7 @@ fn context_expiry_independent_of_token_expiry() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -264,14 +267,15 @@ fn context_expiry_independent_of_token_expiry() {
             is_negative_control: false,
         }],
         expiry: Expiry::at(Utc::now() - Duration::seconds(1)), // context expired
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "context-level expiry must floor to EXP"
     );
 }
@@ -297,7 +301,7 @@ fn both_token_and_context_expired_gives_exp() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -318,12 +322,13 @@ fn both_token_and_context_expired_gives_exp() {
             is_negative_control: false,
         }],
         expiry: Expiry::at(past),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP);
+    assert_eq!(j.permission, Permission::EXP());
 }
 
 // ── Multiple gaps, one expired token: only the expired gap is downgraded ──────
@@ -347,7 +352,7 @@ fn one_expired_token_among_many_floors_to_exp() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t"), GapRecord::closed("g2", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -390,15 +395,16 @@ fn one_expired_token_among_many_floors_to_exp() {
             },
         ],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "any expired token must floor to EXP"
     );
 }
@@ -419,7 +425,7 @@ proptest! {
     fn prop_non_valid_token_never_closes_gap(status in arb_non_valid_status()) {
         let j = compile(ctx_with_status(status)).unwrap();
         // Non-valid token → gap stays Open → profile not satisfied → REF (in-class, profile defined)
-        prop_assert!(j.permission <= Permission::REF,
+        prop_assert!(j.permission <= Permission::REF(),
             "non-Valid token {:?} must not emit above REF; got {:?}", status, j.permission);
     }
 }

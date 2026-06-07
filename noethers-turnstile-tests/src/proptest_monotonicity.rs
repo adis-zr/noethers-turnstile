@@ -17,18 +17,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -64,7 +64,7 @@ proptest! {
 
         // Profile: DIA requires all gaps closed.
         let profiles = vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: (0..actual_gap_count)
                 .map(|i| GapRequirement {
                     gap_id: format!("gap-{}", i),
@@ -85,9 +85,11 @@ proptest! {
             profiles: profiles.clone(),
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: ceiling,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(ceiling),
+
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         let p_before = compile(base_ctx.clone()).unwrap().permission;
@@ -153,7 +155,7 @@ fn wrong_provenance_token_does_not_lower_permission() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -161,14 +163,15 @@ fn wrong_provenance_token_does_not_lower_permission() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let p_before = compile(base_ctx.clone()).unwrap().permission;
     // InClass candidate with profile defined but unmet → UNS (not OOC).
-    assert_eq!(p_before, Permission::UNS);
+    assert_eq!(p_before, Permission::UNS());
 
     // Add a wrong-provenance token.
     let bad_token = ProofToken {
@@ -195,5 +198,5 @@ fn wrong_provenance_token_does_not_lower_permission() {
     // Wrong-provenance token triggers PROVENANCE_MISMATCH structural blocker → REF.
     // Note: REF < UNS in the lattice, so a wrong-provenance token legitimately *lowers*
     // permission from UNS (unmet profile, no blocker) to REF (structural blocker).
-    assert_eq!(p_after, Permission::REF);
+    assert_eq!(p_after, Permission::REF());
 }

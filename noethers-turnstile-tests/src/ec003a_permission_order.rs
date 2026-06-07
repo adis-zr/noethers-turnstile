@@ -12,35 +12,35 @@ use proptest::prelude::*;
 
 pub fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
-pub const ALL: [Permission; 12] = [
-    Permission::OOC,
-    Permission::EXP,
-    Permission::REF,
-    Permission::UNS,
-    Permission::ETA,
-    Permission::ESC,
-    Permission::ROL,
-    Permission::DIA,
-    Permission::REV,
-    Permission::AEX,
-    Permission::ALR,
-    Permission::AAA,
-];
+fn all() -> [Permission; 12] { [
+    Permission::OOC(),
+    Permission::EXP(),
+    Permission::REF(),
+    Permission::UNS(),
+    Permission::ETA(),
+    Permission::ESC(),
+    Permission::ROL(),
+    Permission::DIA(),
+    Permission::REV(),
+    Permission::AEX(),
+    Permission::ALR(),
+    Permission::AAA(),
+] }
 
 // ── Exhaustive order tests (finite domain, 12 elements) ──────────────────────
 
@@ -51,15 +51,15 @@ fn chain_has_12_elements() {
 
 #[test]
 fn ooc_is_minimum() {
-    for p in ALL {
-        assert!(Permission::OOC <= p, "OOC should be ≤ {p}");
+    for p in all() {
+        assert!(Permission::OOC() <= p, "OOC should be ≤ {p}");
     }
 }
 
 #[test]
 fn aaa_is_maximum() {
-    for p in ALL {
-        assert!(p <= Permission::AAA, "{p} should be ≤ AAA");
+    for p in all() {
+        assert!(p <= Permission::AAA(), "{p} should be ≤ AAA");
     }
 }
 
@@ -86,8 +86,8 @@ fn total_order_correct() {
 
 #[test]
 fn total_order_every_pair_comparable() {
-    for a in ALL {
-        for b in ALL {
+    for a in all() {
+        for b in all() {
             assert!(a <= b || b <= a, "incomparable: {a} and {b}");
         }
     }
@@ -95,15 +95,15 @@ fn total_order_every_pair_comparable() {
 
 #[test]
 fn reflexivity_exhaustive() {
-    for p in ALL {
+    for p in all() {
         assert!(p <= p, "reflexivity failed for {p}");
     }
 }
 
 #[test]
 fn antisymmetry_exhaustive() {
-    for a in ALL {
-        for b in ALL {
+    for a in all() {
+        for b in all() {
             if a <= b && b <= a {
                 assert_eq!(
                     a, b,
@@ -116,9 +116,9 @@ fn antisymmetry_exhaustive() {
 
 #[test]
 fn transitivity_exhaustive() {
-    for a in ALL {
-        for b in ALL {
-            for c in ALL {
+    for a in all() {
+        for b in all() {
+            for c in all() {
                 if a <= b && b <= c {
                     assert!(a <= c, "transitivity failed: {a} ≤ {b} ≤ {c} but {a} ≰ {c}");
                 }
@@ -131,37 +131,37 @@ fn transitivity_exhaustive() {
 
 #[test]
 fn expired_refused_unsupported_chain() {
-    assert!(Permission::EXP <= Permission::REF);
-    assert!(Permission::REF <= Permission::UNS);
-    assert!(Permission::EXP <= Permission::UNS);
+    assert!(Permission::EXP() <= Permission::REF());
+    assert!(Permission::REF() <= Permission::UNS());
+    assert!(Permission::EXP() <= Permission::UNS());
 }
 
 #[test]
 fn control_cluster_eta_esc_rol() {
-    assert!(Permission::ETA <= Permission::ESC);
-    assert!(Permission::ESC <= Permission::ROL);
-    assert!(Permission::ETA <= Permission::ROL);
+    assert!(Permission::ETA() <= Permission::ESC());
+    assert!(Permission::ESC() <= Permission::ROL());
+    assert!(Permission::ETA() <= Permission::ROL());
 }
 
 #[test]
 fn approval_cluster_aex_alr_aaa() {
-    assert!(Permission::AEX <= Permission::ALR);
-    assert!(Permission::ALR <= Permission::AAA);
-    assert!(Permission::AEX <= Permission::AAA);
+    assert!(Permission::AEX() <= Permission::ALR());
+    assert!(Permission::ALR() <= Permission::AAA());
+    assert!(Permission::AEX() <= Permission::AAA());
 }
 
 // ── Pairwise meet table (144 pairs, EC-003 §6–7) ─────────────────────────────
 
 #[test]
 fn meet_all_144_pairs() {
-    for a in ALL {
-        for b in ALL {
+    for a in all() {
+        for b in all() {
             let m = a.meet(b);
             // Lower-bound both
             assert!(m <= a, "meet({a},{b})={m} not ≤ {a}");
             assert!(m <= b, "meet({a},{b})={m} not ≤ {b}");
             // Greatest lower bound
-            for x in ALL {
+            for x in all() {
                 if x <= a && x <= b {
                     assert!(
                         x <= m,
@@ -175,8 +175,8 @@ fn meet_all_144_pairs() {
 
 #[test]
 fn meet_commutative_all_pairs() {
-    for a in ALL {
-        for b in ALL {
+    for a in all() {
+        for b in all() {
             assert_eq!(a.meet(b), b.meet(a), "commutativity failed for ({a},{b})");
         }
     }
@@ -184,46 +184,46 @@ fn meet_commutative_all_pairs() {
 
 #[test]
 fn meet_idempotent_all() {
-    for a in ALL {
+    for a in all() {
         assert_eq!(a.meet(a), a, "idempotence failed for {a}");
     }
 }
 
 #[test]
 fn ooc_is_absorbing() {
-    for p in ALL {
-        assert_eq!(Permission::OOC.meet(p), Permission::OOC);
-        assert_eq!(p.meet(Permission::OOC), Permission::OOC);
+    for p in all() {
+        assert_eq!(Permission::OOC().meet(p), Permission::OOC());
+        assert_eq!(p.meet(Permission::OOC()), Permission::OOC());
     }
 }
 
 #[test]
 fn aaa_is_identity() {
-    for p in ALL {
-        assert_eq!(Permission::AAA.meet(p), p);
-        assert_eq!(p.meet(Permission::AAA), p);
+    for p in all() {
+        assert_eq!(Permission::AAA().meet(p), p);
+        assert_eq!(p.meet(Permission::AAA()), p);
     }
 }
 
 #[test]
 fn cross_kind_edge_cases() {
-    assert_eq!(Permission::OOC.meet(Permission::EXP), Permission::OOC);
-    assert_eq!(Permission::OOC.meet(Permission::REF), Permission::OOC);
-    assert_eq!(Permission::EXP.meet(Permission::REF), Permission::EXP);
-    assert_eq!(Permission::REF.meet(Permission::ESC), Permission::REF);
-    assert_eq!(Permission::UNS.meet(Permission::ESC), Permission::UNS);
-    assert_eq!(Permission::ETA.meet(Permission::ROL), Permission::ETA);
-    assert_eq!(Permission::ROL.meet(Permission::AAA), Permission::ROL);
-    assert_eq!(Permission::DIA.meet(Permission::AEX), Permission::DIA);
+    assert_eq!(Permission::OOC().meet(Permission::EXP()), Permission::OOC());
+    assert_eq!(Permission::OOC().meet(Permission::REF()), Permission::OOC());
+    assert_eq!(Permission::EXP().meet(Permission::REF()), Permission::EXP());
+    assert_eq!(Permission::REF().meet(Permission::ESC()), Permission::REF());
+    assert_eq!(Permission::UNS().meet(Permission::ESC()), Permission::UNS());
+    assert_eq!(Permission::ETA().meet(Permission::ROL()), Permission::ETA());
+    assert_eq!(Permission::ROL().meet(Permission::AAA()), Permission::ROL());
+    assert_eq!(Permission::DIA().meet(Permission::AEX()), Permission::DIA());
 }
 
 // ── Triple associativity (1728 triples, EC-003 §8) ───────────────────────────
 
 #[test]
 fn meet_associative_all_triples() {
-    for a in ALL {
-        for b in ALL {
-            for c in ALL {
+    for a in all() {
+        for b in all() {
+            for c in all() {
                 let left = a.meet(b).meet(c);
                 let right = a.meet(b.meet(c));
                 assert_eq!(
@@ -239,7 +239,7 @@ fn meet_associative_all_triples() {
 
 #[test]
 fn meet_n_singleton() {
-    for p in ALL {
+    for p in all() {
         assert_eq!(Permission::meet_n(std::iter::once(p)), Some(p));
     }
 }
@@ -251,23 +251,23 @@ fn meet_n_empty_is_none() {
 
 #[test]
 fn meet_n_all_ooc_gives_ooc() {
-    let result = Permission::meet_n(std::iter::repeat_n(Permission::OOC, 10));
-    assert_eq!(result, Some(Permission::OOC));
+    let result = Permission::meet_n(std::iter::repeat_n(Permission::OOC(), 10));
+    assert_eq!(result, Some(Permission::OOC()));
 }
 
 #[test]
 fn meet_n_all_aaa_gives_aaa() {
-    let result = Permission::meet_n(std::iter::repeat_n(Permission::AAA, 10));
-    assert_eq!(result, Some(Permission::AAA));
+    let result = Permission::meet_n(std::iter::repeat_n(Permission::AAA(), 10));
+    assert_eq!(result, Some(Permission::AAA()));
 }
 
 #[test]
 fn meet_n_single_ooc_dominates() {
     let xs: Vec<Permission> = (0..9)
-        .map(|_| Permission::AAA)
-        .chain(std::iter::once(Permission::OOC))
+        .map(|_| Permission::AAA())
+        .chain(std::iter::once(Permission::OOC()))
         .collect();
-    assert_eq!(Permission::meet_n(xs.into_iter()), Some(Permission::OOC));
+    assert_eq!(Permission::meet_n(xs.into_iter()), Some(Permission::OOC()));
 }
 
 // ── Proptest: shuffle invariance and split-fold ───────────────────────────────

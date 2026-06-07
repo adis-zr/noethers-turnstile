@@ -73,9 +73,10 @@ fn build_valid_ctx(suffix: &str, perm: Permission) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -83,7 +84,7 @@ fn build_valid_ctx(suffix: &str, perm: Permission) -> ProofContext {
 
 #[test]
 fn l1_live_judgment_readable_within_runtime_scope() {
-    let ctx = build_valid_ctx("l1", Permission::DIA);
+    let ctx = build_valid_ctx("l1", Permission::DIA());
     let fp = ctx.context_fingerprint.clone();
     let j = compile(ctx).unwrap();
 
@@ -91,7 +92,7 @@ fn l1_live_judgment_readable_within_runtime_scope() {
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "L1: LiveJudgment must return compiled permission when live"
     );
 }
@@ -100,7 +101,7 @@ fn l1_live_judgment_readable_within_runtime_scope() {
 
 #[test]
 fn l2_fresh_live_judgment_from_cloned_judgment_reflects_new_runtime() {
-    let ctx = build_valid_ctx("l2", Permission::REV);
+    let ctx = build_valid_ctx("l2", Permission::REV());
     let fp = ctx.context_fingerprint.clone();
     let j = compile(ctx).unwrap();
 
@@ -108,7 +109,7 @@ fn l2_fresh_live_judgment_from_cloned_judgment_reflects_new_runtime() {
     let rt1 = RuntimeContext::new(Utc::now(), &fp);
     {
         let live1 = LiveJudgment::new(j.clone(), &rt1);
-        assert_eq!(live1.permission(), Permission::REV, "L2: first runtime ok");
+        assert_eq!(live1.permission(), Permission::REV(), "L2: first runtime ok");
     }
 
     // New runtime with wrong fingerprint.
@@ -117,7 +118,7 @@ fn l2_fresh_live_judgment_from_cloned_judgment_reflects_new_runtime() {
         let live2 = LiveJudgment::new(j, &rt2);
         assert_eq!(
             live2.permission(),
-            Permission::OOC,
+            Permission::OOC(),
             "L2: mismatched runtime fingerprint must return OOC"
         );
     }
@@ -127,7 +128,7 @@ fn l2_fresh_live_judgment_from_cloned_judgment_reflects_new_runtime() {
 
 #[test]
 fn l3_judgment_accessor_returns_inner_judgment() {
-    let ctx = build_valid_ctx("l3", Permission::DIA);
+    let ctx = build_valid_ctx("l3", Permission::DIA());
     let fp = ctx.context_fingerprint.clone();
     let j = compile(ctx).unwrap();
     let stored_perm = j.permission;
@@ -145,7 +146,7 @@ fn l3_judgment_accessor_returns_inner_judgment() {
 
 #[test]
 fn l4_deadline_is_none_for_no_expiry() {
-    let ctx = build_valid_ctx("l4", Permission::DIA);
+    let ctx = build_valid_ctx("l4", Permission::DIA());
     let fp = ctx.context_fingerprint.clone();
     let j = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), &fp);
@@ -159,7 +160,7 @@ fn l4_deadline_is_none_for_no_expiry() {
 
 #[test]
 fn l4_deadline_matches_context_expiry() {
-    let mut ctx = build_valid_ctx("l4b", Permission::DIA);
+    let mut ctx = build_valid_ctx("l4b", Permission::DIA());
     let future = Utc::now() + Duration::hours(8);
     ctx.expiry = Expiry::at(future);
     let fp = ctx.context_fingerprint.clone();
@@ -177,8 +178,8 @@ fn l4_deadline_matches_context_expiry() {
 
 #[test]
 fn l5_two_live_judgments_from_same_runtime_coexist() {
-    let ctx1 = build_valid_ctx("l5a", Permission::DIA);
-    let ctx2 = build_valid_ctx("l5b", Permission::REV);
+    let ctx1 = build_valid_ctx("l5a", Permission::DIA());
+    let ctx2 = build_valid_ctx("l5b", Permission::REV());
 
     // Both contexts must share the same fingerprint to pass the RT check.
     // But they have different fingerprints — so we use a fresh RT per judgment.
@@ -196,12 +197,12 @@ fn l5_two_live_judgments_from_same_runtime_coexist() {
 
     assert_eq!(
         live1.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "L5: first live judgment"
     );
     assert_eq!(
         live2.permission(),
-        Permission::REV,
+        Permission::REV(),
         "L5: second live judgment"
     );
 }
@@ -210,13 +211,13 @@ fn l5_two_live_judgments_from_same_runtime_coexist() {
 
 #[test]
 fn l6_fingerprint_mismatch_returns_ooc() {
-    let ctx = build_valid_ctx("l6", Permission::AAA);
+    let ctx = build_valid_ctx("l6", Permission::AAA());
     let j = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), "completely-wrong-fingerprint");
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::OOC,
+        Permission::OOC(),
         "L6: fingerprint mismatch must return OOC (T15 runtime non-upgrade enforcement)"
     );
 }
@@ -225,7 +226,7 @@ fn l6_fingerprint_mismatch_returns_ooc() {
 
 #[test]
 fn l7_permission_is_idempotent() {
-    let ctx = build_valid_ctx("l7", Permission::DIA);
+    let ctx = build_valid_ctx("l7", Permission::DIA());
     let fp = ctx.context_fingerprint.clone();
     let j = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), &fp);
@@ -245,12 +246,12 @@ fn l8_live_judgment_never_upgrades_permission() {
     // Compile at DIA. The runtime has a higher "intent" but cannot override.
     // The only way to upgrade would be to modify the inner judgment, which is
     // not possible without recompiling.
-    let ctx = build_valid_ctx("l8", Permission::DIA);
+    let ctx = build_valid_ctx("l8", Permission::DIA());
     let fp = ctx.context_fingerprint.clone();
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L8: compiled permission must be DIA"
     );
 
@@ -260,7 +261,7 @@ fn l8_live_judgment_never_upgrades_permission() {
     // The live permission must never be higher than the compiled permission.
     let live_perm = live.permission();
     assert!(
-        live_perm <= Permission::DIA,
+        live_perm <= Permission::DIA(),
         "L8: T15 — live permission ({live_perm}) must not exceed compiled permission (DIA)"
     );
 }
@@ -269,20 +270,21 @@ fn l8_live_judgment_never_upgrades_permission() {
 fn l8_live_judgment_can_lower_but_not_raise() {
     // Start with AAA-ceiling but authority ceiling blocks at DIA.
     // The live read must not raise above DIA.
-    let mut ctx = build_valid_ctx("l8b", Permission::AAA);
-    ctx.authority_ceiling = Permission::DIA;
+    let mut ctx = build_valid_ctx("l8b", Permission::AAA());
+    ctx.authority_ceiling = Some(Permission::DIA());
+
     let fp = ctx.context_fingerprint.clone();
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L8b: authority ceiling must cap at DIA"
     );
 
     let rt = RuntimeContext::new(Utc::now(), &fp);
     let live = LiveJudgment::new(j, &rt);
     assert!(
-        live.permission() <= Permission::DIA,
+        live.permission() <= Permission::DIA(),
         "L8b: live permission must not exceed compiled DIA"
     );
 }

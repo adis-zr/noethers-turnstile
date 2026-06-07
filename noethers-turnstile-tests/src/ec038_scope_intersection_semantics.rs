@@ -37,9 +37,10 @@ fn ctx_with_scope(id: &str, scope: Scope) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 

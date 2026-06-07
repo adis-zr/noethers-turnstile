@@ -19,18 +19,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -44,7 +44,7 @@ fn build_ctx(ceiling: Permission, membership: Membership, with_token: bool) -> P
 
     let gaps = vec![GapRecord::closed("g1", "t")];
     let profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -82,9 +82,11 @@ fn build_ctx(ceiling: Permission, membership: Membership, with_token: bool) -> P
         profiles,
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership,
+        expected_chain_hash: None,
     }
 }
 
@@ -92,7 +94,7 @@ fn build_ctx(ceiling: Permission, membership: Membership, with_token: bool) -> P
 
 #[test]
 fn derivation_has_at_least_one_step() {
-    let ctx = build_ctx(Permission::AAA, Membership::InClass, true);
+    let ctx = build_ctx(Permission::AAA(), Membership::InClass, true);
     let j = compile(ctx).unwrap();
     assert!(
         !j.derivation.steps.is_empty(),
@@ -102,7 +104,7 @@ fn derivation_has_at_least_one_step() {
 
 #[test]
 fn ooc_derivation_has_membership_step() {
-    let ctx = build_ctx(Permission::AAA, Membership::OutOfClassExact, false);
+    let ctx = build_ctx(Permission::AAA(), Membership::OutOfClassExact, false);
     let j = compile(ctx).unwrap();
     let has_membership = j
         .derivation
@@ -114,7 +116,7 @@ fn ooc_derivation_has_membership_step() {
 
 #[test]
 fn final_step_permission_equals_judgment_permission_inclass() {
-    let ctx = build_ctx(Permission::DIA, Membership::InClass, true);
+    let ctx = build_ctx(Permission::DIA(), Membership::InClass, true);
     let j = compile(ctx).unwrap();
     let last = j.derivation.steps.last().expect("must have last step");
     assert_eq!(
@@ -125,7 +127,7 @@ fn final_step_permission_equals_judgment_permission_inclass() {
 
 #[test]
 fn derivation_provenance_hash_is_nonempty() {
-    let ctx = build_ctx(Permission::AAA, Membership::InClass, true);
+    let ctx = build_ctx(Permission::AAA(), Membership::InClass, true);
     let j = compile(ctx).unwrap();
     assert!(
         !j.derivation.provenance_hash.is_empty(),
@@ -135,7 +137,7 @@ fn derivation_provenance_hash_is_nonempty() {
 
 #[test]
 fn derivation_provenance_hash_matches_context() {
-    let ctx = build_ctx(Permission::AAA, Membership::InClass, true);
+    let ctx = build_ctx(Permission::AAA(), Membership::InClass, true);
     let expected_hash = ctx.provenance_hash();
     let j = compile(ctx).unwrap();
     assert_eq!(
@@ -146,7 +148,7 @@ fn derivation_provenance_hash_matches_context() {
 
 #[test]
 fn derivation_steps_are_non_increasing() {
-    let ctx = build_ctx(Permission::DIA, Membership::InClass, true);
+    let ctx = build_ctx(Permission::DIA(), Membership::InClass, true);
     let j = compile(ctx).unwrap();
     let perms: Vec<Permission> = j
         .derivation
@@ -167,9 +169,9 @@ fn derivation_steps_are_non_increasing() {
 #[test]
 fn authority_ceiling_step_recorded_when_it_fires() {
     // Ceiling DIA < AAA (what profile would produce): ceiling step must appear.
-    let ctx = build_ctx(Permission::ETA, Membership::InClass, true);
+    let ctx = build_ctx(Permission::ETA(), Membership::InClass, true);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::ETA);
+    assert_eq!(j.permission, Permission::ETA());
     let has_ceiling = j
         .derivation
         .steps
@@ -183,7 +185,7 @@ fn authority_ceiling_step_recorded_when_it_fires() {
 
 #[test]
 fn descending_search_step_always_present_for_inclass() {
-    let ctx = build_ctx(Permission::AAA, Membership::InClass, true);
+    let ctx = build_ctx(Permission::AAA(), Membership::InClass, true);
     let j = compile(ctx).unwrap();
     let has_search = j
         .derivation

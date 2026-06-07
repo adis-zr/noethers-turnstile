@@ -1,9 +1,9 @@
-/// ProofContext (Γ): the full proof context for a compilation.
+//! ProofContext (Γ): the full proof context for a compilation.
 use serde::{Deserialize, Serialize};
 
 use crate::expiry::Expiry;
 use crate::gap::{GapRecord, Profile};
-use crate::permission::Permission;
+use crate::permission::{ChainHash, Permission};
 use crate::token::ProofToken;
 
 /// Scope constraints on what the judgment applies to.
@@ -62,6 +62,19 @@ impl Membership {
     }
 }
 
+/// Deserializer shim for ceilings: accepts both the new `Option<Permission>`
+/// form and the legacy bare-string form (e.g. `"AAA"`) for wire compat.
+mod ceiling_serde {
+    use super::*;
+    use serde::Deserializer;
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Option<Permission>, D::Error> {
+        // Try Option<Permission> first; falls back to bare string via Permission's
+        // transparent serde impl. Both shapes resolve here.
+        Option::<Permission>::deserialize(d)
+    }
+}
+
 /// The full proof context `Γ` that the compiler operates on.
 ///
 /// All fields are owned — no borrowed references cross the FFI boundary.
@@ -83,23 +96,29 @@ pub struct ProofContext {
     pub scope: Scope,
     /// All gaps in this context, keyed by gap_id.
     pub gaps: Vec<GapRecord>,
-    /// Permission profiles sorted AAA → OOC (descending).
+    /// Permission profiles.
     pub profiles: Vec<Profile>,
     /// Proof tokens supplied for this context.
     pub tokens: Vec<ProofToken>,
     /// Expiry constraint on any judgment compiled from this context.
     pub expiry: Expiry,
-    /// Structural delegation ceiling — the maximum permission any certifier in the
-    /// delegation chain is authorized to grant.  Set by the certifier; meets
-    /// pairwise on composition.  Never modified by non-promotion logic.
-    pub authority_ceiling: Permission,
+    /// Structural delegation ceiling — the maximum permission any certifier in
+    /// the delegation chain is authorized to grant. `None` means no ceiling
+    /// (resolves to the chain's top at compile time).
+    #[serde(default, deserialize_with = "ceiling_serde::deserialize")]
+    pub authority_ceiling: Option<Permission>,
     /// Non-promotion ceiling — set by `compose()` to `meet(compile(g1), compile(g2))`
-    /// (T9).  Prevents a valid component from laundering a refused one.  Defaults to
-    /// `AAA` (unconstrained) for contexts not produced by composition.
-    #[serde(default = "Permission::top")]
-    pub permission_ceiling: Permission,
+    /// (T9). `None` means no ceiling.
+    #[serde(default, deserialize_with = "ceiling_serde::deserialize")]
+    pub permission_ceiling: Option<Permission>,
     /// Class membership of the candidate.
     pub membership: Membership,
+    /// If `Some`, the compiler must be supplied a chain whose `chain_hash`
+    /// matches; otherwise compile fails with `MalformedContext`. This pins a
+    /// context to a specific chain at authoring time so name-collisions on a
+    /// foreign chain cannot silently reinterpret it.
+    #[serde(default)]
+    pub expected_chain_hash: Option<ChainHash>,
 }
 
 impl ProofContext {
@@ -162,5 +181,51 @@ mod tests {
     fn membership_in_class() {
         assert!(Membership::InClass.is_in_class());
         assert!(!Membership::OutOfClassExact.is_in_class());
+    }
+
+    #[test]
+    fn legacy_string_ceiling_deserializes() {
+        // Pre-refactor wire format used bare "AAA" string. Confirm it still
+        // deserializes correctly.
+        let raw = r#"{
+            "claim_id": "c",
+            "candidate_id": "z",
+            "context_id": "ctx",
+            "context_fingerprint": "fp",
+            "allowed_use": "use",
+            "disallowed_uses": [],
+            "scope": {"allowed_candidates":[],"allowed_paths":[],"allowed_tools":[],"allowed_resources":[]},
+            "gaps": [],
+            "profiles": [],
+            "tokens": [],
+            "expiry": {"deadline":null,"reason":null},
+            "authority_ceiling": "AAA",
+            "permission_ceiling": "AAA",
+            "membership": {"kind":"InClass"}
+        }"#;
+        let ctx: ProofContext = serde_json::from_str(raw).expect("legacy wire format");
+        assert_eq!(ctx.authority_ceiling.unwrap().as_str(), "AAA");
+        assert_eq!(ctx.permission_ceiling.unwrap().as_str(), "AAA");
+    }
+
+    #[test]
+    fn missing_ceiling_deserializes_as_none() {
+        let raw = r#"{
+            "claim_id": "c",
+            "candidate_id": "z",
+            "context_id": "ctx",
+            "context_fingerprint": "fp",
+            "allowed_use": "use",
+            "disallowed_uses": [],
+            "scope": {"allowed_candidates":[],"allowed_paths":[],"allowed_tools":[],"allowed_resources":[]},
+            "gaps": [],
+            "profiles": [],
+            "tokens": [],
+            "expiry": {"deadline":null,"reason":null},
+            "membership": {"kind":"InClass"}
+        }"#;
+        let ctx: ProofContext = serde_json::from_str(raw).expect("missing ceilings");
+        assert!(ctx.authority_ceiling.is_none());
+        assert!(ctx.permission_ceiling.is_none());
     }
 }

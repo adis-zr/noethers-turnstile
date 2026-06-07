@@ -1,0 +1,61 @@
+{
+  "name": "09_unsatisfied_profile_uns",
+  "description": "Profile defined, gap unmet, no tokens at all → UNS (no structural blocker fires).",
+  "context": {
+    "claim_id": "claim-uns",
+    "candidate_id": "cand-uns",
+    "context_id": "ctx-uns",
+    "context_fingerprint": "fp-uns",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [
+      {
+        "gap_id": "g1",
+        "gap_type": "gap",
+        "status": {
+          "status": "Open"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "permission": "DIA",
+        "required_gaps": [
+          {
+            "gap_id": "g1",
+            "minimum_status": "ClosedRequired"
+          }
+        ]
+      }
+    ],
+    "tokens": [],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "UNS",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "UNS",
+        "note": "no profile satisfied",
+        "token_ids": []
+      }
+    ],
+    "provenance_hash": "91f21b2045d67515030ddab90832b6c91fe9ca90e466301853a8343b545efad0",
+    "compiled_at": "2026-06-07T20:41:53.409144Z"
+  }
+}

@@ -54,9 +54,10 @@ fn build_ctx(
         profiles,
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(authority_ceiling),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -120,7 +121,7 @@ fn p1_approximate_inference_with_kl_bound_compiles_to_dia() {
         GapRecord::closed("g-support", "support_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-calibration".into(),
@@ -138,7 +139,7 @@ fn p1_approximate_inference_with_kl_bound_compiles_to_dia() {
         "z-posterior",
         "ctx-inference",
         "diagnostic-use",
-        Permission::DIA,
+        Permission::DIA(),
         gaps,
         profiles,
         vec![],
@@ -153,7 +154,7 @@ fn p1_approximate_inference_with_kl_bound_compiles_to_dia() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "P1: inference with KL bound must compile to DIA"
     );
 }
@@ -165,7 +166,7 @@ fn p1_inference_without_calibration_bound_stays_ooc() {
         GapRecord::closed("g-support", "support_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-calibration".into(),
@@ -183,7 +184,7 @@ fn p1_inference_without_calibration_bound_stays_ooc() {
         "z-posterior-2",
         "ctx-inf-2",
         "diagnostic-use",
-        Permission::DIA,
+        Permission::DIA(),
         gaps,
         profiles,
         vec![],
@@ -195,7 +196,7 @@ fn p1_inference_without_calibration_bound_stays_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "P1: open calibration gap must block DIA profile; InClass unmet profile → UNS"
     );
 }
@@ -214,7 +215,7 @@ fn p2_ope_causal_claim_compiles_to_rev() {
         GapRecord::closed("g-interference", "interference_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::REV,
+        permission: Permission::REV(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-proxy".into(),
@@ -232,7 +233,7 @@ fn p2_ope_causal_claim_compiles_to_rev() {
         "z-ope",
         "ctx-causal",
         "ope-use",
-        Permission::REV,
+        Permission::REV(),
         gaps,
         profiles,
         vec![],
@@ -244,7 +245,7 @@ fn p2_ope_causal_claim_compiles_to_rev() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REV,
+        Permission::REV(),
         "P2: OPE with coupling witness must compile to REV"
     );
 }
@@ -262,7 +263,7 @@ fn p3_marketplace_allocation_with_guardrail_compiles_to_rol() {
         GapRecord::closed("g-nc", "negative_control_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::ROL,
+        permission: Permission::ROL(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-guardrail".into(),
@@ -280,7 +281,7 @@ fn p3_marketplace_allocation_with_guardrail_compiles_to_rol() {
         "z-marketplace",
         "ctx-mkt",
         "allocation-use",
-        Permission::ROL,
+        Permission::ROL(),
         gaps,
         profiles,
         vec![],
@@ -292,7 +293,7 @@ fn p3_marketplace_allocation_with_guardrail_compiles_to_rol() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::ROL,
+        Permission::ROL(),
         "P3: marketplace with guardrail must compile to ROL"
     );
 }
@@ -312,7 +313,7 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
     ];
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g-cal".into(),
@@ -325,7 +326,7 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
             ],
         },
         Profile {
-            permission: Permission::AEX, // full auto — but authority_ceiling = DIA blocks this
+            permission: Permission::AEX(), // full auto — but authority_ceiling = DIA blocks this
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g-cal".into(),
@@ -344,7 +345,7 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
         "z-triage",
         "ctx-clinical",
         "triage-use",
-        Permission::DIA, // ceiling: no autonomous clinical action
+        Permission::DIA(), // ceiling: no autonomous clinical action
         gaps,
         profiles,
         vec![],
@@ -358,11 +359,11 @@ fn p4_medical_triage_with_diagnostic_ceiling_compiles_to_dia() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "P4: medical triage must compile to DIA with ceiling"
     );
     assert!(
-        j.permission < Permission::AEX,
+        j.permission < Permission::AEX(),
         "P4: AEX must be blocked by DIA ceiling"
     );
 }
@@ -380,7 +381,7 @@ fn p5_fraud_score_with_drift_compiles_to_esc() {
         GapRecord::bounded("g-query", "query_projection_gap", Bound::infinity()),
     ];
     let profiles = vec![Profile {
-        permission: Permission::ESC,
+        permission: Permission::ESC(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-drift".into(),
@@ -398,7 +399,7 @@ fn p5_fraud_score_with_drift_compiles_to_esc() {
         "z-fraud",
         "ctx-trust",
         "fraud-use",
-        Permission::ESC,
+        Permission::ESC(),
         gaps,
         profiles,
         vec![],
@@ -412,7 +413,7 @@ fn p5_fraud_score_with_drift_compiles_to_esc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::ESC,
+        Permission::ESC(),
         "P5: fraud score with bounded query gap must compile to ESC"
     );
 }
@@ -430,7 +431,7 @@ fn p6_cybersecurity_threat_with_rollback_compiles_to_rol() {
         GapRecord::closed("g-rollback", "rollback_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::ROL,
+        permission: Permission::ROL(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-threat".into(),
@@ -448,7 +449,7 @@ fn p6_cybersecurity_threat_with_rollback_compiles_to_rol() {
         "z-quarantine",
         "ctx-security",
         "security-use",
-        Permission::ROL,
+        Permission::ROL(),
         gaps,
         profiles,
         vec![],
@@ -460,7 +461,7 @@ fn p6_cybersecurity_threat_with_rollback_compiles_to_rol() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::ROL,
+        Permission::ROL(),
         "P6: cybersecurity with rollback must compile to ROL"
     );
 }
@@ -478,7 +479,7 @@ fn p7_trading_signal_with_missing_data_compiles_to_eta() {
         GapRecord::closed("g-authority", "authority_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::ETA,
+        permission: Permission::ETA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-data".into(),
@@ -496,7 +497,7 @@ fn p7_trading_signal_with_missing_data_compiles_to_eta() {
         "z-portfolio",
         "ctx-trading",
         "trading-use",
-        Permission::ETA,
+        Permission::ETA(),
         gaps,
         profiles,
         vec![],
@@ -510,7 +511,7 @@ fn p7_trading_signal_with_missing_data_compiles_to_eta() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::ETA,
+        Permission::ETA(),
         "P7: trading signal with missing data must compile to ETA"
     );
 }
@@ -529,7 +530,7 @@ fn p8_llm_agent_with_full_evidence_compiles_to_aex() {
         GapRecord::closed("g-rollback", "rollback_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::AEX,
+        permission: Permission::AEX(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-coverage".into(),
@@ -551,7 +552,7 @@ fn p8_llm_agent_with_full_evidence_compiles_to_aex() {
         "z-deploy",
         "ctx-llm",
         "agent-deployment",
-        Permission::AEX,
+        Permission::AEX(),
         gaps,
         profiles,
         vec![],
@@ -567,7 +568,7 @@ fn p8_llm_agent_with_full_evidence_compiles_to_aex() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AEX,
+        Permission::AEX(),
         "P8: LLM agent with full evidence must compile to AEX"
     );
 }
@@ -580,7 +581,7 @@ fn p8_llm_agent_with_missing_rollback_stays_below_aex() {
         GapRecord::open("g-rollback", "rollback_gap"), // missing!
     ];
     let profiles = vec![Profile {
-        permission: Permission::AEX,
+        permission: Permission::AEX(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-coverage".into(),
@@ -602,7 +603,7 @@ fn p8_llm_agent_with_missing_rollback_stays_below_aex() {
         "z-deploy-2",
         "ctx-llm-2",
         "agent-deployment",
-        Permission::AEX,
+        Permission::AEX(),
         gaps,
         profiles,
         vec![],
@@ -613,7 +614,7 @@ fn p8_llm_agent_with_missing_rollback_stays_below_aex() {
 
     let j = compile(ctx).unwrap();
     assert!(
-        j.permission < Permission::AEX,
+        j.permission < Permission::AEX(),
         "P8: missing rollback gap must block AEX"
     );
 }
@@ -631,7 +632,7 @@ fn p9_scientific_surrogate_with_boundary_compiles_to_dia() {
         GapRecord::closed("g-boundary", "boundary_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-truth".into(),
@@ -649,7 +650,7 @@ fn p9_scientific_surrogate_with_boundary_compiles_to_dia() {
         "z-surrogate",
         "ctx-science",
         "simulation-use",
-        Permission::DIA,
+        Permission::DIA(),
         gaps,
         profiles,
         vec![],
@@ -663,7 +664,7 @@ fn p9_scientific_surrogate_with_boundary_compiles_to_dia() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "P9: surrogate model with boundary must compile to DIA"
     );
 }
@@ -681,7 +682,7 @@ fn p10_constrained_planning_with_composition_gap_compiles_to_rev() {
         GapRecord::closed("g-composition", "composition_gap"),
     ];
     let profiles = vec![Profile {
-        permission: Permission::REV,
+        permission: Permission::REV(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-support".into(),
@@ -699,7 +700,7 @@ fn p10_constrained_planning_with_composition_gap_compiles_to_rev() {
         "z-planner",
         "ctx-planning",
         "planning-use",
-        Permission::REV,
+        Permission::REV(),
         gaps,
         profiles,
         vec![],
@@ -711,7 +712,7 @@ fn p10_constrained_planning_with_composition_gap_compiles_to_rev() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REV,
+        Permission::REV(),
         "P10: constrained planner with full evidence must compile to REV"
     );
 }

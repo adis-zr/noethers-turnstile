@@ -47,7 +47,7 @@ fn ctx_with_tokens(suffix: &str, tokens: Vec<ProofToken>) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -55,9 +55,10 @@ fn ctx_with_tokens(suffix: &str, tokens: Vec<ProofToken>) -> ProofContext {
         }],
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -153,7 +154,7 @@ fn d1_valid_expired_token_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "D1: Valid token with past expires_at must trigger EXP floor"
     );
 }
@@ -173,12 +174,12 @@ fn d2_invalid_token_with_past_expiry_does_not_trigger_exp() {
     let j = compile(ctx).unwrap();
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "D2: Invalid token with past expiry must NOT trigger EXP floor"
     );
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "D2: outcome must be DIA (profile satisfied by valid token)"
     );
 }
@@ -198,7 +199,7 @@ fn d3_token_status_expired_with_past_expiry_does_not_trigger_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "D3: token with status=Expired and past expires_at must not trigger EXP floor"
     );
 }
@@ -218,7 +219,7 @@ fn d4_revoked_token_with_past_expiry_does_not_trigger_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "D4: Revoked token with past expiry must not trigger EXP floor"
     );
 }
@@ -238,7 +239,7 @@ fn d5_malformed_token_with_past_expiry_does_not_trigger_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "D5: Malformed token with past expiry must not trigger EXP floor"
     );
 }
@@ -279,7 +280,7 @@ fn d6_valid_expired_dominates_dead_expired() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "D6: valid expired token must cause EXP even when a dead expired token is also present"
     );
 }
@@ -301,7 +302,7 @@ fn d7_only_dead_expired_tokens_and_valid_profile_token_gives_dia() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "D7: valid non-expired token must yield DIA even with many dead expired tokens present"
     );
 }
@@ -315,7 +316,7 @@ fn d8_no_tokens_no_exp_floor() {
     // No profile satisfied (no closing token) → OOC, not EXP.
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "D8: context with no tokens must not produce EXP floor"
     );
 }
@@ -331,7 +332,7 @@ fn d9_valid_token_without_expiry_no_exp_floor() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "D9: valid token with no expiry must not trigger EXP floor"
     );
 }
@@ -352,7 +353,7 @@ fn d10_token_status_expired_with_future_deadline_no_exp_floor() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "D10: token with status=Expired but future deadline must not trigger EXP floor"
     );
 }

@@ -30,20 +30,22 @@ use noethers_turnstile_core::{
 };
 use proptest::prelude::*;
 
-const ALL_PERMISSIONS: [Permission; 12] = [
-    Permission::OOC,
-    Permission::EXP,
-    Permission::REF,
-    Permission::UNS,
-    Permission::ETA,
-    Permission::ESC,
-    Permission::ROL,
-    Permission::DIA,
-    Permission::REV,
-    Permission::AEX,
-    Permission::ALR,
-    Permission::AAA,
-];
+fn all_permissions() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 fn ctx_with_full_evidence_and_ceiling(ceiling: Permission, suffix: &str) -> ProofContext {
     let gap_id = "g1";
@@ -65,7 +67,7 @@ fn ctx_with_full_evidence_and_ceiling(ceiling: Permission, suffix: &str) -> Proo
         profiles: vec![
             // DIA profile requires g1 closed
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -73,7 +75,7 @@ fn ctx_with_full_evidence_and_ceiling(ceiling: Permission, suffix: &str) -> Proo
             },
             // AAA profile also requires g1 closed (same evidence satisfies both)
             Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -95,9 +97,11 @@ fn ctx_with_full_evidence_and_ceiling(ceiling: Permission, suffix: &str) -> Proo
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -114,26 +118,28 @@ fn minimal_ctx(ceiling: Permission, suffix: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -143,7 +149,7 @@ fn arb_permission() -> impl Strategy<Value = Permission> {
 fn c1_all_12_ceilings_cap_result() {
     // With full evidence (g1 closed, AAA profile present), result = ceiling
     // for ceilings ≤ AAA. For OOC/EXP the ceiling mechanism + membership/expiry rules apply.
-    for (i, &ceiling) in ALL_PERMISSIONS.iter().enumerate() {
+    for (i, &ceiling) in all_permissions().iter().enumerate() {
         let ctx = ctx_with_full_evidence_and_ceiling(ceiling, &format!("c1-{i}"));
         let j = compile(ctx).unwrap();
         assert!(
@@ -158,11 +164,11 @@ fn c1_all_12_ceilings_cap_result() {
 
 #[test]
 fn c2_ceiling_ooc_always_ooc() {
-    let ctx = ctx_with_full_evidence_and_ceiling(Permission::OOC, "c2");
+    let ctx = ctx_with_full_evidence_and_ceiling(Permission::OOC(), "c2");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "C2: ceiling OOC must return OOC regardless of evidence"
     );
 }
@@ -171,11 +177,11 @@ fn c2_ceiling_ooc_always_ooc() {
 
 #[test]
 fn c3_ceiling_exp_always_exp() {
-    let ctx = ctx_with_full_evidence_and_ceiling(Permission::EXP, "c3");
+    let ctx = ctx_with_full_evidence_and_ceiling(Permission::EXP(), "c3");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "C3: ceiling EXP must return EXP even with valid tokens"
     );
 }
@@ -185,11 +191,11 @@ fn c3_ceiling_exp_always_exp() {
 #[test]
 fn c4_ceiling_dia_caps_at_dia() {
     // Even with AAA profile and full evidence, ceiling=DIA → result=DIA
-    let ctx = ctx_with_full_evidence_and_ceiling(Permission::DIA, "c4");
+    let ctx = ctx_with_full_evidence_and_ceiling(Permission::DIA(), "c4");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "C4: ceiling DIA must cap result at DIA"
     );
 }
@@ -198,11 +204,11 @@ fn c4_ceiling_dia_caps_at_dia() {
 
 #[test]
 fn c5_ceiling_ref_caps_at_ref() {
-    let ctx = ctx_with_full_evidence_and_ceiling(Permission::REF, "c5");
+    let ctx = ctx_with_full_evidence_and_ceiling(Permission::REF(), "c5");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "C5: ceiling REF must cap result at REF"
     );
 }
@@ -211,11 +217,11 @@ fn c5_ceiling_ref_caps_at_ref() {
 
 #[test]
 fn c6_ceiling_rol_caps_at_rol() {
-    let ctx = ctx_with_full_evidence_and_ceiling(Permission::ROL, "c6");
+    let ctx = ctx_with_full_evidence_and_ceiling(Permission::ROL(), "c6");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::ROL,
+        Permission::ROL(),
         "C6: ceiling ROL must cap result at ROL"
     );
 }
@@ -224,18 +230,18 @@ fn c6_ceiling_rol_caps_at_rol() {
 
 #[test]
 fn c7_compose_ceilings_is_meet() {
-    let ctx_aex = minimal_ctx(Permission::AEX, "c7-aex");
-    let ctx_aaa = minimal_ctx(Permission::AAA, "c7-aaa");
+    let ctx_aex = minimal_ctx(Permission::AEX(), "c7-aex");
+    let ctx_aaa = minimal_ctx(Permission::AAA(), "c7-aaa");
     let composed = compose(ctx_aex, ctx_aaa).unwrap();
     assert_eq!(
         composed.authority_ceiling,
-        Permission::AEX,
+        Some(Permission::AEX()),
         "C7: composed ceiling = meet(AEX, AAA) = AEX"
     );
 
     let j = compile(composed).unwrap();
     assert!(
-        j.permission <= Permission::AEX,
+        j.permission <= Permission::AEX(),
         "C7: compile on composed context must respect AEX ceiling"
     );
 }
@@ -245,15 +251,15 @@ fn c7_compose_ceilings_is_meet() {
 #[test]
 fn c8_compose_n_ceiling_is_meet_of_all() {
     let ctxs = vec![
-        minimal_ctx(Permission::AEX, "c8-aex"),
-        minimal_ctx(Permission::DIA, "c8-dia"),
-        minimal_ctx(Permission::AAA, "c8-aaa"),
-        minimal_ctx(Permission::ALR, "c8-alr"),
+        minimal_ctx(Permission::AEX(), "c8-aex"),
+        minimal_ctx(Permission::DIA(), "c8-dia"),
+        minimal_ctx(Permission::AAA(), "c8-aaa"),
+        minimal_ctx(Permission::ALR(), "c8-alr"),
     ];
     let composed = compose_n(ctxs).unwrap();
     assert_eq!(
         composed.authority_ceiling,
-        Permission::DIA,
+        Some(Permission::DIA()),
         "C8: compose_n ceiling = meet(AEX, DIA, AAA, ALR) = DIA"
     );
 }
@@ -262,12 +268,12 @@ fn c8_compose_n_ceiling_is_meet_of_all() {
 
 #[test]
 fn c9_evidence_above_ceiling_does_not_change_result() {
-    let ctx_low = ctx_with_full_evidence_and_ceiling(Permission::DIA, "c9-base");
+    let ctx_low = ctx_with_full_evidence_and_ceiling(Permission::DIA(), "c9-base");
     let p_low = compile(ctx_low).unwrap().permission;
 
     // No additional evidence can raise result above ceiling
     assert!(
-        p_low <= Permission::DIA,
+        p_low <= Permission::DIA(),
         "C9: result must not exceed ceiling DIA (got {p_low:?})"
     );
 }
@@ -289,7 +295,7 @@ fn c10_ceiling_applied_after_gap_resolution() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -297,14 +303,15 @@ fn c10_ceiling_applied_after_gap_resolution() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::DIA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::DIA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "C10: unsatisfied gap → UNS (InClass, profile defined but unmet)"
     );
 }
@@ -314,11 +321,11 @@ fn c10_ceiling_applied_after_gap_resolution() {
 #[test]
 fn c12_ceiling_lower_than_profile_caps_result() {
     // Profile at AAA, full evidence, but ceiling = REV
-    let ctx = ctx_with_full_evidence_and_ceiling(Permission::REV, "c12");
+    let ctx = ctx_with_full_evidence_and_ceiling(Permission::REV(), "c12");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REV,
+        Permission::REV(),
         "C12: ceiling REV must cap AAA-profile result to REV"
     );
 }
@@ -328,11 +335,11 @@ fn c12_ceiling_lower_than_profile_caps_result() {
 #[test]
 fn c13_ceiling_equal_to_profile_gives_ceiling() {
     // Profile at DIA, full evidence, ceiling = DIA
-    let ctx = ctx_with_full_evidence_and_ceiling(Permission::DIA, "c13");
+    let ctx = ctx_with_full_evidence_and_ceiling(Permission::DIA(), "c13");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "C13: ceiling = profile permission → result = ceiling"
     );
 }
@@ -354,7 +361,7 @@ fn c14_ceiling_above_profiles_gives_best_profile() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -375,14 +382,15 @@ fn c14_ceiling_above_profiles_gives_best_profile() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "C14: ceiling AAA with only DIA profile satisfied → result = DIA"
     );
 }

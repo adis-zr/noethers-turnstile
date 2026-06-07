@@ -19,7 +19,7 @@ use chrono::Utc;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
-    error::CompositionError,
+    error::{CompositionError, TurnstileError},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
@@ -45,7 +45,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -66,9 +66,10 @@ fn base_ctx(suffix: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -83,7 +84,7 @@ fn use_conflict_blocks_composition() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(CompositionError::UseConflict)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
         "differing allowed_use must produce UseConflict; got {:?}",
         result
     );
@@ -99,8 +100,8 @@ fn use_conflict_is_symmetric() {
 
     let r1 = compose(ctx1.clone(), ctx2.clone());
     let r2 = compose(ctx2, ctx1);
-    assert!(matches!(r1, Err(CompositionError::UseConflict)));
-    assert!(matches!(r2, Err(CompositionError::UseConflict)));
+    assert!(matches!(r1, Err(TurnstileError::Composition(CompositionError::UseConflict))));
+    assert!(matches!(r2, Err(TurnstileError::Composition(CompositionError::UseConflict))));
 }
 
 #[test]
@@ -163,7 +164,7 @@ fn token_conflict_same_id_different_type_blocks_composition() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(CompositionError::TokenConflict { .. })),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
         "same token_id with different type must produce TokenConflict; got {:?}",
         result
     );
@@ -199,7 +200,7 @@ fn token_conflict_same_id_different_issuer_blocks_composition() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(CompositionError::TokenConflict { .. })),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
         "same token_id with different issuer must produce TokenConflict; got {:?}",
         result
     );
@@ -253,7 +254,7 @@ fn identical_token_in_both_contexts_deduplicates_successfully() {
 fn compose_n_empty_returns_empty_composition_error() {
     let result = compose_n(std::iter::empty::<ProofContext>());
     assert!(
-        matches!(result, Err(CompositionError::EmptyComposition)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::EmptyComposition))),
         "compose_n with 0 contexts must return EmptyComposition; got {:?}",
         result
     );
@@ -288,7 +289,7 @@ fn closed_ctx(suffix: &str, ceiling: Permission) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -309,21 +310,23 @@ fn closed_ctx(suffix: &str, ceiling: Permission) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
 #[test]
 fn composed_permission_never_exceeds_either_input() {
     let ceilings = [
-        Permission::OOC,
-        Permission::REF,
-        Permission::DIA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::AAA,
+        Permission::OOC(),
+        Permission::REF(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::AAA(),
     ];
 
     for &c1 in &ceilings {
@@ -364,7 +367,7 @@ fn composition_error_yields_no_partial_result() {
     ctx2.allowed_use = "B".into();
 
     match compose(ctx1, ctx2) {
-        Err(CompositionError::UseConflict) => {} // correct
+        Err(TurnstileError::Composition(CompositionError::UseConflict)) => {} // correct
         Ok(_) => panic!("UseConflict must not produce an Ok result"),
         Err(other) => panic!("unexpected error: {:?}", other),
     }

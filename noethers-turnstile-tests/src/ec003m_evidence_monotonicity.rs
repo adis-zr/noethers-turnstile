@@ -46,9 +46,10 @@ fn base_ctx_with_gaps(gap_ids: &[&str], closed: &[bool]) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -81,7 +82,7 @@ fn make_closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
 fn adding_closed_token_raises_permission_from_ooc() {
     let mut ctx = base_ctx_with_gaps(&["g1"], &[false]);
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -89,7 +90,7 @@ fn adding_closed_token_raises_permission_from_ooc() {
     }];
     let p_before = compile(ctx.clone()).unwrap().permission;
     // In-class candidate with a profile defined but gap unmet → UNS (not OOC)
-    assert_eq!(p_before, Permission::UNS);
+    assert_eq!(p_before, Permission::UNS());
 
     // Now close the gap with a token
     let tok = make_closing_token("g1", &ctx);
@@ -101,7 +102,7 @@ fn adding_closed_token_raises_permission_from_ooc() {
         p_after >= p_before,
         "adding evidence lowered permission: {p_before} → {p_after}"
     );
-    assert_eq!(p_after, Permission::DIA);
+    assert_eq!(p_after, Permission::DIA());
 }
 
 // ── Adding a second closing token, enabling a higher profile ──────────────────
@@ -111,7 +112,7 @@ fn adding_second_token_enables_higher_profile() {
     let mut ctx = base_ctx_with_gaps(&["g1", "g2"], &[false, false]);
     ctx.profiles = vec![
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -124,7 +125,7 @@ fn adding_second_token_enables_higher_profile() {
             ],
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -137,7 +138,7 @@ fn adding_second_token_enables_higher_profile() {
     ctx.gaps[0] = GapRecord::closed("g1", "t");
     ctx.tokens.push(t1);
     let p_g1_only = compile(ctx.clone()).unwrap().permission;
-    assert_eq!(p_g1_only, Permission::DIA);
+    assert_eq!(p_g1_only, Permission::DIA());
 
     // Also close g2 → REV (higher)
     let t2 = make_closing_token("g2", &ctx);
@@ -145,7 +146,7 @@ fn adding_second_token_enables_higher_profile() {
     ctx.tokens.push(t2);
     let p_both = compile(ctx).unwrap().permission;
     assert!(p_both >= p_g1_only, "adding g2 token lowered permission");
-    assert_eq!(p_both, Permission::REV);
+    assert_eq!(p_both, Permission::REV());
 }
 
 // ── Adding a disallowed_use blocker lowers permission ─────────────────────────
@@ -154,7 +155,7 @@ fn adding_second_token_enables_higher_profile() {
 fn adding_disallowed_use_lowers_permission() {
     let mut ctx = base_ctx_with_gaps(&["g1"], &[true]);
     ctx.profiles = vec![Profile {
-        permission: Permission::AAA,
+        permission: Permission::AAA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -164,7 +165,7 @@ fn adding_disallowed_use_lowers_permission() {
     ctx.tokens.push(tok);
 
     let p_clean = compile(ctx.clone()).unwrap().permission;
-    assert_eq!(p_clean, Permission::AAA);
+    assert_eq!(p_clean, Permission::AAA());
 
     // Add a blocker
     ctx.disallowed_uses = vec!["write".into()];
@@ -173,7 +174,7 @@ fn adding_disallowed_use_lowers_permission() {
         p_blocked <= p_clean,
         "adding blocker must not raise permission"
     );
-    assert_eq!(p_blocked, Permission::ROL);
+    assert_eq!(p_blocked, Permission::ROL());
 }
 
 // ── Adding a lower authority ceiling lowers or preserves permission ───────────
@@ -182,7 +183,7 @@ fn adding_disallowed_use_lowers_permission() {
 fn lowering_authority_ceiling_never_raises() {
     let mut ctx = base_ctx_with_gaps(&["g1"], &[true]);
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -192,12 +193,13 @@ fn lowering_authority_ceiling_never_raises() {
     ctx.tokens.push(tok);
 
     let p_aaa = compile(ctx.clone()).unwrap().permission;
-    assert_eq!(p_aaa, Permission::DIA);
+    assert_eq!(p_aaa, Permission::DIA());
 
-    ctx.authority_ceiling = Permission::ROL;
+    ctx.authority_ceiling = Some(Permission::ROL());
+
     let p_capped = compile(ctx).unwrap().permission;
     assert!(p_capped <= p_aaa, "lowering ceiling raised permission");
-    assert_eq!(p_capped, Permission::ROL);
+    assert_eq!(p_capped, Permission::ROL());
 }
 
 // ── Monotonicity: each additional gap closed ≥ previous ─────────────────────
@@ -210,7 +212,7 @@ fn closing_gaps_incrementally_never_lowers() {
     // Build profiles: each adds one more gap requirement
     ctx.profiles = vec![
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: gap_ids
                 .iter()
                 .map(|id| GapRequirement {
@@ -220,7 +222,7 @@ fn closing_gaps_incrementally_never_lowers() {
                 .collect(),
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: gap_ids[..2]
                 .iter()
                 .map(|id| GapRequirement {
@@ -230,7 +232,7 @@ fn closing_gaps_incrementally_never_lowers() {
                 .collect(),
         },
         Profile {
-            permission: Permission::ROL,
+            permission: Permission::ROL(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -238,7 +240,7 @@ fn closing_gaps_incrementally_never_lowers() {
         },
     ];
 
-    let mut prev_p = Permission::OOC;
+    let mut prev_p = Permission::OOC();
     for (i, gap_id) in gap_ids.iter().enumerate() {
         ctx.gaps[i] = GapRecord::closed(*gap_id, "t");
         let tok = make_closing_token(gap_id, &ctx);
@@ -257,11 +259,11 @@ fn closing_gaps_incrementally_never_lowers() {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -295,9 +297,11 @@ proptest! {
             }],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: ceiling,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(ceiling),
+
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         let p_before = compile(base_ctx.clone()).unwrap().permission;
@@ -374,9 +378,10 @@ proptest! {
             }],
             tokens: vec![tok.clone()],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         let p_clean = compile(clean_ctx.clone()).unwrap().permission;

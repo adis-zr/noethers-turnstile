@@ -51,6 +51,9 @@ jobs:
       - name: Structural test suite (noethers-turnstile-tests)
         run: cargo test -p noethers-turnstile-tests
 
+      - name: Compiler-discipline grep gates (Gate 1 + Gate 2)
+        run: ./scripts/ci/check_compiler_names_no_levels.sh
+
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest

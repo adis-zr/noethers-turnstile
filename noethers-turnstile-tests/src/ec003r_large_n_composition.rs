@@ -46,7 +46,7 @@ fn dia_ctx(suffix: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -67,15 +67,17 @@ fn dia_ctx(suffix: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::DIA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::DIA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
 fn ctx_with_ceiling(suffix: &str, ceiling: Permission) -> ProofContext {
     let mut ctx = dia_ctx(suffix);
-    ctx.authority_ceiling = ceiling;
+    ctx.authority_ceiling = Some(ceiling);
+
     ctx
 }
 
@@ -105,8 +107,8 @@ fn compose_10_same_contexts_is_idempotent() {
 
 #[test]
 fn adding_weaker_envelope_lowers_result() {
-    let strong = ctx_with_ceiling("strong", Permission::DIA);
-    let weak = ctx_with_ceiling("weak", Permission::REF);
+    let strong = ctx_with_ceiling("strong", Permission::DIA());
+    let weak = ctx_with_ceiling("weak", Permission::REF());
 
     let p_strong = compile(strong.clone()).unwrap().permission;
     let p_weak = compile(weak.clone()).unwrap().permission;
@@ -130,7 +132,7 @@ fn adding_weaker_envelope_lowers_result() {
 
 #[test]
 fn adding_ooc_envelope_absorbs_to_ooc() {
-    let strong = ctx_with_ceiling("strong2", Permission::AAA);
+    let strong = ctx_with_ceiling("strong2", Permission::AAA());
     let ooc_ctx = {
         let mut c = dia_ctx("ooc-ctx");
         c.membership = Membership::OutOfClassExact;
@@ -138,13 +140,13 @@ fn adding_ooc_envelope_absorbs_to_ooc() {
     };
 
     let p_ooc = compile(ooc_ctx.clone()).unwrap().permission;
-    assert_eq!(p_ooc, Permission::OOC);
+    assert_eq!(p_ooc, Permission::OOC());
 
     let composed = compose(strong, ooc_ctx).unwrap();
     let p_composed = compile(composed).unwrap().permission;
     assert_eq!(
         p_composed,
-        Permission::OOC,
+        Permission::OOC(),
         "OOC membership must absorb to OOC"
     );
 }
@@ -169,18 +171,21 @@ fn compose_100_same_contexts_is_monotone() {
 fn compose_100_monotone_with_one_weaker() {
     // 99 strong envelopes + 1 weak envelope: result must equal weak.
     let mut base = dia_ctx("mono100-0");
-    base.authority_ceiling = Permission::DIA;
+    base.authority_ceiling = Some(Permission::DIA());
+
 
     for i in 1..99usize {
         let mut next = dia_ctx(&format!("mono100-{i}"));
-        next.authority_ceiling = Permission::DIA;
+        next.authority_ceiling = Some(Permission::DIA());
+
         base = compose(base, next).unwrap();
     }
 
     let p_before_weak = compile(base.clone()).unwrap().permission;
 
     let mut weak = dia_ctx("mono100-weak");
-    weak.authority_ceiling = Permission::ETA;
+    weak.authority_ceiling = Some(Permission::ETA());
+
     let weak_p = compile(weak.clone()).unwrap().permission;
 
     base = compose(base, weak).unwrap();
@@ -203,7 +208,7 @@ fn compose_1000_terminates() {
     let composed = compose_n(base, 1000);
     let p = compile(composed).unwrap().permission;
     // Any permission is acceptable; we just need it to complete.
-    assert!(p <= Permission::AAA);
+    assert!(p <= Permission::AAA());
 }
 
 // ── Permission_meet_n equivalence ────────────────────────────────────────────
@@ -211,19 +216,20 @@ fn compose_1000_terminates() {
 #[test]
 fn composed_permission_equals_meet_n_of_individuals() {
     let ceilings = [
-        Permission::AAA,
-        Permission::DIA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::ROL,
-        Permission::ESC,
+        Permission::AAA(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ROL(),
+        Permission::ESC(),
     ];
     let individual_perms: Vec<Permission> = ceilings
         .iter()
         .enumerate()
         .map(|(i, &c)| {
             let mut ctx = dia_ctx(&format!("meet-n-{i}"));
-            ctx.authority_ceiling = c;
+            ctx.authority_ceiling = Some(c);
+
             compile(ctx).unwrap().permission
         })
         .collect();
@@ -232,12 +238,14 @@ fn composed_permission_equals_meet_n_of_individuals() {
 
     let mut base = {
         let mut ctx = dia_ctx("meet-n-0");
-        ctx.authority_ceiling = ceilings[0];
+        ctx.authority_ceiling = Some(ceilings[0]);
+
         ctx
     };
     for (i, &c) in ceilings.iter().enumerate().skip(1) {
         let mut next = dia_ctx(&format!("meet-n-{i}"));
-        next.authority_ceiling = c;
+        next.authority_ceiling = Some(c);
+
         base = compose(base, next).unwrap();
     }
     let p_composed = compile(base).unwrap().permission;
@@ -252,18 +260,18 @@ fn composed_permission_equals_meet_n_of_individuals() {
 
 fn arb_ceiling() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -278,7 +286,8 @@ proptest! {
             .enumerate()
             .map(|(i, &c)| {
                 let mut ctx = dia_ctx(&format!("prop-ln-{i}"));
-                ctx.authority_ceiling = c;
+                ctx.authority_ceiling = Some(c);
+
                 compile(ctx).unwrap().permission
             })
             .collect();
@@ -288,12 +297,14 @@ proptest! {
         let (first_ceiling, rest) = ceilings.split_first().unwrap();
         let mut base = {
             let mut ctx = dia_ctx("prop-ln-0");
-            ctx.authority_ceiling = *first_ceiling;
+            ctx.authority_ceiling = Some(*first_ceiling);
+
             ctx
         };
         for (i, &c) in rest.iter().enumerate() {
             let mut next = dia_ctx(&format!("prop-ln-{}", i + 1));
-            next.authority_ceiling = c;
+            next.authority_ceiling = Some(c);
+
             base = compose(base, next).unwrap();
         }
         let p_composed = compile(base).unwrap().permission;
@@ -312,17 +323,20 @@ proptest! {
     ) {
         // Build n-envelope composition, then add one more.
         let mut base = dia_ctx("prop-mono-0");
-        base.authority_ceiling = Permission::DIA;
+        base.authority_ceiling = Some(Permission::DIA());
+
 
         for i in 1..n {
             let mut next = dia_ctx(&format!("prop-mono-{i}"));
-            next.authority_ceiling = Permission::DIA;
+            next.authority_ceiling = Some(Permission::DIA());
+
             base = compose(base, next).unwrap();
         }
         let p_before = compile(base.clone()).unwrap().permission;
 
         let mut extra = dia_ctx("prop-mono-extra");
-        extra.authority_ceiling = extra_ceiling;
+        extra.authority_ceiling = Some(extra_ceiling);
+
         let base = compose(base, extra).unwrap();
         let p_after = compile(base).unwrap().permission;
 

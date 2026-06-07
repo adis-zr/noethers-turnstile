@@ -24,18 +24,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -84,7 +84,7 @@ fn descending_search_returns_highest_satisfied_profile() {
         gaps: vec![GapRecord::closed("g1", "t"), GapRecord::open("g2", "t")],
         profiles: vec![
             Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![
                     GapRequirement {
                         gap_id: "g1".into(),
@@ -97,7 +97,7 @@ fn descending_search_returns_highest_satisfied_profile() {
                 ],
             },
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -106,9 +106,10 @@ fn descending_search_returns_highest_satisfied_profile() {
         ],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let tok = make_token("g1", &base_ctx);
@@ -117,7 +118,7 @@ fn descending_search_returns_highest_satisfied_profile() {
 
     let j = compile(ctx).unwrap();
     // g1 closed (by token), g2 open → AAA not satisfied, DIA is satisfied → DIA
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 #[test]
@@ -138,7 +139,7 @@ fn both_gaps_closed_satisfies_highest_profile() {
         gaps: vec![GapRecord::closed("g1", "t"), GapRecord::closed("g2", "t")],
         profiles: vec![
             Profile {
-                permission: Permission::REV,
+                permission: Permission::REV(),
                 required_gaps: vec![
                     GapRequirement {
                         gap_id: "g1".into(),
@@ -151,7 +152,7 @@ fn both_gaps_closed_satisfies_highest_profile() {
                 ],
             },
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -160,9 +161,10 @@ fn both_gaps_closed_satisfies_highest_profile() {
         ],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let t1 = make_token("g1", &ctx);
@@ -171,7 +173,7 @@ fn both_gaps_closed_satisfies_highest_profile() {
     ctx.tokens.push(t2);
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REV);
+    assert_eq!(j.permission, Permission::REV());
 }
 
 // ── Monotonicity: adding evidence never lowers permission (T5) ───────────────
@@ -194,7 +196,7 @@ fn adding_evidence_never_lowers_permission_ordered_profiles() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -202,14 +204,15 @@ fn adding_evidence_never_lowers_permission_ordered_profiles() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let p_before = compile(base_ctx.clone()).unwrap().permission;
     // In-class, profile defined, gap open, no token → UNS
-    assert_eq!(p_before, Permission::UNS);
+    assert_eq!(p_before, Permission::UNS());
 
     // Add a closing token + update gap to Closed
     let tok = make_token("g1", &base_ctx);
@@ -222,7 +225,7 @@ fn adding_evidence_never_lowers_permission_ordered_profiles() {
         p_after >= p_before,
         "adding evidence lowered permission: {p_before} → {p_after}"
     );
-    assert_eq!(p_after, Permission::DIA);
+    assert_eq!(p_after, Permission::DIA());
 }
 
 // ── Profile with multiple levels: descending search (monotone structure) ──────
@@ -231,16 +234,16 @@ fn adding_evidence_never_lowers_permission_ordered_profiles() {
 fn multi_level_profile_descending_search_exhaustive() {
     // For all permission pairs (p_high, p_low) where p_high > p_low,
     // a context that only satisfies p_low must not emit p_high.
-    const HIGH_LOW_PAIRS: [(Permission, Permission); 6] = [
-        (Permission::REV, Permission::DIA),
-        (Permission::AEX, Permission::REV),
-        (Permission::ALR, Permission::AEX),
-        (Permission::AAA, Permission::DIA),
-        (Permission::DIA, Permission::ROL),
-        (Permission::ROL, Permission::ETA),
+    let high_low_pairs: [(Permission, Permission); 6] = [
+        (Permission::REV(), Permission::DIA()),
+        (Permission::AEX(), Permission::REV()),
+        (Permission::ALR(), Permission::AEX()),
+        (Permission::AAA(), Permission::DIA()),
+        (Permission::DIA(), Permission::ROL()),
+        (Permission::ROL(), Permission::ETA()),
     ];
 
-    for (p_high, p_low) in HIGH_LOW_PAIRS {
+    for (p_high, p_low) in high_low_pairs {
         let claim_id = "c";
         let candidate_id = "z";
         let context_id = "ctx";
@@ -283,9 +286,10 @@ fn multi_level_profile_descending_search_exhaustive() {
             ],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         let tok_low = make_token("g_low", &ctx);
@@ -319,7 +323,7 @@ proptest! {
         let base_gaps: Vec<GapRecord> = gap_ids.iter().map(|id| GapRecord::open(id, "t")).collect();
 
         let profile = Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: gap_ids.iter().map(|id| GapRequirement {
                 gap_id: id.clone(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -338,9 +342,11 @@ proptest! {
             profiles: vec![profile.clone()],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: ceiling,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(ceiling),
+
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         let p_before = compile(base_ctx.clone()).unwrap().permission;

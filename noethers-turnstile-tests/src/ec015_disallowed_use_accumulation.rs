@@ -44,7 +44,7 @@ fn make_ctx(suffix: &str, disallowed: Vec<&str>) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -65,9 +65,10 @@ fn make_ctx(suffix: &str, disallowed: Vec<&str>) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -165,7 +166,7 @@ fn nonempty_disallowed_blocks_aaa_after_composition() {
     let composed = compose(ctx1, ctx2).unwrap();
     let j = compile(composed).unwrap();
     assert!(
-        j.permission <= Permission::ROL,
+        j.permission <= Permission::ROL(),
         "T13: non-empty disallowed_uses in composed context must cap outcome at ROL; got {}",
         j.permission
     );
@@ -179,7 +180,7 @@ fn disallowed_from_either_input_blocks_action_in_composed() {
     let c1 = compose(ctx1.clone(), ctx2.clone()).unwrap();
     let j1 = compile(c1).unwrap();
     assert!(
-        j1.permission <= Permission::ROL,
+        j1.permission <= Permission::ROL(),
         "disallowed from ctx1 must block action in composed"
     );
 
@@ -189,7 +190,7 @@ fn disallowed_from_either_input_blocks_action_in_composed() {
     let c2 = compose(ctx1b, ctx2b).unwrap();
     let j2 = compile(c2).unwrap();
     assert!(
-        j2.permission <= Permission::ROL,
+        j2.permission <= Permission::ROL(),
         "disallowed from ctx2 must block action in composed"
     );
 }
@@ -243,7 +244,7 @@ proptest! {
         let composed = compose(ctx1, ctx2).unwrap();
         let j = compile(composed).unwrap();
         prop_assert!(
-            j.permission <= Permission::ROL,
+            j.permission <= Permission::ROL(),
             "T13: non-empty disallowed_uses must always cap at ROL; got {}",
             j.permission
         );

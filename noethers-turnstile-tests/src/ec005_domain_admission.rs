@@ -50,7 +50,7 @@ fn base_ctx() -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -71,9 +71,10 @@ fn base_ctx() -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -88,7 +89,7 @@ fn a1_clean_base_passes() {
         "candidate_id must be non-empty"
     );
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 #[test]
@@ -115,7 +116,7 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "calibration_gap")], // OPEN: token must close it
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -136,16 +137,17 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     // Wrong provenance → PROVENANCE_MISMATCH → REF (in-class, profile defined)
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "token issued for different identity must not close gap; PROVENANCE_MISMATCH → REF"
     );
 }
@@ -169,7 +171,7 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -190,16 +192,17 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     // Wrong provenance → PROVENANCE_MISMATCH → REF (in-class, profile defined)
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "token issued for different candidate must not close gap; PROVENANCE_MISMATCH → REF"
     );
 }
@@ -240,19 +243,19 @@ fn a3_duplicate_gap_ids_produce_malformed_context() {
 fn a4_empty_required_gaps_means_trivially_satisfied() {
     let mut ctx = base_ctx();
     ctx.profiles.push(Profile {
-        permission: Permission::AAA,
+        permission: Permission::AAA(),
         required_gaps: vec![], // vacuously satisfied
     });
     let j = compile(ctx).unwrap();
     // Descending search: AAA profile with no requirements → satisfied immediately
-    assert_eq!(j.permission, Permission::AAA);
+    assert_eq!(j.permission, Permission::AAA());
 }
 
 #[test]
 fn a4_profile_referencing_missing_gap_is_malformed() {
     let mut ctx = base_ctx();
     ctx.profiles.push(Profile {
-        permission: Permission::REV,
+        permission: Permission::REV(),
         required_gaps: vec![GapRequirement {
             gap_id: "nonexistent-gap".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -298,7 +301,7 @@ fn a5_empty_schema_version_token_still_checked_for_provenance() {
     // Schema version is not currently checked by the compiler (certifier responsibility)
     // but the token is still valid if provenance matches.
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 // ── A6: Authority ceiling declared ───────────────────────────────────────────
@@ -306,10 +309,11 @@ fn a5_empty_schema_version_token_still_checked_for_provenance() {
 #[test]
 fn a6_explicit_ceiling_limits_outcome() {
     let mut ctx = base_ctx();
-    ctx.authority_ceiling = Permission::ROL;
+    ctx.authority_ceiling = Some(Permission::ROL());
+
     let j = compile(ctx).unwrap();
     assert!(
-        j.permission <= Permission::ROL,
+        j.permission <= Permission::ROL(),
         "authority_ceiling should limit outcome"
     );
 }
@@ -318,10 +322,10 @@ fn a6_explicit_ceiling_limits_outcome() {
 fn a6_disallowed_uses_with_low_ceiling() {
     let mut ctx = base_ctx();
     ctx.disallowed_uses = vec!["write".into()];
-    ctx.authority_ceiling = Permission::ETA; // below ROL
+    ctx.authority_ceiling = Some(Permission::ETA()); // below ROL
     let j = compile(ctx).unwrap();
     // disallowed_uses caps at ROL, authority caps at ETA → ETA is the meet
-    assert_eq!(j.permission, Permission::ETA);
+    assert_eq!(j.permission, Permission::ETA());
 }
 
 // ── A7: Runtime context contract ─────────────────────────────────────────────
@@ -334,7 +338,7 @@ fn a7_non_empty_fingerprint_enables_live_judgment() {
     let judgment = compile(ctx).unwrap();
     let rt = RuntimeContext::new(Utc::now(), "fp-a9");
     let live = noethers_turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::DIA);
+    assert_eq!(live.permission(), Permission::DIA());
 }
 
 #[test]
@@ -345,7 +349,7 @@ fn a7_fingerprint_mismatch_downgrades() {
     let rt = RuntimeContext::new(Utc::now(), "fp-wrong");
     let live = noethers_turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
     // Fingerprint mismatch = wrong context entirely (OOC), not expiry (EXP).
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 // ── A8: Closed under gap operations ──────────────────────────────────────────
@@ -358,7 +362,7 @@ fn a8_closed_gap_not_downgraded_by_adding_another_open_gap() {
     ctx.gaps.push(GapRecord::open("g2", "other_gap"));
     // Profile for DIA only requires g1 (not g2) → still satisfied
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 // ── A9: Finite checkability — compile always terminates ──────────────────────
@@ -396,9 +400,10 @@ fn a9_large_profile_compiles_in_finite_time() {
             .collect(),
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let hash = compute_provenance_hash(claim_id, candidate_id, context_id, allowed_use);
@@ -421,7 +426,7 @@ fn a9_large_profile_compiles_in_finite_time() {
 
     let j = compile(ctx).unwrap();
     // AAA profile requires g0..g11 all closed → all satisfied → AAA
-    assert_eq!(j.permission, Permission::AAA);
+    assert_eq!(j.permission, Permission::AAA());
 }
 
 // ── Proptest: determinism (A2) and authority ceiling monotonicity (A6) ────────
@@ -430,13 +435,14 @@ proptest! {
     #[test]
     fn prop_determinism_same_input_same_output(
         ceiling in prop_oneof![
-            Just(Permission::DIA),
-            Just(Permission::REV),
-            Just(Permission::AAA),
+            Just(Permission::DIA()),
+            Just(Permission::REV()),
+            Just(Permission::AAA()),
         ]
     ) {
         let mut ctx = base_ctx();
-        ctx.authority_ceiling = ceiling;
+        ctx.authority_ceiling = Some(ceiling);
+
         let p1 = compile(ctx.clone()).unwrap().permission;
         let p2 = compile(ctx).unwrap().permission;
         prop_assert_eq!(p1, p2, "compile must be deterministic");
@@ -445,15 +451,16 @@ proptest! {
     #[test]
     fn prop_authority_ceiling_is_hard_cap(
         ceiling in prop_oneof![
-            Just(Permission::OOC),
-            Just(Permission::EXP),
-            Just(Permission::DIA),
-            Just(Permission::ROL),
-            Just(Permission::AEX),
+            Just(Permission::OOC()),
+            Just(Permission::EXP()),
+            Just(Permission::DIA()),
+            Just(Permission::ROL()),
+            Just(Permission::AEX()),
         ]
     ) {
         let mut ctx = base_ctx();
-        ctx.authority_ceiling = ceiling;
+        ctx.authority_ceiling = Some(ceiling);
+
         let j = compile(ctx).unwrap();
         prop_assert!(
             j.permission <= ceiling,

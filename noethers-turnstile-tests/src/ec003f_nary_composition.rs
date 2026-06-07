@@ -56,9 +56,11 @@ fn make_ctx_with_permission(target: Permission, suffix: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: target,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(target),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -66,17 +68,16 @@ fn make_ctx_with_permission(target: Permission, suffix: &str) -> ProofContext {
 
 #[test]
 fn compile_compose_non_promotion_all_pairs() {
-    use Permission::*;
     let pairs = [
-        (AAA, DIA),
-        (DIA, REV),
-        (REV, AEX),
-        (AEX, ALR),
-        (ALR, AAA),
-        (ROL, DIA),
-        (ETA, ROL),
-        (OOC, AAA),
-        (EXP, DIA),
+        (Permission::AAA(), Permission::DIA()),
+        (Permission::DIA(), Permission::REV()),
+        (Permission::REV(), Permission::AEX()),
+        (Permission::AEX(), Permission::ALR()),
+        (Permission::ALR(), Permission::AAA()),
+        (Permission::ROL(), Permission::DIA()),
+        (Permission::ETA(), Permission::ROL()),
+        (Permission::OOC(), Permission::AAA()),
+        (Permission::EXP(), Permission::DIA()),
     ];
     for (p1, p2) in pairs {
         let g1 = make_ctx_with_permission(p1, "1");
@@ -100,12 +101,11 @@ fn compile_compose_non_promotion_all_pairs() {
 
 #[test]
 fn compile_compose_three_way_non_promotion() {
-    use Permission::*;
     let triples = [
-        (AAA, DIA, ROL),
-        (REV, AEX, ALR),
-        (ESC, ROL, DIA),
-        (OOC, AAA, AAA),
+        (Permission::AAA(), Permission::DIA(), Permission::ROL()),
+        (Permission::REV(), Permission::AEX(), Permission::ALR()),
+        (Permission::ESC(), Permission::ROL(), Permission::DIA()),
+        (Permission::OOC(), Permission::AAA(), Permission::AAA()),
     ];
     for (p1, p2, p3) in triples {
         let g1 = make_ctx_with_permission(p1, "1");
@@ -132,10 +132,9 @@ fn compile_compose_three_way_non_promotion() {
 
 #[test]
 fn three_way_compose_grouping_independent() {
-    use Permission::*;
-    for &p1 in &[AAA, DIA, REV] {
-        for &p2 in &[DIA, ROL, ETA] {
-            for &p3 in &[ROL, REV, AAA] {
+    for &p1 in &[Permission::AAA(), Permission::DIA(), Permission::REV()] {
+        for &p2 in &[Permission::DIA(), Permission::ROL(), Permission::ETA()] {
+            for &p3 in &[Permission::ROL(), Permission::REV(), Permission::AAA()] {
                 let left = {
                     let ab = compose(
                         make_ctx_with_permission(p1, "a"),
@@ -167,8 +166,7 @@ fn three_way_compose_grouping_independent() {
 
 #[test]
 fn self_composition_non_promoting() {
-    use Permission::*;
-    for &p in &[AAA, DIA, REV, ROL, ETA, OOC] {
+    for &p in &[Permission::AAA(), Permission::DIA(), Permission::REV(), Permission::ROL(), Permission::ETA(), Permission::OOC()] {
         let ctx = make_ctx_with_permission(p, "self");
         let p_orig = compile(ctx.clone()).unwrap().permission;
 
@@ -186,22 +184,24 @@ fn self_composition_non_promoting() {
 
 #[test]
 fn compile_compose_exhaustive_permission_pairs() {
-    const ALL: [Permission; 12] = [
-        Permission::OOC,
-        Permission::EXP,
-        Permission::REF,
-        Permission::UNS,
-        Permission::ETA,
-        Permission::ESC,
-        Permission::ROL,
-        Permission::DIA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::ALR,
-        Permission::AAA,
-    ];
-    for p1 in ALL {
-        for p2 in ALL {
+    fn all() -> [Permission; 12] {
+        [
+            Permission::OOC(),
+            Permission::EXP(),
+            Permission::REF(),
+            Permission::UNS(),
+            Permission::ETA(),
+            Permission::ESC(),
+            Permission::ROL(),
+            Permission::DIA(),
+            Permission::REV(),
+            Permission::AEX(),
+            Permission::ALR(),
+            Permission::AAA(),
+        ]
+    }
+    for p1 in all() {
+        for p2 in all() {
             let g1 = make_ctx_with_permission(p1, "1");
             let g2 = make_ctx_with_permission(p2, "2");
             let p_g1 = compile(g1.clone()).unwrap().permission;
@@ -222,18 +222,18 @@ fn compile_compose_exhaustive_permission_pairs() {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 

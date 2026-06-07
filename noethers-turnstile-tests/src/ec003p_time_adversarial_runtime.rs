@@ -52,7 +52,7 @@ fn dia_ctx_at(deadline_offset_secs: i64, base_now: chrono::DateTime<Utc>) -> Pro
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -73,9 +73,10 @@ fn dia_ctx_at(deadline_offset_secs: i64, base_now: chrono::DateTime<Utc>) -> Pro
             is_negative_control: false,
         }],
         expiry,
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -159,7 +160,7 @@ fn time_replay_of_valid_past_time_does_not_re_validate_expired_context() {
     let live = LiveJudgment::new(judgment.clone(), &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
+        Permission::EXP(),
         "past deadline must be EXP"
     );
 
@@ -172,7 +173,7 @@ fn time_replay_of_valid_past_time_does_not_re_validate_expired_context() {
     // This is correct: the system trusts the runtime to supply accurate time.
     // The test verifies we never UPGRADE beyond the compiled permission.
     assert!(
-        live2.permission() <= Permission::DIA,
+        live2.permission() <= Permission::DIA(),
         "replay cannot upgrade beyond compiled permission DIA"
     );
 }
@@ -191,7 +192,7 @@ fn time_skew_1ns_before_deadline_is_not_expired() {
     // 1ns before deadline: NOT expired.
     assert_ne!(
         live.permission(),
-        Permission::EXP,
+        Permission::EXP(),
         "1ns before deadline must not be EXP"
     );
 }
@@ -206,7 +207,7 @@ fn time_skew_exactly_at_deadline_is_expired() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
+        Permission::EXP(),
         "exactly at deadline must be EXP"
     );
 }
@@ -222,7 +223,7 @@ fn time_skew_1ns_past_deadline_is_expired() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
+        Permission::EXP(),
         "1ns past deadline must be EXP"
     );
 }
@@ -241,7 +242,7 @@ fn no_expiry_context_is_immune_to_time_skew() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_ne!(
         live.permission(),
-        Permission::EXP,
+        Permission::EXP(),
         "never-expiring context must not expire even at far future time"
     );
     assert_eq!(
@@ -268,7 +269,7 @@ fn fingerprint_mismatch_returns_ooc_regardless_of_time() {
         let live = LiveJudgment::new(judgment.clone(), &rt);
         assert_eq!(
             live.permission(),
-            Permission::OOC,
+            Permission::OOC(),
             "fingerprint mismatch must return OOC at time {t}"
         );
     }
@@ -313,7 +314,7 @@ proptest! {
         let live = LiveJudgment::new(judgment, &rt);
         prop_assert_eq!(
             live.permission(),
-            Permission::EXP,
+            Permission::EXP(),
             "past deadline ({} secs) must be EXP",
             past_secs
         );
@@ -334,7 +335,7 @@ proptest! {
         let live = LiveJudgment::new(judgment, &rt);
         prop_assert_ne!(
             live.permission(),
-            Permission::EXP,
+            Permission::EXP(),
             "1ns before deadline must not be EXP"
         );
     }

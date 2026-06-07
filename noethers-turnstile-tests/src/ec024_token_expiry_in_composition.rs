@@ -28,7 +28,7 @@ use chrono::{Duration, Utc};
 use noethers_turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
-    error::CompositionError,
+    error::{CompositionError, TurnstileError},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
@@ -46,7 +46,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -54,9 +54,10 @@ fn base_ctx(suffix: &str) -> ProofContext {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -221,7 +222,7 @@ fn x4_different_token_type_triggers_conflict() {
 
     let result = compose(g1, g2);
     assert!(
-        matches!(result, Err(CompositionError::TokenConflict { .. })),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
         "X4: different token_type for same token_id must produce TokenConflict"
     );
 }

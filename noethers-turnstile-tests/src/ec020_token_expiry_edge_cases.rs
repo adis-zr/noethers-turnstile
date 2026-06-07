@@ -42,7 +42,7 @@ fn base_ctx_with_tokens(suffix: &str, tokens: Vec<ProofToken>) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -50,9 +50,10 @@ fn base_ctx_with_tokens(suffix: &str, tokens: Vec<ProofToken>) -> ProofContext {
         }],
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -124,7 +125,7 @@ fn e1_token_expired_at_exact_boundary_floors_to_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "E1: expired token in context must floor outcome to EXP (profile was satisfied → outcome DIA → EXP floor applied)"
     );
 }
@@ -140,7 +141,7 @@ fn e2_token_not_yet_expired_does_not_floor() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "E2: token with future expiry must not trigger EXP floor; got {}",
         j.permission
     );
@@ -161,7 +162,7 @@ fn e3_any_expired_token_floors_whole_context() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "E3: at least one expired token must floor the whole context to EXP"
     );
 }
@@ -176,7 +177,7 @@ fn e4_token_with_no_expiry_never_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "E4: token with no expiry must not trigger EXP"
     );
 }
@@ -193,7 +194,7 @@ fn e5_context_expiry_at_boundary_yields_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "E5: fired context expiry must yield EXP"
     );
 }
@@ -210,7 +211,7 @@ fn e6_context_expiry_in_future_does_not_floor() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "E6: context with future expiry must not trigger EXP"
     );
 }
@@ -252,7 +253,7 @@ fn e7_invalid_token_does_not_trigger_exp_floor() {
     // the same effect as live-but-expired tokens, which is incorrect).
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "E7: Invalid/dead token with past expiry must not trigger EXP floor; got {}",
         j.permission
     );
@@ -286,7 +287,7 @@ fn e7_revoked_token_does_not_trigger_exp_floor() {
     let j = compile(ctx).unwrap();
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "E7: Revoked token with past expiry must not floor to EXP"
     );
 }
@@ -333,7 +334,7 @@ fn e8_expired_token_not_satisfying_required_gap_still_floors_to_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "E8: expired token (even one not satisfying required gap) must floor to EXP when profile otherwise satisfied"
     );
 }
@@ -357,7 +358,7 @@ fn make_live_judgment_ctx(suffix: &str) -> (ProofContext, Permission) {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -378,9 +379,10 @@ fn make_live_judgment_ctx(suffix: &str) -> (ProofContext, Permission) {
             is_negative_control: false,
         }],
         expiry: Expiry::at(Utc::now() + Duration::hours(1)), // future expiry
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     (j.context.clone(), j.permission)
@@ -398,7 +400,7 @@ fn e9_live_judgment_expiry_fires_when_now_equals_deadline() {
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::EXP,
+        Permission::EXP(),
         "E9: LiveJudgment must return EXP when runtime.now == deadline"
     );
 }
@@ -415,7 +417,7 @@ fn e10_live_judgment_expiry_does_not_fire_before_deadline() {
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "E10: LiveJudgment must not expire 1ms before deadline; got {}",
         live.permission()
     );

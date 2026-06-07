@@ -19,35 +19,37 @@ use noethers_turnstile_core::permission::Permission;
 /// Spec reference: EC-001 §2 (Permission outcomes, total linear order).
 use proptest::prelude::*;
 
-const ALL_PERMISSIONS: [Permission; 12] = [
-    Permission::OOC,
-    Permission::EXP,
-    Permission::REF,
-    Permission::UNS,
-    Permission::ETA,
-    Permission::ESC,
-    Permission::ROL,
-    Permission::DIA,
-    Permission::REV,
-    Permission::AEX,
-    Permission::ALR,
-    Permission::AAA,
-];
+fn all_permissions() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -55,8 +57,8 @@ fn arb_permission() -> impl Strategy<Value = Permission> {
 
 #[test]
 fn meet_table_non_promotion_144_pairs() {
-    for &p in &ALL_PERMISSIONS {
-        for &q in &ALL_PERMISSIONS {
+    for p in all_permissions() {
+        for q in all_permissions() {
             let m = p.meet(q);
             assert!(m <= p, "meet({p}, {q}) = {m} violates m ≤ p");
             assert!(m <= q, "meet({p}, {q}) = {m} violates m ≤ q");
@@ -66,8 +68,8 @@ fn meet_table_non_promotion_144_pairs() {
 
 #[test]
 fn meet_table_commutativity_144_pairs() {
-    for &p in &ALL_PERMISSIONS {
-        for &q in &ALL_PERMISSIONS {
+    for p in all_permissions() {
+        for q in all_permissions() {
             assert_eq!(p.meet(q), q.meet(p), "meet({p}, {q}) ≠ meet({q}, {p})");
         }
     }
@@ -75,30 +77,30 @@ fn meet_table_commutativity_144_pairs() {
 
 #[test]
 fn meet_table_idempotence_12_elements() {
-    for &p in &ALL_PERMISSIONS {
+    for p in all_permissions() {
         assert_eq!(p.meet(p), p, "meet({p}, {p}) ≠ {p}");
     }
 }
 
 #[test]
 fn meet_table_identity_aaa() {
-    for &p in &ALL_PERMISSIONS {
-        assert_eq!(p.meet(Permission::AAA), p, "meet({p}, AAA) ≠ {p}");
-        assert_eq!(Permission::AAA.meet(p), p, "meet(AAA, {p}) ≠ {p}");
+    for p in all_permissions() {
+        assert_eq!(p.meet(Permission::AAA()), p, "meet({p}, AAA) ≠ {p}");
+        assert_eq!(Permission::AAA().meet(p), p, "meet(AAA, {p}) ≠ {p}");
     }
 }
 
 #[test]
 fn meet_table_absorbing_ooc() {
-    for &p in &ALL_PERMISSIONS {
+    for p in all_permissions() {
         assert_eq!(
-            p.meet(Permission::OOC),
-            Permission::OOC,
+            p.meet(Permission::OOC()),
+            Permission::OOC(),
             "meet({p}, OOC) ≠ OOC"
         );
         assert_eq!(
-            Permission::OOC.meet(p),
-            Permission::OOC,
+            Permission::OOC().meet(p),
+            Permission::OOC(),
             "meet(OOC, {p}) ≠ OOC"
         );
     }
@@ -108,8 +110,8 @@ fn meet_table_absorbing_ooc() {
 /// Verify the meet matches the natural ordering.
 #[test]
 fn meet_equals_min_for_all_pairs() {
-    for &p in &ALL_PERMISSIONS {
-        for &q in &ALL_PERMISSIONS {
+    for p in all_permissions() {
+        for q in all_permissions() {
             let expected = p.min(q);
             let actual = p.meet(q);
             assert_eq!(
@@ -123,9 +125,9 @@ fn meet_equals_min_for_all_pairs() {
 /// Associativity: must hold for all 12³ = 1728 triples.
 #[test]
 fn meet_table_associativity_all_triples() {
-    for &p in &ALL_PERMISSIONS {
-        for &q in &ALL_PERMISSIONS {
-            for &r in &ALL_PERMISSIONS {
+    for p in all_permissions() {
+        for q in all_permissions() {
+            for r in all_permissions() {
                 let left = p.meet(q).meet(r);
                 let right = p.meet(q.meet(r));
                 assert_eq!(
@@ -140,8 +142,8 @@ fn meet_table_associativity_all_triples() {
 /// Antisymmetry in a chain: meet(p, q) = p iff p ≤ q.
 #[test]
 fn meet_antisymmetry_exhaustive() {
-    for &p in &ALL_PERMISSIONS {
-        for &q in &ALL_PERMISSIONS {
+    for p in all_permissions() {
+        for q in all_permissions() {
             if p <= q {
                 assert_eq!(
                     p.meet(q),
@@ -164,8 +166,8 @@ fn meet_antisymmetry_exhaustive() {
 /// meet_n over all 12 elements = OOC (bottom).
 #[test]
 fn meet_n_all_elements_is_ooc() {
-    let result = Permission::meet_n(ALL_PERMISSIONS.iter().copied());
-    assert_eq!(result, Some(Permission::OOC));
+    let result = Permission::meet_n(all_permissions().iter().copied());
+    assert_eq!(result, Some(Permission::OOC()));
 }
 
 /// meet_n in any order produces the same result (commutativity and associativity
@@ -173,10 +175,10 @@ fn meet_n_all_elements_is_ooc() {
 #[test]
 fn meet_n_order_independent() {
     let perms = [
-        Permission::DIA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::ETA,
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ETA(),
     ];
     let forward = Permission::meet_n(perms.iter().copied());
     let backward = Permission::meet_n(perms.iter().copied().rev());
@@ -243,7 +245,7 @@ proptest! {
         perms in prop::collection::vec(arb_permission(), 1..13),
     ) {
         let n_result = Permission::meet_n(perms.iter().copied()).unwrap();
-        let fold_result = perms.iter().copied().reduce(Permission::meet).unwrap();
+        let fold_result = perms.iter().copied().reduce(|a, b| a.meet(b)).unwrap();
         prop_assert_eq!(n_result, fold_result);
     }
 

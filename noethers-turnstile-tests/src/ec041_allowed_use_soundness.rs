@@ -27,7 +27,7 @@ use chrono::Utc;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
-    error::CompositionError,
+    error::{CompositionError, TurnstileError},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
@@ -48,9 +48,10 @@ fn ctx_with_use(allowed_use: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -67,7 +68,7 @@ fn ctx_with_token_use(ctx_use: &str, tok_use: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -88,9 +89,10 @@ fn ctx_with_token_use(ctx_use: &str, tok_use: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -166,7 +168,7 @@ fn au6_compose_mismatched_allowed_use_is_use_conflict() {
     let ctx_b = ctx_with_use("purpose-beta");
     let result = compose(ctx_a, ctx_b);
     assert!(
-        matches!(result, Err(CompositionError::UseConflict)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
         "AU6: different allowed_use must yield UseConflict"
     );
 }
@@ -177,8 +179,8 @@ fn au6_use_conflict_is_symmetric() {
     let ctx_b = ctx_with_use("use-y");
     let fwd = compose(ctx_a.clone(), ctx_b.clone());
     let rev = compose(ctx_b, ctx_a);
-    assert!(matches!(fwd, Err(CompositionError::UseConflict)));
-    assert!(matches!(rev, Err(CompositionError::UseConflict)));
+    assert!(matches!(fwd, Err(TurnstileError::Composition(CompositionError::UseConflict))));
+    assert!(matches!(rev, Err(TurnstileError::Composition(CompositionError::UseConflict))));
 }
 
 // ── AU7: Matching allowed_use succeeds ───────────────────────────────────────
@@ -206,7 +208,7 @@ fn au8_compose_n_fails_on_any_mismatch() {
     ];
     let result = compose_n(ctxs);
     assert!(
-        matches!(result, Err(CompositionError::UseConflict)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
         "AU8: compose_n must fail closed when any context has different allowed_use"
     );
 }
@@ -236,7 +238,7 @@ fn au10_token_hash_bound_to_exact_allowed_use() {
     let j = compile(ctx_with_token_use("use-wrong", "use-correct")).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "AU10: token bound to 'use-correct' cannot close gap in 'use-wrong' context; PROVENANCE_MISMATCH → REF"
     );
 }
@@ -249,7 +251,7 @@ fn au10_token_matches_context_allowed_use() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "AU10: token with matching allowed_use closes gap → DIA"
     );
 }
@@ -261,7 +263,7 @@ fn au11_token_bound_to_other_use_cannot_close_gap() {
     let j = compile(ctx_with_token_use("use-B", "use-A")).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "AU11: token for use-A must not close gap in use-B context; PROVENANCE_MISMATCH → REF"
     );
 }
@@ -284,7 +286,7 @@ fn au12_two_tokens_wrong_use_neither_closes() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -321,14 +323,15 @@ fn au12_two_tokens_wrong_use_neither_closes() {
             },
         ],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "AU12: two tokens with wrong allowed_use: PROVENANCE_MISMATCH → REF"
     );
 }

@@ -41,7 +41,7 @@ fn make_audit_entry(id: &str) -> AuditEntry {
         claim_id: format!("claim-{id}"),
         context_id: format!("ctx-{id}"),
         membership: "InClass".into(),
-        permission: noethers_turnstile_core::permission::Permission::DIA,
+        permission: noethers_turnstile_core::permission::Permission::DIA(),
         expiry_deadline: None,
         token_ids: vec![],
         provenance_hash: "deadbeef".repeat(8),

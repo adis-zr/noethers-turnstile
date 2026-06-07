@@ -1,25 +1,29 @@
-/// The admissibility compiler: Γ ⊢ z : p until ε.
-///
-/// Algorithm (spec §3):
-/// 1. If membership ≠ InClass → OOC
-/// 2. Early context expiry check — halt before evaluating tokens (spec §14 step 4)
-/// 3. Descending search: find the strongest p such that profile_satisfied(Γ, p)
-/// 4. meet with structural_blockers (PROVENANCE_MISMATCH → REF; disallowed_uses → ROL ceiling)
-///    5a. meet with authority_ceiling (structural delegation limit)
-///    5b. meet with permission_ceiling (non-promotion ceiling T9, set by compose())
-/// 6. meet with expiry_blocker (any expired token with valid provenance → EXP floor)
-/// 7. record negative-control token IDs in the derivation (liveness checked at runtime)
-///
-/// Every meet can only lower the outcome.
+//! The admissibility compiler: Γ ⊢ z : p until ε.
+//!
+//! Algorithm (spec §3, with all-meets discipline of §2.1):
+//! 1. If membership ≠ InClass → role(Bottom)
+//! 2. Early context expiry check → meet with role(ExpiryFloor)
+//! 3. Descending search over chain → strongest p such that profile_satisfied(Γ, p)
+//! 4. Structural blockers (PROVENANCE_MISMATCH / DEAD_CREDENTIAL) → meet with role(Refused)
+//!    when outcome < role(BlockerThreshold); disallowed_uses → ROL-equivalent meet
+//! 5a. Meet with authority_ceiling (structural delegation limit)
+//! 5b. Meet with permission_ceiling (non-promotion ceiling T9, set by compose())
+//! 6. Token-level expiry → meet with role(ExpiryFloor) when any usable correct-provenance
+//!    token has expired
+//! 7. Record negative-control token IDs in the derivation (liveness checked at runtime)
+//!
+//! Every step expressed as `outcome = chain.meet(outcome, ...)` so non-promotion
+//! is a one-line theorem: meet is min, min never raises.
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument, warn};
 
 use crate::audit::{Derivation, DerivationStep};
 use crate::context::ProofContext;
+use crate::error::TurnstileError;
 use crate::expiry::Expiry;
 use crate::gap::GapStatus;
-use crate::permission::Permission;
+use crate::permission::{ChainHash, ChainRole, Permission, PermissionChain};
 use crate::token::verify_provenance;
 
 /// The result of compiling a proof context.
@@ -31,60 +35,114 @@ pub struct Judgment {
     ///
     /// WARNING: Do not read this field directly when evaluating live admissibility.
     /// Use `LiveJudgment::permission()` instead — it applies expiry, fingerprint
-    /// verification, and negative-control liveness checks at read time.  Reading
-    /// `permission` directly bypasses all of those runtime guards.
+    /// verification, and negative-control liveness checks at read time.
     pub permission: Permission,
     /// The binding expiry (the `ε` in `Γ ⊢ z : p until ε`).
     pub expiry: Expiry,
     /// Full audit derivation.
     pub derivation: Derivation,
+    /// Hash of the chain that authorized this judgment. Auditors resolve this
+    /// against a `ChainRegistry` to recover the chain content.
+    pub chain_hash: ChainHash,
+    /// Optional chain sidecar for self-contained archival. `None` keeps the
+    /// judgment small in normal operation; set via `with_chain_sidecar`.
+    #[serde(default)]
+    pub chain: Option<PermissionChain>,
 }
 
-/// Validate structural preconditions on a context before compilation.
+impl Judgment {
+    /// Inline the chain into the judgment for self-contained archival.
+    pub fn with_chain_sidecar(mut self, chain: &PermissionChain) -> Self {
+        self.chain = Some(chain.clone());
+        self
+    }
+}
+
+/// Validate structural preconditions on a context before compilation, against
+/// the supplied chain.
 ///
 /// Returns `Err(MalformedContext)` for any of:
 ///   - A profile references a `gap_id` not present in `ctx.gaps`.
 ///   - `ctx.gaps` contains duplicate `gap_id` values.
 ///   - `ctx.profiles` contains two entries with the same `permission` level.
 ///   - `ctx.allowed_use` is empty.
-fn validate_context(ctx: &ProofContext) -> Result<(), crate::error::TurnstileError> {
+///   - Any `Permission` field references a name not in the chain.
+///   - `ctx.expected_chain_hash` is `Some` and differs from `chain.chain_hash()`.
+fn validate_context(
+    ctx: &ProofContext,
+    chain: &PermissionChain,
+) -> Result<(), TurnstileError> {
     if ctx.allowed_use.is_empty() {
-        return Err(crate::error::TurnstileError::MalformedContext(
+        return Err(TurnstileError::MalformedContext(
             "allowed_use must not be empty".into(),
         ));
     }
 
-    // Check for duplicate gap_ids.
+    // expected_chain_hash pin (§3.3 mechanism 2).
+    if let Some(expected) = &ctx.expected_chain_hash {
+        if *expected != chain.chain_hash() {
+            return Err(TurnstileError::MalformedContext(format!(
+                "expected_chain_hash {} does not match supplied chain {}",
+                expected,
+                chain.chain_hash()
+            )));
+        }
+    }
+
+    // Duplicate gap_ids.
     let mut seen_gap_ids = std::collections::HashSet::new();
     for g in &ctx.gaps {
         if !seen_gap_ids.insert(g.gap_id.as_str()) {
-            return Err(crate::error::TurnstileError::MalformedContext(format!(
+            return Err(TurnstileError::MalformedContext(format!(
                 "duplicate gap_id '{}'",
                 g.gap_id
             )));
         }
     }
 
-    // Check that all gap_ids referenced by profiles exist.
+    // All gap_ids referenced by profiles exist; all profile permissions are in chain.
     for profile in &ctx.profiles {
+        if !chain.contains(&profile.permission) {
+            return Err(TurnstileError::MalformedContext(format!(
+                "profile permission '{}' not in supplied chain",
+                profile.permission
+            )));
+        }
         for req in &profile.required_gaps {
             if ctx.find_gap(&req.gap_id).is_none() {
-                return Err(crate::error::TurnstileError::MalformedContext(format!(
-                    "profile for {:?} references unknown gap_id '{}'",
+                return Err(TurnstileError::MalformedContext(format!(
+                    "profile for {} references unknown gap_id '{}'",
                     profile.permission, req.gap_id
                 )));
             }
         }
     }
 
-    // Check for duplicate permission levels in profiles.
-    let mut seen_perms = std::collections::HashSet::new();
+    // Duplicate permission levels in profiles.
+    let mut seen_perms: std::collections::HashSet<&str> = std::collections::HashSet::new();
     for profile in &ctx.profiles {
-        let key = profile.permission as u8;
-        if !seen_perms.insert(key) {
-            return Err(crate::error::TurnstileError::MalformedContext(format!(
-                "duplicate profile for permission level {:?}",
+        if !seen_perms.insert(profile.permission.as_str()) {
+            return Err(TurnstileError::MalformedContext(format!(
+                "duplicate profile for permission level {}",
                 profile.permission
+            )));
+        }
+    }
+
+    // Ceilings, if Some, must be in chain.
+    if let Some(p) = &ctx.authority_ceiling {
+        if !chain.contains(p) {
+            return Err(TurnstileError::MalformedContext(format!(
+                "authority_ceiling '{}' not in supplied chain",
+                p
+            )));
+        }
+    }
+    if let Some(p) = &ctx.permission_ceiling {
+        if !chain.contains(p) {
+            return Err(TurnstileError::MalformedContext(format!(
+                "permission_ceiling '{}' not in supplied chain",
+                p
             )));
         }
     }
@@ -92,49 +150,67 @@ fn validate_context(ctx: &ProofContext) -> Result<(), crate::error::TurnstileErr
     Ok(())
 }
 
-/// Compile a proof context into a judgment.
+/// Compile a proof context using the default chain. Equivalent to
+/// `compile_with_chain(ctx, PermissionChain::default_chain())`. The returned
+/// `Judgment` carries the default chain's hash — the decision to use the
+/// default is *recorded*, not implicit.
 ///
-/// This function is `O(|P| · max_p |gaps_required_at_p|)` in the number of
-/// permission levels and the maximum required-gap count per profile.
+/// Production callers should prefer `compile_with_chain` so the chain selection
+/// appears at the call site.
+pub fn compile(ctx: ProofContext) -> Result<Judgment, TurnstileError> {
+    compile_with_chain(ctx, PermissionChain::default_chain())
+}
+
+/// Compile a proof context against a specific permission chain.
 ///
 /// Returns `Err(TurnstileError::MalformedContext)` if the context is structurally
-/// invalid (e.g. a profile references a gap_id that does not exist in `ctx.gaps`,
-/// duplicate gap_ids, duplicate permission levels in profiles, or empty
-/// `allowed_use`).
+/// invalid (see `validate_context`).
 #[instrument(
     name = "turnstile.compile",
-    skip(ctx),
+    skip(ctx, chain),
     fields(
         claim_id = %ctx.claim_id,
         candidate_id = %ctx.candidate_id,
         context_id = %ctx.context_id,
         allowed_use = %ctx.allowed_use,
+        chain_hash = %chain.chain_hash(),
     )
 )]
-pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileError> {
-    validate_context(&ctx)?;
+pub fn compile_with_chain(
+    ctx: ProofContext,
+    chain: &PermissionChain,
+) -> Result<Judgment, TurnstileError> {
+    validate_context(&ctx, chain)?;
 
     let mut derivation = Derivation::new().with_provenance(ctx.provenance_hash());
+
+    let bottom = chain.role(ChainRole::Bottom).clone();
+    let expiry_floor = chain.role(ChainRole::ExpiryFloor).clone();
+    let refused = chain.role(ChainRole::Refused).clone();
+    let unsatisfied = chain.role(ChainRole::Unsatisfied).clone();
+    let threshold = chain.role(ChainRole::BlockerThreshold).clone();
+    let top = chain.role(ChainRole::Top).clone();
 
     // Step 1: membership check.
     if !ctx.membership.is_in_class() {
         debug!(
             phase = "membership_check",
             membership = ?ctx.membership,
-            permission = "OOC",
-            "out-of-class membership: emitting OOC"
+            permission = %bottom,
+            "out-of-class membership: emitting Bottom"
         );
-        let step = DerivationStep {
+        derivation.push(DerivationStep {
             phase: "membership_check".into(),
-            permission_after: Permission::OOC,
+            permission_after: bottom.clone(),
             note: format!("out-of-class membership: {:?}", ctx.membership),
             token_ids: vec![],
-        };
-        derivation.push(step);
+        });
         return Ok(Judgment {
-            permission: Permission::OOC,
+            permission: bottom,
             expiry: ctx.expiry.clone(),
             derivation,
+            chain_hash: chain.chain_hash(),
+            chain: None,
             context: ctx,
         });
     }
@@ -144,35 +220,37 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     if ctx.expiry.fired(now) {
         warn!(
             phase = "context_expiry",
-            "context expiry has already fired; emitting EXP"
+            "context expiry has already fired; emitting ExpiryFloor"
         );
         derivation.push(DerivationStep {
             phase: "context_expiry".into(),
-            permission_after: Permission::EXP,
+            permission_after: expiry_floor.clone(),
             note: "context expiry fired before token evaluation".into(),
             token_ids: vec![],
         });
         return Ok(Judgment {
-            permission: Permission::EXP,
+            permission: expiry_floor,
             expiry: ctx.expiry.clone(),
             derivation,
+            chain_hash: chain.chain_hash(),
+            chain: None,
             context: ctx,
         });
     }
 
     // Step 3: descending search.
-    // outcome starts at UNS: "profile exists but no positive permission satisfiable
-    // given the current evidence."  REF is reserved for explicit structural refusals
-    // (wrong-provenance token, step 4 blocker).  OOC is reserved for out-of-class
-    // membership (step 1, already handled above).
-    let mut outcome = Permission::UNS;
+    // outcome starts at Unsatisfied: "profile exists but no positive permission
+    // satisfiable given the current evidence." Refused is reserved for explicit
+    // structural refusals (wrong-provenance, step 4 blocker). Bottom is reserved
+    // for out-of-class membership (step 1, already handled above).
+    let mut outcome = unsatisfied.clone();
     let mut search_note = "no profile satisfied".to_string();
     let mut consulted_tokens: Vec<String> = vec![];
     let mut had_any_profile = false;
     let mut provenance_mismatch_seen = false;
     let mut dead_credential_seen = false;
 
-    'outer: for p in Permission::descending() {
+    'outer: for p in chain.descending() {
         match profile_satisfied(
             &ctx,
             p,
@@ -181,14 +259,12 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
             &mut dead_credential_seen,
         ) {
             ProfileCheckResult::Satisfied => {
-                outcome = p;
+                outcome = p.clone();
                 search_note = format!("profile satisfied at {}", p);
                 had_any_profile = true;
                 break 'outer;
             }
-            ProfileCheckResult::NoProfile => {
-                continue;
-            }
+            ProfileCheckResult::NoProfile => continue,
             ProfileCheckResult::GapNotMet => {
                 had_any_profile = true;
                 debug!(
@@ -201,9 +277,9 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         }
     }
 
-    // If no profiles were defined at all, emit OOC (undefined class behavior).
+    // If no profiles were defined at all, emit Bottom (undefined class behavior).
     if !had_any_profile {
-        outcome = Permission::OOC;
+        outcome = bottom.clone();
         search_note = "no profiles defined".to_string();
     }
 
@@ -215,41 +291,34 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
     );
     derivation.push(DerivationStep {
         phase: "descending_search".into(),
-        permission_after: outcome,
+        permission_after: outcome.clone(),
         note: search_note,
         token_ids: consulted_tokens.clone(),
     });
 
-    // Step 4: structural blockers — both PROVENANCE_MISMATCH and DEAD_CREDENTIAL force a
-    // REF meet when no profile was satisfied (outcome < DIA).
+    // Step 4: structural blockers. Both PROVENANCE_MISMATCH and DEAD_CREDENTIAL
+    // meet outcome with Refused when outcome < BlockerThreshold.
     //
-    // Guard is `outcome < DIA` (not `outcome <= REF`) because outcome now initializes to UNS
-    // when profiles exist but none are satisfied.  "No satisfied profile" covers UNS, REF,
-    // EXP, OOC — all are below DIA.  If a correct-provenance token did satisfy a profile
-    // (outcome ≥ DIA), these blockers are suppressed: the profile was met legitimately.
-    //
-    // PROVENANCE_MISMATCH: a token whose provenance hash doesn't match this context was
-    // presented — active credential forgery/misdirection, not mere absence.
-    //
-    // DEAD_CREDENTIAL: a token with correct provenance but non-usable status (Invalid,
-    // Revoked, Malformed, or the Expired variant) was presented — the credential was
-    // explicitly revoked/rejected, not merely absent.  Time-expired tokens (Valid status +
-    // expires_at < now) are handled separately by the step 6 EXP floor; they don't trigger
-    // this blocker.
+    // "outcome < BlockerThreshold" covers the "no profile satisfied" cases
+    // (Unsatisfied, and various below-threshold roles). If a correct-provenance
+    // token satisfied a profile above the threshold, these blockers are
+    // suppressed: the profile was met legitimately.
+    let outcome_rank = chain.rank(&outcome).expect("outcome must be in chain");
+    let threshold_rank = chain.rank(&threshold).expect("threshold must be in chain");
     let apply_ref_blocker =
-        (provenance_mismatch_seen || dead_credential_seen) && outcome < Permission::DIA;
+        (provenance_mismatch_seen || dead_credential_seen) && outcome_rank < threshold_rank;
     if apply_ref_blocker {
         let note = match (provenance_mismatch_seen, dead_credential_seen) {
             (true, true) => {
-                "PROVENANCE_MISMATCH + DEAD_CREDENTIAL: rejected token(s) seen; REF meet applied"
+                "PROVENANCE_MISMATCH + DEAD_CREDENTIAL: rejected token(s) seen; Refused meet applied"
                     .to_string()
             }
             (true, false) => {
-                "PROVENANCE_MISMATCH: token(s) with wrong provenance seen; REF meet applied"
+                "PROVENANCE_MISMATCH: token(s) with wrong provenance seen; Refused meet applied"
                     .to_string()
             }
             (false, true) => {
-                "DEAD_CREDENTIAL: token(s) with non-usable status seen; REF meet applied"
+                "DEAD_CREDENTIAL: token(s) with non-usable status seen; Refused meet applied"
                     .to_string()
             }
             (false, false) => unreachable!(),
@@ -258,78 +327,87 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
             phase = "structural_blockers",
             provenance_mismatch = provenance_mismatch_seen,
             dead_credential = dead_credential_seen,
-            "structural blocker(s) detected; meeting outcome with REF"
+            "structural blocker(s) detected; meeting outcome with Refused"
         );
+        let after = chain.meet(&outcome, &refused)?;
         derivation.push(DerivationStep {
             phase: "structural_blockers".into(),
-            permission_after: outcome.meet(Permission::REF),
+            permission_after: after.clone(),
             note,
             token_ids: vec![],
         });
-        outcome = outcome.meet(Permission::REF);
+        outcome = after;
     }
 
-    let (blocker_outcome, blocker_note) = structural_blockers(&ctx, outcome);
-    if blocker_outcome < outcome {
-        warn!(
-            phase = "structural_blockers",
-            before = %outcome,
-            after = %blocker_outcome,
-            note = %blocker_note,
-            "structural blocker lowered permission"
-        );
-        derivation.push(DerivationStep {
-            phase: "structural_blockers".into(),
-            permission_after: blocker_outcome,
-            note: blocker_note,
-            token_ids: vec![],
-        });
+    // disallowed_uses blocker: meet with the chain's DisallowedUsesCeiling role.
+    // No level naming — the role is the structural anchor.
+    if !ctx.disallowed_uses.is_empty() {
+        let disallowed_ceiling = chain.role(ChainRole::DisallowedUsesCeiling).clone();
+        let after = chain.meet(&outcome, &disallowed_ceiling)?;
+        if chain.rank(&after) < chain.rank(&outcome) {
+            warn!(
+                phase = "structural_blockers",
+                before = %outcome,
+                after = %after,
+                "disallowed_uses present; meeting with ceiling"
+            );
+            derivation.push(DerivationStep {
+                phase: "structural_blockers".into(),
+                permission_after: after.clone(),
+                note: format!(
+                    "disallowed_uses present ({}), ceiling at {}",
+                    ctx.disallowed_uses.join(", "),
+                    disallowed_ceiling
+                ),
+                token_ids: vec![],
+            });
+            outcome = after;
+        }
     }
-    outcome = blocker_outcome;
 
     // Step 5a: authority ceiling (structural delegation limit).
-    let ceiling = ctx.authority_ceiling;
-    if ceiling < outcome {
+    let authority_ceiling = ctx.authority_ceiling.clone().unwrap_or_else(|| top.clone());
+    let after_auth = chain.meet(&outcome, &authority_ceiling)?;
+    if chain.rank(&after_auth) < chain.rank(&outcome) {
         warn!(
             phase = "authority_ceiling",
-            ceiling = %ceiling,
+            ceiling = %authority_ceiling,
             before = %outcome,
             "authority ceiling lowered permission"
         );
         derivation.push(DerivationStep {
             phase: "authority_ceiling".into(),
-            permission_after: ceiling,
-            note: format!("authority ceiling is {}", ceiling),
+            permission_after: after_auth.clone(),
+            note: format!("authority ceiling is {}", authority_ceiling),
             token_ids: vec![],
         });
     }
-    outcome = outcome.meet(ceiling);
+    outcome = after_auth;
 
     // Step 5b: permission ceiling (non-promotion ceiling, T9).
-    // Set by compose() to meet(compile(g1), compile(g2)).  AAA on contexts not
-    // produced by composition (defaults to unconstrained).
-    let perm_ceiling = ctx.permission_ceiling;
-    if perm_ceiling < outcome {
+    let permission_ceiling = ctx
+        .permission_ceiling
+        .clone()
+        .unwrap_or_else(|| top.clone());
+    let after_perm = chain.meet(&outcome, &permission_ceiling)?;
+    if chain.rank(&after_perm) < chain.rank(&outcome) {
         warn!(
             phase = "permission_ceiling",
-            ceiling = %perm_ceiling,
+            ceiling = %permission_ceiling,
             before = %outcome,
             "non-promotion ceiling (T9) lowered permission"
         );
         derivation.push(DerivationStep {
             phase: "permission_ceiling".into(),
-            permission_after: perm_ceiling,
-            note: format!("non-promotion ceiling (T9) is {}", perm_ceiling),
+            permission_after: after_perm.clone(),
+            note: format!("non-promotion ceiling (T9) is {}", permission_ceiling),
             token_ids: vec![],
         });
     }
-    outcome = outcome.meet(perm_ceiling);
+    outcome = after_perm;
 
-    // Step 6: token-level expiry blocker — if any Valid-status token with correct
-    // provenance has expired, floor to EXP.  Tokens with wrong provenance are
-    // invisible to the compiler and must not trigger this blocker (a token with
-    // bad provenance was already rejected in effective_gap_status; letting it also
-    // trigger EXP would be a correctness violation).
+    // Step 6: token-level expiry blocker — if any Valid-status token with
+    // correct provenance has expired, meet outcome with ExpiryFloor.
     let expired_ids: Vec<String> = ctx
         .tokens
         .iter()
@@ -346,24 +424,25 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         })
         .map(|t| t.token_id.clone())
         .collect();
-    if !expired_ids.is_empty() && outcome > Permission::EXP {
-        warn!(
-            phase = "expiry_blocker",
-            expired_token_ids = ?expired_ids,
-            "expired proof token(s) flooring permission to EXP"
-        );
-        derivation.push(DerivationStep {
-            phase: "expiry_blocker".into(),
-            permission_after: Permission::EXP,
-            note: "at least one proof token has expired".into(),
-            token_ids: expired_ids,
-        });
-        outcome = outcome.meet(Permission::EXP);
+    if !expired_ids.is_empty() {
+        let after_exp = chain.meet(&outcome, &expiry_floor)?;
+        if chain.rank(&after_exp) < chain.rank(&outcome) {
+            warn!(
+                phase = "expiry_blocker",
+                expired_token_ids = ?expired_ids,
+                "expired proof token(s); meeting outcome with ExpiryFloor"
+            );
+            derivation.push(DerivationStep {
+                phase: "expiry_blocker".into(),
+                permission_after: after_exp.clone(),
+                note: "at least one proof token has expired".into(),
+                token_ids: expired_ids,
+            });
+            outcome = after_exp;
+        }
     }
 
     // Step 7: record negative-control token IDs in the derivation.
-    // Liveness is checked at runtime in LiveJudgment::permission() (T17).
-    // We record them here so the derivation is self-contained for audit.
     let nc_token_ids: Vec<String> = ctx
         .tokens
         .iter()
@@ -374,12 +453,11 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         debug!(
             phase = "negative_control_registration",
             nc_token_count = nc_token_ids.len(),
-            nc_token_ids = ?nc_token_ids,
             "negative-control tokens registered for runtime liveness check (T17)"
         );
         derivation.push(DerivationStep {
             phase: "negative_control_registration".into(),
-            permission_after: outcome,
+            permission_after: outcome.clone(),
             note: format!(
                 "{} negative-control token(s) registered; liveness checked at runtime",
                 nc_token_ids.len()
@@ -393,6 +471,8 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, crate::error::TurnstileErr
         permission: outcome,
         expiry: ctx.expiry.clone(),
         derivation,
+        chain_hash: chain.chain_hash(),
+        chain: None,
         context: ctx,
     })
 }
@@ -406,19 +486,14 @@ enum ProfileCheckResult {
 
 /// Check whether all gap requirements in the profile for permission `p` are met
 /// in context `ctx`.
-///
-/// Token provenance is checked bitwise: any token with wrong provenance is
-/// treated as if the gap is still Open and `provenance_mismatch` is set so the
-/// caller can apply a REF-meet.  Any token with correct provenance but non-usable
-/// status sets `dead_credential` so the same REF-meet applies.
 fn profile_satisfied(
     ctx: &ProofContext,
-    p: Permission,
+    p: &Permission,
     consulted: &mut Vec<String>,
     provenance_mismatch: &mut bool,
     dead_credential: &mut bool,
 ) -> ProfileCheckResult {
-    let profile = match ctx.profiles.iter().find(|pr| pr.permission == p) {
+    let profile = match ctx.profiles.iter().find(|pr| &pr.permission == p) {
         Some(pr) => pr,
         None => return ProfileCheckResult::NoProfile,
     };
@@ -426,9 +501,7 @@ fn profile_satisfied(
     for req in &profile.required_gaps {
         let gap = match ctx.find_gap(&req.gap_id) {
             Some(g) => g,
-            None => {
-                return ProfileCheckResult::GapNotMet;
-            }
+            None => return ProfileCheckResult::GapNotMet,
         };
 
         let effective_status =
@@ -444,13 +517,6 @@ fn profile_satisfied(
 
 /// Compute the effective gap status for a gap, considering only tokens whose
 /// provenance hash matches the context exactly and whose status is usable.
-///
-/// Tokens with wrong provenance set `provenance_mismatch`; tokens with correct
-/// provenance but non-usable status (Invalid, Revoked, Malformed, Expired variant)
-/// set `dead_credential`.  Both flags cause a REF-meet in step 4.
-///
-/// Time-expired tokens (Valid status + `expires_at` < now) are silently skipped
-/// here; they are handled by the step 6 EXP floor.
 fn effective_gap_status(
     ctx: &ProofContext,
     gap: &crate::gap::GapRecord,
@@ -469,19 +535,16 @@ fn effective_gap_status(
             &ctx.context_id,
             &ctx.allowed_use,
         ) {
-            // Wrong provenance: token is rejected. Record the structural failure.
             *provenance_mismatch = true;
             continue;
         }
 
-        // Correct provenance but non-usable status = explicitly rejected credential.
         if !token.status.is_usable() {
             *dead_credential = true;
             continue;
         }
 
         if !token.is_live(Utc::now()) {
-            // Time-expired (Valid + past expires_at): silently skip — step 6 handles EXP.
             continue;
         }
 
@@ -493,9 +556,6 @@ fn effective_gap_status(
         } else if token.bounds_gaps.iter().any(|g| g == &gap.gap_id)
             && best_status < GapStatus::Bounded(crate::gap::Bound::infinity())
         {
-            // Any Bounded(_) value has rank 1; this condition is false when best_status is
-            // already Bounded.  The branch exists to prevent overwriting a Closed status
-            // downward — once Closed, the break above fires first.
             best_status = GapStatus::Bounded(crate::gap::Bound::infinity());
         }
     }
@@ -503,33 +563,11 @@ fn effective_gap_status(
     best_status
 }
 
-/// Structural blockers that can lower the outcome.
-///
-/// Current blockers:
-/// - Any disallowed_use that fires a hard ceiling.
-fn structural_blockers(ctx: &ProofContext, current: Permission) -> (Permission, String) {
-    // For now, any non-empty disallowed_uses list imposes a ceiling of ROL.
-    // This is conservative: if the context lists explicit disallowed uses,
-    // automatic/unlimited actions are blocked.
-    if !ctx.disallowed_uses.is_empty() {
-        let ceiling = Permission::ROL;
-        if ceiling < current {
-            return (
-                current.meet(ceiling),
-                format!(
-                    "disallowed_uses present ({}), ceiling at ROL",
-                    ctx.disallowed_uses.join(", ")
-                ),
-            );
-        }
-    }
-    (current, String::new())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::context::{Membership, Scope};
+    use crate::default_levels;
     use crate::gap::{GapRecord, GapRequirement, Profile, RequiredStatus};
     use crate::token::{compute_provenance_hash, ProofToken, TokenStatus};
     use chrono::Utc;
@@ -547,9 +585,10 @@ mod tests {
             profiles: vec![],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: None,
+            permission_ceiling: None,
             membership,
+            expected_chain_hash: None,
         }
     }
 
@@ -577,17 +616,17 @@ mod tests {
     }
 
     #[test]
-    fn out_of_class_returns_ooc() {
+    fn out_of_class_returns_bottom() {
         let ctx = minimal_ctx(Membership::OutOfClassExact);
         let j = compile(ctx).unwrap();
-        assert_eq!(j.permission, Permission::OOC);
+        assert_eq!(j.permission, default_levels::OOC());
     }
 
     #[test]
-    fn no_profiles_returns_ooc() {
+    fn no_profiles_returns_bottom() {
         let ctx = minimal_ctx(Membership::InClass);
         let j = compile(ctx).unwrap();
-        assert_eq!(j.permission, Permission::OOC);
+        assert_eq!(j.permission, default_levels::OOC());
     }
 
     #[test]
@@ -595,7 +634,7 @@ mod tests {
         let mut ctx = minimal_ctx(Membership::InClass);
         ctx.gaps.push(GapRecord::closed("g1", "calibration_gap"));
         ctx.profiles.push(Profile {
-            permission: Permission::DIA,
+            permission: default_levels::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -604,7 +643,7 @@ mod tests {
         let tok = make_token(vec!["g1".into()], &ctx);
         ctx.tokens.push(tok);
         let j = compile(ctx).unwrap();
-        assert_eq!(j.permission, Permission::DIA);
+        assert_eq!(j.permission, default_levels::DIA());
     }
 
     #[test]
@@ -612,7 +651,7 @@ mod tests {
         let mut ctx = minimal_ctx(Membership::InClass);
         ctx.gaps.push(GapRecord::closed("g1", "gap"));
         ctx.profiles.push(Profile {
-            permission: Permission::AAA,
+            permission: default_levels::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -620,23 +659,22 @@ mod tests {
         });
         let tok = make_token(vec!["g1".into()], &ctx);
         ctx.tokens.push(tok);
-        ctx.authority_ceiling = Permission::DIA;
+        ctx.authority_ceiling = Some(default_levels::DIA());
         let j = compile(ctx).unwrap();
-        assert_eq!(j.permission, Permission::DIA);
+        assert_eq!(j.permission, default_levels::DIA());
     }
 
     #[test]
-    fn wrong_provenance_token_leaves_gap_open() {
+    fn wrong_provenance_token_yields_ref() {
         let mut ctx = minimal_ctx(Membership::InClass);
         ctx.gaps.push(GapRecord::open("g1", "calibration_gap"));
         ctx.profiles.push(Profile {
-            permission: Permission::DIA,
+            permission: default_levels::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         });
-        // Token with wrong provenance.
         let bad_token = ProofToken {
             token_id: "bad-tok".into(),
             token_type: "TEST".into(),
@@ -644,7 +682,7 @@ mod tests {
             status: TokenStatus::Valid,
             closes_gaps: vec!["g1".into()],
             bounds_gaps: vec![],
-            provenance_hash: "deadbeef".repeat(8), // wrong
+            provenance_hash: "deadbeef".repeat(8),
             issued_at: Utc::now(),
             expires_at: None,
             issuer: "test".into(),
@@ -653,9 +691,7 @@ mod tests {
         };
         ctx.tokens.push(bad_token);
         let j = compile(ctx).unwrap();
-        // Wrong provenance → PROVENANCE_MISMATCH structural failure → REF meet applied.
-        // Candidate is in-class, profile exists but gap unmet → REF (not OOC).
-        assert_eq!(j.permission, Permission::REF);
+        assert_eq!(j.permission, default_levels::REF());
     }
 
     #[test]
@@ -663,7 +699,7 @@ mod tests {
         let mut ctx = minimal_ctx(Membership::InClass);
         ctx.gaps.push(GapRecord::closed("g1", "gap"));
         ctx.profiles.push(Profile {
-            permission: Permission::AAA,
+            permission: default_levels::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -673,9 +709,14 @@ mod tests {
         ctx.tokens.push(tok);
         ctx.disallowed_uses = vec!["production-write".into()];
         let j = compile(ctx).unwrap();
-        assert!(j.permission <= Permission::ROL);
+        let chain = PermissionChain::default_chain();
+        assert!(chain.rank(&j.permission).unwrap() <= chain.rank(&default_levels::ROL()).unwrap());
+    }
+
+    #[test]
+    fn judgment_carries_chain_hash() {
+        let ctx = minimal_ctx(Membership::InClass);
+        let j = compile(ctx).unwrap();
+        assert_eq!(j.chain_hash, PermissionChain::default_chain().chain_hash());
     }
 }
-
-// uuid is used in tests; add it as a dev dependency via the workspace
-// (added to turnstile-core/Cargo.toml below)

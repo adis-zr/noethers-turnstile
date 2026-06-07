@@ -31,20 +31,22 @@ use noethers_turnstile_core::{
 };
 use std::time::Instant;
 
-const ALL_PERMISSIONS: [Permission; 12] = [
-    Permission::OOC,
-    Permission::EXP,
-    Permission::REF,
-    Permission::UNS,
-    Permission::ETA,
-    Permission::ESC,
-    Permission::ROL,
-    Permission::DIA,
-    Permission::REV,
-    Permission::AEX,
-    Permission::ALR,
-    Permission::AAA,
-];
+fn all_permissions() -> [Permission; 12] {
+    [
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 fn clean_ctx() -> ProofContext {
     let hash = compute_provenance_hash("claim-a", "z-a", "ctx-a", "a-use");
@@ -58,7 +60,7 @@ fn clean_ctx() -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -79,9 +81,10 @@ fn clean_ctx() -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -93,7 +96,7 @@ fn all_clean_context_passes() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "Clean context must compile to DIA"
     );
 }
@@ -129,7 +132,7 @@ fn a1_2_different_gap_ids_same_type_accepted() {
             GapRecord::closed("g1-beta", "t"),
         ],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1-alpha".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -150,9 +153,10 @@ fn a1_2_different_gap_ids_same_type_accepted() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let result = compile(ctx);
     assert!(result.is_ok(), "A1-2: distinct gap_ids must be accepted");
@@ -178,16 +182,17 @@ fn a3_1_ten_thousand_gap_context_terminates() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let start = Instant::now();
     let j = compile(ctx).unwrap();
     let elapsed = start.elapsed();
 
-    assert_eq!(j.permission, Permission::OOC, "A3-1: no profiles → OOC");
+    assert_eq!(j.permission, Permission::OOC(), "A3-1: no profiles → OOC");
     assert!(
         elapsed.as_secs() < 5,
         "A3-1: 10k-gap context must compile in <5s (took {elapsed:?})"
@@ -212,14 +217,15 @@ fn a3_2_one_thousand_gaps_no_profiles_yields_ooc() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "A3-2: 1k gaps, no profiles → OOC"
     );
 }
@@ -228,7 +234,7 @@ fn a3_2_one_thousand_gaps_no_profiles_yields_ooc() {
 
 #[test]
 fn a4_1_duplicate_permission_level_rejected_for_all_12() {
-    for (i, &p) in ALL_PERMISSIONS.iter().enumerate() {
+    for (i, &p) in all_permissions().iter().enumerate() {
         let ctx = ProofContext {
             claim_id: format!("claim-a4-{i}"),
             candidate_id: format!("z-a4-{i}"),
@@ -250,9 +256,10 @@ fn a4_1_duplicate_permission_level_rejected_for_all_12() {
             ],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
         let result = compile(ctx);
         assert!(
@@ -275,19 +282,20 @@ fn a4_2_unique_permission_levels_accepted() {
         gaps: vec![],
         profiles: vec![
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![],
             },
             Profile {
-                permission: Permission::AEX,
+                permission: Permission::AEX(),
                 required_gaps: vec![],
             },
         ],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     assert!(
         compile(ctx).is_ok(),
@@ -299,7 +307,7 @@ fn a4_2_unique_permission_levels_accepted() {
 
 #[test]
 fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
-    for (i, &ceiling) in ALL_PERMISSIONS.iter().enumerate() {
+    for (i, &ceiling) in all_permissions().iter().enumerate() {
         let hash = compute_provenance_hash(
             &format!("c-{i}"),
             &format!("z-{i}"),
@@ -316,7 +324,7 @@ fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
             scope: Scope::default(),
             gaps: vec![GapRecord::closed("g1", "t")],
             profiles: vec![Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -337,9 +345,11 @@ fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
                 is_negative_control: false,
             }],
             expiry: Expiry::never(),
-            authority_ceiling: ceiling,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(ceiling),
+
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
         assert!(
@@ -360,7 +370,7 @@ fn a7_1_mismatched_fingerprint_yields_ooc() {
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::OOC,
+        Permission::OOC(),
         "A7-1: mismatched fingerprint must yield OOC (wrong context, not expiry)"
     );
 }
@@ -373,7 +383,7 @@ fn a7_2_matching_fingerprint_preserves_permission() {
     let live = LiveJudgment::new(j, &rt);
     assert_eq!(
         live.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "A7-2: matching fingerprint must preserve permission"
     );
 }
@@ -394,7 +404,7 @@ fn a9_1_million_char_allowed_use_terminates() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -415,9 +425,10 @@ fn a9_1_million_char_allowed_use_terminates() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let start = Instant::now();
     let result = compile(ctx);
@@ -447,9 +458,10 @@ fn a9_2_one_thousand_long_gap_ids_terminates() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let start = Instant::now();
     let result = compile(ctx);
@@ -469,7 +481,7 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
 
     let _profiles: Vec<Profile> = (0..1_000)
         .map(|i| Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: format!("gap-{}", i % 20),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -480,17 +492,17 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
     // But wait: duplicate permissions → MalformedContext. Use unique permissions.
     // Can only have 12 unique permission levels, so cap profiles at 12.
     let profiles: Vec<Profile> = [
-        Permission::EXP,
-        Permission::REF,
-        Permission::UNS,
-        Permission::ETA,
-        Permission::ESC,
-        Permission::ROL,
-        Permission::DIA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::ALR,
-        Permission::AAA,
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
     ]
     .iter()
     .map(|&p| Profile {
@@ -514,16 +526,17 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
         profiles,
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let start = Instant::now();
     let j = compile(ctx).unwrap();
     let elapsed = start.elapsed();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "A9-3: all gaps open → UNS (InClass, profiles defined but unmet)"
     );
     assert!(

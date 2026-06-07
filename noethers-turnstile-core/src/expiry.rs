@@ -1,4 +1,4 @@
-/// Expiry types and the LiveJudgment wrapper.
+//! Expiry types and the LiveJudgment wrapper.
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
@@ -8,20 +8,17 @@ use tracing::{debug, warn};
 
 use crate::compiler::Judgment;
 use crate::context::ProofContext;
-use crate::permission::Permission;
+use crate::permission::{ChainRole, Permission, PermissionChain};
 use crate::token::NegativeControlStatus;
 
 /// The expiry constraint on a judgment (`ε` in `Γ ⊢ z : p until ε`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Expiry {
-    /// Hard deadline.  A `None` deadline never expires.
     pub deadline: Option<DateTime<Utc>>,
-    /// Human-readable reason for the expiry (for audit).
     pub reason: Option<String>,
 }
 
 impl Expiry {
-    /// An expiry that never fires.
     pub fn never() -> Self {
         Self {
             deadline: None,
@@ -29,7 +26,6 @@ impl Expiry {
         }
     }
 
-    /// An expiry that fires at `deadline`.
     pub fn at(deadline: DateTime<Utc>) -> Self {
         Self {
             deadline: Some(deadline),
@@ -37,7 +33,6 @@ impl Expiry {
         }
     }
 
-    /// An expiry that fires at `deadline` with an audit reason.
     pub fn at_with_reason(deadline: DateTime<Utc>, reason: impl Into<String>) -> Self {
         Self {
             deadline: Some(deadline),
@@ -45,7 +40,6 @@ impl Expiry {
         }
     }
 
-    /// Returns `true` iff the expiry deadline has been reached or passed at `now`.
     pub fn fired(&self, now: DateTime<Utc>) -> bool {
         match self.deadline {
             Some(deadline) => now >= deadline,
@@ -53,7 +47,6 @@ impl Expiry {
         }
     }
 
-    /// Minimum expiry: the one that fires earliest.
     pub fn min(self, other: Self) -> Self {
         match (self.deadline, other.deadline) {
             (Some(a), Some(b)) => {
@@ -85,22 +78,10 @@ impl Expiry {
 /// Runtime context for evaluating whether a judgment is still live.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuntimeContext {
-    /// Current wall-clock time for expiry evaluation.
     pub now: DateTime<Utc>,
-    /// Runtime fingerprint for revalidation (must match the context fingerprint
-    /// the judgment was compiled against).
     pub context_fingerprint: String,
-    /// Live negative-control state map, keyed by token_id (T17).
-    ///
-    /// Only consulted when `strict_mode` is `true`.  Tokens absent from this
-    /// map are treated as `Missing` in strict mode.
     #[serde(default)]
     pub negative_control_states: HashMap<String, NegativeControlStatus>,
-    /// When `true`, every negative-control token in the compiled judgment must
-    /// appear as `Live` in `negative_control_states`.  Any other state (or
-    /// absence) floors the live permission to `REF` (T17).
-    ///
-    /// Defaults to `true`: strict mode is the safe default.
     #[serde(default = "default_strict_mode")]
     pub strict_mode: bool,
 }
@@ -110,7 +91,6 @@ fn default_strict_mode() -> bool {
 }
 
 impl RuntimeContext {
-    /// Construct a runtime context with strict mode enabled and no NC state.
     pub fn new(now: DateTime<Utc>, context_fingerprint: impl Into<String>) -> Self {
         Self {
             now,
@@ -120,7 +100,6 @@ impl RuntimeContext {
         }
     }
 
-    /// Construct a runtime context with an explicit strict-mode flag and NC state map.
     pub fn with_nc_states(
         now: DateTime<Utc>,
         context_fingerprint: impl Into<String>,
@@ -135,17 +114,10 @@ impl RuntimeContext {
         }
     }
 
-    /// Check that this runtime context matches the context the judgment was
-    /// compiled against (fingerprint equality).
     pub fn satisfies(&self, ctx: &ProofContext) -> bool {
         self.context_fingerprint == ctx.context_fingerprint
     }
 
-    /// Check negative-control liveness for a set of token IDs (T17).
-    ///
-    /// Returns `Ok(())` if all NC tokens are live, or `Err(token_id)` for the
-    /// first token that fails the liveness check.  In non-strict mode always
-    /// returns `Ok(())`.
     pub fn check_negative_controls<'a>(
         &self,
         nc_token_ids: impl Iterator<Item = &'a str>,
@@ -171,41 +143,57 @@ impl RuntimeContext {
 ///
 /// The lifetime `'ctx` ties the `LiveJudgment` to the `RuntimeContext` it was
 /// created from, preventing stale-read attacks at the type-system level.
-///
-/// The only way to read `permission()` is to hold a live reference to the
-/// `RuntimeContext`; if that context is dropped or mutated, the borrow checker
-/// prevents the read.
 pub struct LiveJudgment<'ctx> {
     inner: Judgment,
     runtime: &'ctx RuntimeContext,
+    chain: &'ctx PermissionChain,
 }
 
 impl<'ctx> LiveJudgment<'ctx> {
+    /// Construct a live judgment bound to the default chain.
     pub fn new(inner: Judgment, runtime: &'ctx RuntimeContext) -> Self {
-        Self { inner, runtime }
+        Self {
+            inner,
+            runtime,
+            chain: PermissionChain::default_chain(),
+        }
     }
 
-    /// The runtime context this judgment is bound to.
+    /// Construct a live judgment bound to a specific chain.
+    pub fn with_chain(
+        inner: Judgment,
+        runtime: &'ctx RuntimeContext,
+        chain: &'ctx PermissionChain,
+    ) -> Self {
+        Self {
+            inner,
+            runtime,
+            chain,
+        }
+    }
+
     pub fn runtime(&self) -> &RuntimeContext {
         self.runtime
     }
 
+    pub fn chain(&self) -> &PermissionChain {
+        self.chain
+    }
+
     /// Read the effective permission at this instant.
     ///
-    /// Returns `Permission::EXP` if the judgment has expired or if the runtime
-    /// context fingerprint does not match the compile-time context.
-    ///
-    /// Returns `Permission::REF` if strict mode is enabled and any
-    /// negative-control token in the judgment is not `Live` in the runtime
-    /// context's NC state map (T17).
+    /// Returns `chain.role(ExpiryFloor)` if the judgment has expired.
+    /// Returns `chain.role(Bottom)` if the runtime fingerprint does not match.
+    /// Returns `chain.role(Refused)` if strict mode is enabled and any NC token
+    /// is not Live.
     pub fn permission(&self) -> Permission {
         if self.inner.expiry.fired(self.runtime.now) {
             warn!(
                 candidate_id = %self.inner.context.candidate_id,
                 claim_id = %self.inner.context.claim_id,
-                "judgment expired; returning EXP"
+                "judgment expired; returning ExpiryFloor"
             );
-            return Permission::EXP;
+            return self.chain.role(ChainRole::ExpiryFloor).clone();
         }
         if !self.runtime.satisfies(&self.inner.context) {
             warn!(
@@ -213,15 +201,9 @@ impl<'ctx> LiveJudgment<'ctx> {
                 claim_id = %self.inner.context.claim_id,
                 runtime_fingerprint = %self.runtime.context_fingerprint,
                 compile_fingerprint = %self.inner.context.context_fingerprint,
-                "fingerprint mismatch; returning OOC (judgment applied in wrong context)"
+                "fingerprint mismatch; returning Bottom"
             );
-            // A fingerprint mismatch means this judgment is being evaluated in a
-            // different context than it was compiled against — the judgment should
-            // not be applied at all.  OOC (not EXP) is the correct outcome: the
-            // candidate is out-of-class with respect to *this* runtime context.
-            // EXP is reserved for "was valid, now expired"; it must not be confused
-            // with "wrong context entirely".
-            return Permission::OOC;
+            return self.chain.role(ChainRole::Bottom).clone();
         }
         // T17: negative-control liveness check.
         let nc_ids = self
@@ -236,9 +218,9 @@ impl<'ctx> LiveJudgment<'ctx> {
                 candidate_id = %self.inner.context.candidate_id,
                 claim_id = %self.inner.context.claim_id,
                 failed_nc_token_id = %failed_id,
-                "T17: negative-control not live; flooring to REF"
+                "T17: negative-control not live; flooring to Refused"
             );
-            return Permission::REF;
+            return self.chain.role(ChainRole::Refused).clone();
         }
         debug!(
             candidate_id = %self.inner.context.candidate_id,
@@ -246,19 +228,13 @@ impl<'ctx> LiveJudgment<'ctx> {
             permission = %self.inner.permission,
             "live permission read"
         );
-        self.inner.permission
+        self.inner.permission.clone()
     }
 
-    /// Expiry deadline, if any.
     pub fn deadline(&self) -> Option<DateTime<Utc>> {
         self.inner.expiry.deadline
     }
 
-    /// Underlying judgment (for audit / serialization only).
-    ///
-    /// WARNING: Do not read `judgment().permission` for admissibility decisions.
-    /// That field bypasses expiry, fingerprint verification, and negative-control
-    /// liveness checks. `LiveJudgment::permission()` is the only correct read path.
     pub fn judgment(&self) -> &Judgment {
         &self.inner
     }
@@ -267,24 +243,39 @@ impl<'ctx> LiveJudgment<'ctx> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::audit::Derivation;
+    use crate::context::{Membership, Scope};
+    use crate::default_levels;
     use chrono::Duration;
 
     fn dummy_ctx() -> ProofContext {
-        crate::context::ProofContext {
+        ProofContext {
             claim_id: "c".into(),
             candidate_id: "z".into(),
             context_id: "ctx".into(),
             context_fingerprint: "fp".into(),
             allowed_use: "use".into(),
             disallowed_uses: vec![],
-            scope: crate::context::Scope::default(),
+            scope: Scope::default(),
             gaps: vec![],
             profiles: vec![],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
-            membership: crate::context::Membership::InClass,
+            authority_ceiling: None,
+            permission_ceiling: None,
+            membership: Membership::InClass,
+            expected_chain_hash: None,
+        }
+    }
+
+    fn make_judgment(perm: Permission, expiry: Expiry) -> Judgment {
+        Judgment {
+            context: dummy_ctx(),
+            permission: perm,
+            expiry,
+            derivation: Derivation::default(),
+            chain_hash: PermissionChain::default_chain().chain_hash(),
+            chain: None,
         }
     }
 
@@ -301,43 +292,30 @@ mod tests {
     fn live_judgment_returns_exp_when_expired() {
         let now = Utc::now();
         let rt = RuntimeContext::new(now + Duration::seconds(10), "fp");
-        let judgment = Judgment {
-            context: dummy_ctx(),
-            permission: Permission::DIA,
-            expiry: Expiry::at(now + Duration::seconds(5)),
-            derivation: crate::audit::Derivation::default(),
-        };
+        let judgment = make_judgment(
+            default_levels::DIA(),
+            Expiry::at(now + Duration::seconds(5)),
+        );
         let live = LiveJudgment::new(judgment, &rt);
-        assert_eq!(live.permission(), Permission::EXP);
+        assert_eq!(live.permission(), default_levels::EXP());
     }
 
     #[test]
     fn live_judgment_returns_ooc_on_fingerprint_mismatch() {
         let now = Utc::now();
         let rt = RuntimeContext::new(now, "wrong-fp");
-        let judgment = Judgment {
-            context: dummy_ctx(),
-            permission: Permission::DIA,
-            expiry: Expiry::never(),
-            derivation: crate::audit::Derivation::default(),
-        };
+        let judgment = make_judgment(default_levels::DIA(), Expiry::never());
         let live = LiveJudgment::new(judgment, &rt);
-        // Fingerprint mismatch = wrong context entirely, not expiry. OOC, not EXP.
-        assert_eq!(live.permission(), Permission::OOC);
+        assert_eq!(live.permission(), default_levels::OOC());
     }
 
     #[test]
     fn live_judgment_returns_permission_when_valid() {
         let now = Utc::now();
         let rt = RuntimeContext::new(now, "fp");
-        let judgment = Judgment {
-            context: dummy_ctx(),
-            permission: Permission::DIA,
-            expiry: Expiry::never(),
-            derivation: crate::audit::Derivation::default(),
-        };
+        let judgment = make_judgment(default_levels::DIA(), Expiry::never());
         let live = LiveJudgment::new(judgment, &rt);
-        assert_eq!(live.permission(), Permission::DIA);
+        assert_eq!(live.permission(), default_levels::DIA());
     }
 
     #[test]

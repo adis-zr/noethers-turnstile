@@ -44,7 +44,7 @@ fn base_ctx(id: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -52,9 +52,10 @@ fn base_ctx(id: &str) -> ProofContext {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -97,7 +98,7 @@ fn l1_valid_token_no_expiry_is_live() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L1: valid token with no expiry must be live"
     );
 }
@@ -114,7 +115,7 @@ fn l2_valid_token_future_expiry_is_live() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L2: valid token with future expiry must be live"
     );
 }
@@ -136,7 +137,7 @@ fn l3_valid_token_past_expiry_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L3: expired valid token must floor permission to EXP"
     );
 }
@@ -154,12 +155,12 @@ fn l4_invalid_token_neither_closes_nor_triggers_exp() {
     // Invalid token: gap not closed; InClass + profile unmet → REF (not OOC)
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "L4: invalid token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L4: invalid token must not trigger EXP floor"
     );
 }
@@ -176,12 +177,12 @@ fn l5_expired_status_token_neither_closes_nor_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "L5: expired-status token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L5: expired-status token must not trigger EXP floor"
     );
 }
@@ -198,12 +199,12 @@ fn l6_revoked_token_neither_closes_nor_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "L6: revoked token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L6: revoked token must not trigger EXP floor"
     );
 }
@@ -220,12 +221,12 @@ fn l7_malformed_token_neither_closes_nor_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "L7: malformed token must not close gap; InClass unmet profile → REF"
     );
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L7: malformed token must not trigger EXP floor"
     );
 }
@@ -249,7 +250,7 @@ fn l8_token_expires_at_exact_boundary() {
     // At boundary, either fired (EXP) or just barely not (DIA).
     // The important invariant: no other value is possible.
     assert!(
-        j.permission == Permission::EXP || j.permission == Permission::DIA,
+        j.permission == Permission::EXP() || j.permission == Permission::DIA(),
         "L8: at boundary, permission must be EXP or DIA (not other values)"
     );
 }
@@ -266,7 +267,7 @@ fn l9_token_one_second_before_expiry_is_live() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L9: token expiring in 1s must still be live"
     );
 }
@@ -327,7 +328,7 @@ fn l10_one_expired_valid_token_triggers_exp_regardless_of_others() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L10: one expired valid token must floor entire outcome to EXP"
     );
 }
@@ -372,12 +373,12 @@ fn l11_only_dead_tokens_with_past_expiry_no_exp_floor() {
     // Dead tokens cannot trigger EXP; gap not closed by dead tokens → OOC
     assert_ne!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L11: dead tokens with past expiry must not trigger EXP floor"
     );
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "L11: dead tokens don't close gaps; InClass unmet profile → REF"
     );
 }
@@ -417,7 +418,7 @@ fn l12_bounding_expired_valid_token_triggers_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L12: expired valid bounding token must also trigger EXP floor"
     );
 }
@@ -454,7 +455,7 @@ fn l13_context_expiry_fires_at_compile_time() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L13: fired context expiry must produce EXP at compile time"
     );
 }
@@ -491,7 +492,7 @@ fn l14_context_expiry_not_yet_fired_no_exp() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L14: future context expiry must not produce EXP"
     );
 }
@@ -529,7 +530,7 @@ fn l15_context_expiry_fires_at_exact_boundary() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "L15: context expiry 1ms in the past must have fired"
     );
 }

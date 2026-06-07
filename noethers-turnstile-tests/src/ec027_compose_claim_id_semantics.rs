@@ -47,7 +47,7 @@ fn make_ctx(
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -55,9 +55,10 @@ fn make_ctx(
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -167,12 +168,12 @@ fn c5_g1_token_remains_valid_after_composition() {
     // T9 non-promotion ceiling = meet(DIA, UNS) = UNS caps the outcome.
     assert_ne!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "C5: token with correct provenance must not trigger PROVENANCE_MISMATCH"
     );
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "C5: composed result is UNS because non-promotion ceiling = meet(DIA, UNS) = UNS"
     );
 }
@@ -195,7 +196,7 @@ fn c6_g2_token_rejected_after_composition() {
     // InClass candidate with profile defined but unmet → REF (not OOC).
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "C6: token issued for g2 must be rejected (provenance mismatch) after composition → REF"
     );
 }

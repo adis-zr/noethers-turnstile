@@ -38,7 +38,7 @@ fn recording_aaa_in_audit_does_not_grant_aaa() {
     let store = InMemoryAuditStore::default();
 
     // Record a fictitious AAA judgment
-    store.record(make_entry("z-1", "claim-1", Permission::AAA));
+    store.record(make_entry("z-1", "claim-1", Permission::AAA()));
 
     // Now compile a real context that has no evidence → must be OOC
     let ctx = ProofContext {
@@ -53,15 +53,16 @@ fn recording_aaa_in_audit_does_not_grant_aaa() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "audit record must not grant permission"
     );
 }
@@ -69,8 +70,8 @@ fn recording_aaa_in_audit_does_not_grant_aaa() {
 #[test]
 fn audit_write_read_roundtrip() {
     let store = InMemoryAuditStore::default();
-    let e1 = make_entry("z-1", "claim-1", Permission::DIA);
-    let e2 = make_entry("z-2", "claim-1", Permission::REV);
+    let e1 = make_entry("z-1", "claim-1", Permission::DIA());
+    let e2 = make_entry("z-2", "claim-1", Permission::REV());
 
     store.record(e1);
     store.record(e2);
@@ -85,7 +86,7 @@ fn audit_entries_do_not_affect_subsequent_compiles() {
 
     // Record many high-privilege judgments
     for _ in 0..100 {
-        store.record(make_entry("z-1", "claim-1", Permission::AAA));
+        store.record(make_entry("z-1", "claim-1", Permission::AAA()));
     }
 
     // Compile a no-evidence context → must still be OOC
@@ -101,13 +102,14 @@ fn audit_entries_do_not_affect_subsequent_compiles() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 
     // Store still has 100 entries (unchanged)
     assert_eq!(store.entries().len(), 100);
@@ -116,9 +118,9 @@ fn audit_entries_do_not_affect_subsequent_compiles() {
 #[test]
 fn audit_multiple_candidates_independent() {
     let store = InMemoryAuditStore::default();
-    store.record(make_entry("z-1", "claim-1", Permission::DIA));
-    store.record(make_entry("z-2", "claim-1", Permission::REV));
-    store.record(make_entry("z-1", "claim-2", Permission::AAA));
+    store.record(make_entry("z-1", "claim-1", Permission::DIA()));
+    store.record(make_entry("z-2", "claim-1", Permission::REV()));
+    store.record(make_entry("z-1", "claim-2", Permission::AAA()));
 
     let all = store.entries();
     assert_eq!(all.len(), 3);
@@ -142,9 +144,10 @@ fn derivation_records_steps_in_order() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
@@ -180,7 +183,7 @@ fn derivation_permission_after_is_non_increasing() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -201,14 +204,15 @@ fn derivation_permission_after_is_non_increasing() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     // Each step can only lower (or maintain) the permission — non-increasing
-    let mut prev = Permission::AAA;
+    let mut prev = Permission::AAA();
     for step in &j.derivation.steps {
         assert!(
             step.permission_after <= prev,

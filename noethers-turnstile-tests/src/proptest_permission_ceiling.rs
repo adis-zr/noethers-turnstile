@@ -23,18 +23,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -55,7 +55,7 @@ fn full_ctx(ceiling: Permission) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -76,9 +76,11 @@ fn full_ctx(ceiling: Permission) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -86,59 +88,59 @@ fn full_ctx(ceiling: Permission) -> ProofContext {
 
 #[test]
 fn ceiling_aaa_allows_full_profile() {
-    let ctx = full_ctx(Permission::AAA);
+    let ctx = full_ctx(Permission::AAA());
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::AAA);
+    assert_eq!(j.permission, Permission::AAA());
 }
 
 #[test]
 fn ceiling_dia_caps_aaa_profile() {
-    let ctx = full_ctx(Permission::DIA);
+    let ctx = full_ctx(Permission::DIA());
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 #[test]
 fn ceiling_ooc_floors_inclass_to_ooc() {
     // Even an in-class context with all gaps closed gets OOC if ceiling = OOC.
-    let ctx = full_ctx(Permission::OOC);
+    let ctx = full_ctx(Permission::OOC());
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "authority_ceiling=OOC must force OOC even for in-class"
     );
 }
 
 #[test]
 fn ceiling_exp_caps_to_exp() {
-    let ctx = full_ctx(Permission::EXP);
+    let ctx = full_ctx(Permission::EXP());
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP);
+    assert_eq!(j.permission, Permission::EXP());
 }
 
 #[test]
 fn ceiling_ref_caps_to_ref() {
-    let ctx = full_ctx(Permission::REF);
+    let ctx = full_ctx(Permission::REF());
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REF);
+    assert_eq!(j.permission, Permission::REF());
 }
 
 #[test]
 fn lower_ceiling_always_reduces_or_preserves_permission() {
     let ceilings = [
-        Permission::AAA,
-        Permission::ALR,
-        Permission::AEX,
-        Permission::REV,
-        Permission::DIA,
-        Permission::ROL,
-        Permission::ESC,
-        Permission::ETA,
-        Permission::UNS,
-        Permission::REF,
-        Permission::EXP,
-        Permission::OOC,
+        Permission::AAA(),
+        Permission::ALR(),
+        Permission::AEX(),
+        Permission::REV(),
+        Permission::DIA(),
+        Permission::ROL(),
+        Permission::ESC(),
+        Permission::ETA(),
+        Permission::UNS(),
+        Permission::REF(),
+        Permission::EXP(),
+        Permission::OOC(),
     ];
     let mut prev = compile(full_ctx(ceilings[0])).unwrap().permission;
     for &c in &ceilings[1..] {
@@ -156,24 +158,25 @@ fn lower_ceiling_always_reduces_or_preserves_permission() {
 
 #[test]
 fn ceiling_below_profile_level_wins() {
-    let mut ctx = full_ctx(Permission::AAA);
+    let mut ctx = full_ctx(Permission::AAA());
     // Profile targets AAA but ceiling is DIA.
-    ctx.authority_ceiling = Permission::DIA;
+    ctx.authority_ceiling = Some(Permission::DIA());
+
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 #[test]
 fn ceiling_above_profile_level_does_not_promote() {
-    let mut ctx = full_ctx(Permission::AAA);
+    let mut ctx = full_ctx(Permission::AAA());
     // Profile targets AAA, ceiling is also AAA → result = AAA.
     // Then lower profile to DIA. Ceiling won't promote above DIA.
-    ctx.profiles[0].permission = Permission::DIA;
-    ctx.authority_ceiling = Permission::AAA; // ceiling higher than profile
+    ctx.profiles[0].permission = Permission::DIA();
+    ctx.authority_ceiling = Some(Permission::AAA()); // ceiling higher than profile
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "ceiling above profile does not promote beyond profile level"
     );
 }

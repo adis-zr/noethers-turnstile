@@ -75,14 +75,15 @@ fn make_large_ctx(
         scope: Scope::default(),
         gaps,
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: requirements,
         }],
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(authority_ceiling),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -90,11 +91,11 @@ fn make_large_ctx(
 
 #[test]
 fn l1_hundred_gaps_all_closed_emits_dia() {
-    let ctx = make_large_ctx(100, 100, Permission::AAA);
+    let ctx = make_large_ctx(100, 100, Permission::AAA());
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L1: 100 gaps all closed must emit DIA"
     );
 }
@@ -103,11 +104,11 @@ fn l1_hundred_gaps_all_closed_emits_dia() {
 
 #[test]
 fn l2_one_gap_open_out_of_50_yields_ooc() {
-    let ctx = make_large_ctx(50, 49, Permission::AAA); // only 49/50 closed
+    let ctx = make_large_ctx(50, 49, Permission::AAA()); // only 49/50 closed
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "L2: 49/50 gaps closed must yield UNS (in-class candidate, profile defined but unmet)"
     );
 }
@@ -134,7 +135,7 @@ fn l3_compose_n_twenty_contexts_non_promotion() {
                 scope: Scope::default(),
                 gaps: vec![GapRecord::open(format!("g-n{i}"), "gap")],
                 profiles: vec![Profile {
-                    permission: Permission::DIA,
+                    permission: Permission::DIA(),
                     required_gaps: vec![GapRequirement {
                         gap_id: format!("g-n{i}"),
                         minimum_status: RequiredStatus::ClosedRequired,
@@ -155,9 +156,10 @@ fn l3_compose_n_twenty_contexts_non_promotion() {
                     is_negative_control: false,
                 }],
                 expiry: Expiry::never(),
-                authority_ceiling: Permission::AAA,
-                permission_ceiling: Permission::AAA,
+                authority_ceiling: Some(Permission::AAA()),
+                permission_ceiling: Some(Permission::AAA()),
                 membership: Membership::InClass,
+        expected_chain_hash: None,
             }
         })
         .collect();
@@ -231,7 +233,7 @@ fn l4_200_tokens_only_one_valid_provenance_emits_dia() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -239,15 +241,16 @@ fn l4_200_tokens_only_one_valid_provenance_emits_dia() {
         }],
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "L4: 200 tokens but only 1 with correct provenance must still emit DIA"
     );
 }
@@ -256,11 +259,11 @@ fn l4_200_tokens_only_one_valid_provenance_emits_dia() {
 
 #[test]
 fn l5_500_open_gaps_all_required_yields_ooc() {
-    let ctx = make_large_ctx(500, 0, Permission::AAA); // 0 tokens → all open
+    let ctx = make_large_ctx(500, 0, Permission::AAA()); // 0 tokens → all open
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "L5: 500 open gaps required closed must yield UNS (in-class candidate, profile defined but unmet)"
     );
 }
@@ -272,11 +275,11 @@ fn l6_compose_n_50_contexts_ceiling_is_meet_of_all() {
     // Each context has a different authority ceiling.  Composed ceiling must be
     // the meet (minimum) of all.
     let ceilings = [
-        Permission::AAA,
-        Permission::ALR,
-        Permission::AEX,
-        Permission::REV,
-        Permission::DIA,
+        Permission::AAA(),
+        Permission::ALR(),
+        Permission::AEX(),
+        Permission::REV(),
+        Permission::DIA(),
     ];
 
     let ctxs: Vec<ProofContext> = (0..50)
@@ -312,9 +315,10 @@ fn l6_compose_n_50_contexts_ceiling_is_meet_of_all() {
                     is_negative_control: false,
                 }],
                 expiry: Expiry::never(),
-                authority_ceiling: ceiling,
-                permission_ceiling: Permission::AAA,
+                authority_ceiling: Some(ceiling),
+                permission_ceiling: Some(Permission::AAA()),
                 membership: Membership::InClass,
+        expected_chain_hash: None,
             }
         })
         .collect();
@@ -322,11 +326,11 @@ fn l6_compose_n_50_contexts_ceiling_is_meet_of_all() {
     let expected_ceiling = ceilings
         .iter()
         .copied()
-        .fold(Permission::AAA, |a, b| a.meet(b));
+        .fold(Permission::AAA(), |a, b| a.meet(b));
 
     let composed = compose_n(ctxs).unwrap();
     assert_eq!(
-        composed.authority_ceiling, expected_ceiling,
+        composed.authority_ceiling, Some(expected_ceiling),
         "L6: authority_ceiling of composed context must be meet of all input ceilings"
     );
 }

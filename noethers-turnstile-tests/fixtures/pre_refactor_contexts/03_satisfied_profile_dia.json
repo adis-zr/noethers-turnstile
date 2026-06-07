@@ -1,0 +1,80 @@
+{
+  "name": "03_satisfied_profile_dia",
+  "description": "Profile at DIA satisfied by a closed gap with a Valid correct-provenance token.",
+  "context": {
+    "claim_id": "claim-dia",
+    "candidate_id": "cand-dia",
+    "context_id": "ctx-dia",
+    "context_fingerprint": "fp-dia",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [
+      {
+        "gap_id": "g1",
+        "gap_type": "calibration_gap",
+        "status": {
+          "status": "Closed"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "permission": "DIA",
+        "required_gaps": [
+          {
+            "gap_id": "g1",
+            "minimum_status": "ClosedRequired"
+          }
+        ]
+      }
+    ],
+    "tokens": [
+      {
+        "token_id": "tok-dia",
+        "token_type": "GOLDEN",
+        "schema_version": "0.1",
+        "status": "VALID",
+        "closes_gaps": [
+          "g1"
+        ],
+        "bounds_gaps": [],
+        "provenance_hash": "4bf686148f815cd828bf8ea5e276a1f318db02a87ef3d460b80cd28cffd94390",
+        "issued_at": "2026-06-07T20:40:53.405427Z",
+        "expires_at": null,
+        "issuer": "golden-corpus",
+        "details": null,
+        "is_negative_control": false
+      }
+    ],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "DIA",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "DIA",
+        "note": "profile satisfied at DIA",
+        "token_ids": [
+          "tok-dia"
+        ]
+      }
+    ],
+    "provenance_hash": "4bf686148f815cd828bf8ea5e276a1f318db02a87ef3d460b80cd28cffd94390",
+    "compiled_at": "2026-06-07T20:41:53.405466Z"
+  }
+}

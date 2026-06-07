@@ -53,7 +53,7 @@ fn base_ctx() -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -74,9 +74,10 @@ fn base_ctx() -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -110,10 +111,10 @@ fn ooc_derivation_has_single_step_at_ooc() {
         ..base_ctx()
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
     assert!(!j.derivation.steps.is_empty());
     assert_derivation_non_increasing(&j);
-    assert_eq!(j.derivation.steps[0].permission_after, Permission::OOC);
+    assert_eq!(j.derivation.steps[0].permission_after, Permission::OOC());
 }
 
 // ── DIA: multi-step derivation is non-increasing ────────────────────────────
@@ -121,7 +122,7 @@ fn ooc_derivation_has_single_step_at_ooc() {
 #[test]
 fn dia_derivation_steps_non_increasing() {
     let j = compile(base_ctx()).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
     assert_derivation_non_increasing(&j);
 }
 
@@ -130,10 +131,11 @@ fn dia_derivation_steps_non_increasing() {
 #[test]
 fn authority_ceiling_derivation_non_increasing() {
     let mut ctx = base_ctx();
-    ctx.profiles[0].permission = Permission::AAA;
-    ctx.authority_ceiling = Permission::DIA;
+    ctx.profiles[0].permission = Permission::AAA();
+    ctx.authority_ceiling = Some(Permission::DIA());
+
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
     assert_derivation_non_increasing(&j);
 }
 
@@ -142,10 +144,10 @@ fn authority_ceiling_derivation_non_increasing() {
 #[test]
 fn disallowed_uses_derivation_non_increasing() {
     let mut ctx = base_ctx();
-    ctx.profiles[0].permission = Permission::AAA;
+    ctx.profiles[0].permission = Permission::AAA();
     ctx.disallowed_uses = vec!["prod-write".into()];
     let j = compile(ctx).unwrap();
-    assert!(j.permission <= Permission::ROL);
+    assert!(j.permission <= Permission::ROL());
     assert_derivation_non_increasing(&j);
 }
 
@@ -157,7 +159,7 @@ fn expiry_blocker_derivation_non_increasing() {
     let mut ctx = base_ctx();
     ctx.tokens[0].expires_at = Some(past);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::EXP);
+    assert_eq!(j.permission, Permission::EXP());
     assert_derivation_non_increasing(&j);
 }
 
@@ -189,18 +191,18 @@ fn derivation_compiled_at_is_some() {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -211,7 +213,8 @@ proptest! {
         has_disallowed in proptest::bool::ANY,
     ) {
         let mut ctx = base_ctx();
-        ctx.authority_ceiling = ceiling;
+        ctx.authority_ceiling = Some(ceiling);
+
         if has_disallowed {
             ctx.disallowed_uses = vec!["blocked".into()];
         }
@@ -239,7 +242,8 @@ proptest! {
         ceiling in arb_permission(),
     ) {
         let mut ctx = base_ctx();
-        ctx.authority_ceiling = ceiling;
+        ctx.authority_ceiling = Some(ceiling);
+
         let expected_hash = ctx.provenance_hash();
         let j = compile(ctx).unwrap();
         prop_assert_eq!(

@@ -58,33 +58,35 @@ fn make_ctx(target: Permission) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: target,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(target),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
-const ALL: [Permission; 12] = [
-    Permission::OOC,
-    Permission::EXP,
-    Permission::REF,
-    Permission::UNS,
-    Permission::ETA,
-    Permission::ESC,
-    Permission::ROL,
-    Permission::DIA,
-    Permission::REV,
-    Permission::AEX,
-    Permission::ALR,
-    Permission::AAA,
-];
+fn all() -> [Permission; 12] { [
+    Permission::OOC(),
+    Permission::EXP(),
+    Permission::REF(),
+    Permission::UNS(),
+    Permission::ETA(),
+    Permission::ESC(),
+    Permission::ROL(),
+    Permission::DIA(),
+    Permission::REV(),
+    Permission::AEX(),
+    Permission::ALR(),
+    Permission::AAA(),
+] }
 
 // ── Idempotence: compile(Γ) = compile(Γ) for all permission levels ─────────
 
 #[test]
 fn compile_idempotent_all_permissions() {
-    for p in ALL {
-        if p == Permission::OOC {
+    for p in all() {
+        if p == Permission::OOC() {
             continue;
         }
         let ctx = make_ctx(p);
@@ -102,7 +104,7 @@ fn compile_idempotent_all_permissions() {
 
 #[test]
 fn compile_idempotent_with_structural_blockers() {
-    let mut ctx = make_ctx(Permission::AAA);
+    let mut ctx = make_ctx(Permission::AAA());
     ctx.disallowed_uses = vec!["write".into()];
     let j1 = compile(ctx.clone()).unwrap();
     let j2 = compile(ctx).unwrap();
@@ -116,19 +118,19 @@ fn compile_idempotent_with_structural_blockers() {
 
 #[test]
 fn compile_idempotent_ooc_membership() {
-    let mut ctx = make_ctx(Permission::AAA);
+    let mut ctx = make_ctx(Permission::AAA());
     ctx.membership = Membership::OutOfClassExact;
     let j1 = compile(ctx.clone()).unwrap();
     let j2 = compile(ctx).unwrap();
     assert_eq!(j1.permission, j2.permission);
-    assert_eq!(j1.permission, Permission::OOC);
+    assert_eq!(j1.permission, Permission::OOC());
 }
 
 // ── Idempotence: expired context at compile time ──────────────────────────────
 
 #[test]
 fn compile_idempotent_expired_context() {
-    let mut ctx = make_ctx(Permission::DIA);
+    let mut ctx = make_ctx(Permission::DIA());
     ctx.expiry = Expiry::at(Utc::now() - Duration::seconds(1));
     let j1 = compile(ctx.clone()).unwrap();
     let j2 = compile(ctx).unwrap();
@@ -136,14 +138,14 @@ fn compile_idempotent_expired_context() {
         j1.permission, j2.permission,
         "idempotence broken by expired context"
     );
-    assert_eq!(j1.permission, Permission::EXP);
+    assert_eq!(j1.permission, Permission::EXP());
 }
 
 // ── Determinism: 100 recompilations ─────────────────────────────────────────
 
 #[test]
 fn compile_deterministic_100_iterations() {
-    let ctx = make_ctx(Permission::DIA);
+    let ctx = make_ctx(Permission::DIA());
     let baseline = compile(ctx.clone()).unwrap().permission;
     for _ in 0..99 {
         let p = compile(ctx.clone()).unwrap().permission;
@@ -158,8 +160,8 @@ fn compile_deterministic_100_iterations() {
 
 #[test]
 fn compile_result_unaffected_by_other_compilations() {
-    let ctx_a = make_ctx(Permission::DIA);
-    let ctx_b = make_ctx(Permission::REV);
+    let ctx_a = make_ctx(Permission::DIA());
+    let ctx_b = make_ctx(Permission::REV());
 
     let p_a1 = compile(ctx_a.clone()).unwrap().permission;
     let _p_b = compile(ctx_b).unwrap().permission;
@@ -175,25 +177,25 @@ fn compile_result_unaffected_by_other_compilations() {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
 proptest! {
     #[test]
     fn prop_compile_idempotent(target in arb_permission()) {
-        if target == Permission::OOC { return Ok(()); }
+        if target == Permission::OOC() { return Ok(()); }
         let ctx = make_ctx(target);
         let p1 = compile(ctx.clone()).unwrap().permission;
         let p2 = compile(ctx).unwrap().permission;
@@ -205,9 +207,10 @@ proptest! {
         target in arb_permission(),
         ceiling in arb_permission(),
     ) {
-        if target == Permission::OOC { return Ok(()); }
+        if target == Permission::OOC() { return Ok(()); }
         let mut ctx = make_ctx(target);
-        ctx.authority_ceiling = ceiling;
+        ctx.authority_ceiling = Some(ceiling);
+
         let p1 = compile(ctx.clone()).unwrap().permission;
         let p2 = compile(ctx).unwrap().permission;
         prop_assert_eq!(p1, p2, "compile not deterministic with ceiling");

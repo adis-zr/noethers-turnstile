@@ -39,9 +39,10 @@ fn base_ctx(id: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -78,14 +79,14 @@ fn s1_strongest_satisfied_profile_wins() {
 
     // DIA requires only g1; AEX requires g1+g2
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::AEX,
+        permission: Permission::AEX(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g1".into(),
@@ -104,7 +105,7 @@ fn s1_strongest_satisfied_profile_wins() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AEX,
+        Permission::AEX(),
         "S1: must select AEX (strongest satisfied)"
     );
 }
@@ -119,7 +120,7 @@ fn s2_skips_unsatisfied_profiles() {
 
     // AEX needs g2 (open → not satisfied)
     ctx.profiles.push(Profile {
-        permission: Permission::AEX,
+        permission: Permission::AEX(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g1".into(),
@@ -133,7 +134,7 @@ fn s2_skips_unsatisfied_profiles() {
     });
     // DIA only needs g1
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -146,10 +147,10 @@ fn s2_skips_unsatisfied_profiles() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "S2: must skip AEX and select DIA"
     );
-    assert!(j.permission < Permission::AEX, "S2: AEX must be skipped");
+    assert!(j.permission < Permission::AEX(), "S2: AEX must be skipped");
 }
 
 // ── S3: Falls through to OOC when nothing is satisfied ───────────────────────
@@ -159,7 +160,7 @@ fn s3_no_satisfied_profile_produces_ooc() {
     let mut ctx = base_ctx("s3");
     ctx.gaps.push(GapRecord::open("g1", "t")); // open — nothing satisfied
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -170,7 +171,7 @@ fn s3_no_satisfied_profile_produces_ooc() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "S3: no satisfied profile (InClass, profile defined but unmet) must produce UNS"
     );
 }
@@ -184,14 +185,14 @@ fn s4_full_evidence_for_aex_compiles_to_aex() {
     ctx.gaps.push(GapRecord::closed("g-aex", "t"));
 
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g-dia".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::AEX,
+        permission: Permission::AEX(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-dia".into(),
@@ -210,7 +211,7 @@ fn s4_full_evidence_for_aex_compiles_to_aex() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AEX,
+        Permission::AEX(),
         "S4: full evidence must reach AEX"
     );
 }
@@ -224,14 +225,14 @@ fn s5_dia_evidence_only_compiles_to_dia() {
     ctx.gaps.push(GapRecord::open("g-aex", "t")); // not provided
 
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g-dia".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::AEX,
+        permission: Permission::AEX(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g-dia".into(),
@@ -250,7 +251,7 @@ fn s5_dia_evidence_only_compiles_to_dia() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "S5: partial evidence must compile to DIA, not AEX"
     );
 }
@@ -263,7 +264,7 @@ fn s6_adding_evidence_never_lowers_permission() {
     let mut ctx_no_tok = base_ctx("s6");
     ctx_no_tok.gaps.push(GapRecord::closed("g1", "t"));
     ctx_no_tok.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -294,14 +295,14 @@ fn s7_profile_order_is_irrelevant_to_outcome() {
         ctx.gaps.push(GapRecord::open("g2", "t"));
 
         let dia_profile = Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         };
         let aex_profile = Profile {
-            permission: Permission::AEX,
+            permission: Permission::AEX(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -339,7 +340,7 @@ fn s7_profile_order_is_irrelevant_to_outcome() {
     );
     assert_eq!(
         j_a.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "S7: must compile to DIA (g2 open)"
     );
 }
@@ -357,7 +358,7 @@ fn s8_profile_for_permission_below_ooc_does_not_exist() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "S8: no profiles → OOC fallthrough"
     );
 }
@@ -369,7 +370,7 @@ fn s9_bounded_required_satisfied_by_closed() {
     let mut ctx = base_ctx("s9c");
     ctx.gaps.push(GapRecord::closed("g1", "t")); // Closed > Bounded
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -381,7 +382,7 @@ fn s9_bounded_required_satisfied_by_closed() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "S9: Closed must satisfy BoundedRequired"
     );
 }
@@ -391,7 +392,7 @@ fn s9_bounded_required_not_satisfied_by_open() {
     let mut ctx = base_ctx("s9o");
     ctx.gaps.push(GapRecord::open("g1", "t")); // Open < Bounded
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -401,7 +402,7 @@ fn s9_bounded_required_not_satisfied_by_open() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "S9: Open must not satisfy BoundedRequired; InClass unmet profile → UNS"
     );
 }
@@ -412,7 +413,7 @@ fn s9_bounded_required_satisfied_by_bounded_status_with_token() {
     ctx.gaps
         .push(GapRecord::bounded("g1", "t", Bound::numeric(0.1)));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -442,7 +443,7 @@ fn s9_bounded_required_satisfied_by_bounded_status_with_token() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "S9: Bounded token must satisfy BoundedRequired"
     );
 }
@@ -454,14 +455,14 @@ fn s10_profile_with_no_required_gaps_is_always_satisfied() {
     let mut ctx = base_ctx("s10");
     // Profile with zero required gaps → trivially satisfied
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![], // empty conjunction = true
     });
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "S10: empty required_gaps profile must be satisfied"
     );
 }
@@ -473,14 +474,14 @@ fn s11_duplicate_permission_levels_are_malformed() {
     let mut ctx = base_ctx("s11");
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::DIA, // duplicate
+        permission: Permission::DIA(), // duplicate
         required_gaps: vec![],
     });
 
@@ -502,7 +503,7 @@ fn s11_duplicate_permission_levels_are_malformed() {
 #[test]
 fn s12_all_non_ooc_permissions_are_reachable_via_profiles() {
     for p in Permission::descending() {
-        if p == Permission::OOC {
+        if p == Permission::OOC() {
             continue; // OOC is emitted by membership check or fallthrough, not profile
         }
 

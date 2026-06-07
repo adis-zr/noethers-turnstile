@@ -52,7 +52,7 @@ fn ctx_with_ceiling(suffix: &str, ceiling: Permission) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -73,28 +73,30 @@ fn ctx_with_ceiling(suffix: &str, ceiling: Permission) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
 fn action_permissions() -> [Permission; 3] {
-    [Permission::AEX, Permission::ALR, Permission::AAA]
+    [Permission::AEX(), Permission::ALR(), Permission::AAA()]
 }
 
 // ── T11: DIA authority ceiling in one input blocks action in composed ─────────
 
 #[test]
 fn t11_dia_ceiling_in_one_input_blocks_all_action_permissions() {
-    let ctx_dia_ceil = ctx_with_ceiling("dia-ceil", Permission::DIA);
-    let ctx_aaa = ctx_with_ceiling("aaa", Permission::AAA);
+    let ctx_dia_ceil = ctx_with_ceiling("dia-ceil", Permission::DIA());
+    let ctx_aaa = ctx_with_ceiling("aaa", Permission::AAA());
 
     // Verify the DIA-ceiling context alone emits DIA.
     let p_dia = compile(ctx_dia_ceil.clone()).unwrap().permission;
     assert_eq!(
         p_dia,
-        Permission::DIA,
+        Permission::DIA(),
         "setup: ctx with DIA ceiling must emit DIA"
     );
 
@@ -112,8 +114,8 @@ fn t11_dia_ceiling_in_one_input_blocks_all_action_permissions() {
 #[test]
 fn t11_dia_ceiling_is_symmetric_blocker() {
     // Order of composition must not matter for the ceiling meet.
-    let ctx1 = ctx_with_ceiling("dia-s1", Permission::DIA);
-    let ctx2 = ctx_with_ceiling("aaa-s2", Permission::AAA);
+    let ctx1 = ctx_with_ceiling("dia-s1", Permission::DIA());
+    let ctx2 = ctx_with_ceiling("aaa-s2", Permission::AAA());
 
     let c1 = compose(ctx1.clone(), ctx2.clone()).unwrap();
     let c2 = compose(ctx2, ctx1).unwrap();
@@ -139,16 +141,16 @@ fn t11_dia_ceiling_is_symmetric_blocker() {
 fn t11_sub_dia_ceilings_block_action_permissions() {
     // ESC, ROL, ETA, REF, UNS, EXP, OOC — all below DIA — must also block action.
     let sub_dia = [
-        Permission::ESC,
-        Permission::ROL,
-        Permission::ETA,
-        Permission::REF,
-        Permission::UNS,
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::ETA(),
+        Permission::REF(),
+        Permission::UNS(),
     ];
 
     for &low_ceil in &sub_dia {
         let ctx_low = ctx_with_ceiling(&format!("low-{low_ceil}"), low_ceil);
-        let ctx_aaa = ctx_with_ceiling(&format!("aaa-for-{low_ceil}"), Permission::AAA);
+        let ctx_aaa = ctx_with_ceiling(&format!("aaa-for-{low_ceil}"), Permission::AAA());
 
         let composed = compose(ctx_low, ctx_aaa).unwrap();
         let pc = compile(composed).unwrap().permission;
@@ -178,17 +180,18 @@ fn t11_ooc_input_in_compose_yields_ooc_membership() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::OutOfClassExact,
+        expected_chain_hash: None,
     };
-    let ctx_aaa = ctx_with_ceiling("for-ooc", Permission::AAA);
+    let ctx_aaa = ctx_with_ceiling("for-ooc", Permission::AAA());
 
     let composed = compose(ctx_ooc, ctx_aaa).unwrap();
     let pc = compile(composed).unwrap().permission;
     assert_eq!(
         pc,
-        Permission::OOC,
+        Permission::OOC(),
         "T11: OOC membership in any compose input must yield OOC in composed context"
     );
 }
@@ -197,8 +200,8 @@ fn t11_ooc_input_in_compose_yields_ooc_membership() {
 
 #[test]
 fn t11_rev_ceiling_blocks_action_permissions() {
-    let ctx_rev = ctx_with_ceiling("rev-ceil", Permission::REV);
-    let ctx_aaa = ctx_with_ceiling("aaa-rev", Permission::AAA);
+    let ctx_rev = ctx_with_ceiling("rev-ceil", Permission::REV());
+    let ctx_aaa = ctx_with_ceiling("aaa-rev", Permission::AAA());
 
     let composed = compose(ctx_rev, ctx_aaa).unwrap();
     let pc = compile(composed).unwrap().permission;
@@ -217,9 +220,9 @@ fn t11_meet_of_dia_and_any_permission_is_at_most_dia() {
     // This is the lattice basis: meet(DIA, X) ≤ DIA for all X.
     // So if one input's authority ceiling is DIA, the composed ceiling ≤ DIA.
     for p in Permission::descending() {
-        let m = Permission::DIA.meet(p);
+        let m = Permission::DIA().meet(p);
         assert!(
-            m <= Permission::DIA,
+            m <= Permission::DIA(),
             "T11 lattice: meet(DIA, {p}) = {m} must be ≤ DIA"
         );
     }
@@ -242,7 +245,7 @@ fn t11_authority_ceiling_meet_never_promotes() {
 
 #[test]
 fn single_context_dia_ceiling_blocks_action() {
-    let ctx = ctx_with_ceiling("single-dia", Permission::DIA);
+    let ctx = ctx_with_ceiling("single-dia", Permission::DIA());
     let j = compile(ctx).unwrap();
     for &action in &action_permissions() {
         assert!(
@@ -256,11 +259,11 @@ fn single_context_dia_ceiling_blocks_action() {
 #[test]
 fn composed_authority_ceiling_equals_meet_of_inputs() {
     let all = [
-        Permission::OOC,
-        Permission::DIA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::AAA,
+        Permission::OOC(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::AAA(),
     ];
     for &c1 in &all {
         for &c2 in &all {
@@ -269,8 +272,8 @@ fn composed_authority_ceiling_equals_meet_of_inputs() {
             let composed = compose(ctx1, ctx2).unwrap();
             let expected_ceiling = c1.meet(c2);
             assert_eq!(
-                composed.authority_ceiling, expected_ceiling,
-                "composed ceiling must be meet({c1}, {c2}) = {expected_ceiling}; got {}",
+                composed.authority_ceiling, Some(expected_ceiling),
+                "composed ceiling must be meet({c1}, {c2}) = {expected_ceiling}; got {:?}",
                 composed.authority_ceiling
             );
         }

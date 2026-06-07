@@ -1,0 +1,86 @@
+{
+  "name": "05_expired_token_exp",
+  "description": "Expired Valid-status token with correct provenance floors outcome to EXP via step-6 meet.",
+  "context": {
+    "claim_id": "claim-expired",
+    "candidate_id": "cand-expired",
+    "context_id": "ctx-expired",
+    "context_fingerprint": "fp-expired",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [
+      {
+        "gap_id": "g1",
+        "gap_type": "calibration_gap",
+        "status": {
+          "status": "Open"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "permission": "DIA",
+        "required_gaps": [
+          {
+            "gap_id": "g1",
+            "minimum_status": "ClosedRequired"
+          }
+        ]
+      }
+    ],
+    "tokens": [
+      {
+        "token_id": "tok-exp",
+        "token_type": "GOLDEN",
+        "schema_version": "0.1",
+        "status": "VALID",
+        "closes_gaps": [
+          "g1"
+        ],
+        "bounds_gaps": [],
+        "provenance_hash": "343093699d8b148f39975e391ac44bad64870e8c390fc67f107778846487dab1",
+        "issued_at": "2026-06-07T20:40:53.406800Z",
+        "expires_at": "2026-06-07T20:41:52.406770Z",
+        "issuer": "golden-corpus",
+        "details": null,
+        "is_negative_control": false
+      }
+    ],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "EXP",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "UNS",
+        "note": "no profile satisfied",
+        "token_ids": []
+      },
+      {
+        "phase": "expiry_blocker",
+        "permission_after": "EXP",
+        "note": "at least one proof token has expired",
+        "token_ids": [
+          "tok-exp"
+        ]
+      }
+    ],
+    "provenance_hash": "343093699d8b148f39975e391ac44bad64870e8c390fc67f107778846487dab1",
+    "compiled_at": "2026-06-07T20:41:53.406810Z"
+  }
+}

@@ -42,9 +42,10 @@ fn base_ctx(suffix: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -67,7 +68,7 @@ fn n2_unsatisfied_gap_does_not_panic() {
     let mut ctx = base_ctx("n2");
     ctx.gaps.push(GapRecord::open("g1", "orphan_gap"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -95,7 +96,7 @@ fn n3_all_token_status_variants_do_not_panic() {
         let mut ctx = base_ctx(&format!("n3-{status:?}"));
         ctx.gaps.push(GapRecord::open("g1", "gap"));
         ctx.profiles.push(Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -152,7 +153,7 @@ fn n5_positive_infinity_bound_does_not_panic() {
         Bound::numeric(f64::INFINITY),
     ));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -240,7 +241,7 @@ fn n10_thousand_token_context_does_not_panic() {
     let mut ctx = base_ctx("n10");
     ctx.gaps.push(GapRecord::open("g1", "gap"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -290,7 +291,7 @@ fn n10_thousand_token_context_does_not_panic() {
     assert!(result.is_ok(), "N10: 1000-token context must not panic");
     assert_eq!(
         result.unwrap().permission,
-        Permission::DIA,
+        Permission::DIA(),
         "N10: correct token must satisfy the profile"
     );
 }
@@ -316,7 +317,7 @@ fn n12_profile_with_100_gap_requirements_does_not_panic() {
         ctx.gaps.push(GapRecord::open(format!("g{i}"), "gap"));
     }
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: (0..100)
             .map(|i| GapRequirement {
                 gap_id: format!("g{i}"),
@@ -362,9 +363,10 @@ fn n13_long_field_strings_do_not_panic() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let result = compile(ctx);
     assert!(

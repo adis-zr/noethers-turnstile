@@ -58,9 +58,10 @@ fn base_ctx() -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -75,7 +76,7 @@ fn three_gap_profile_requires_all_closed() {
         GapRecord::open("g3", "t"),
     ];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g1".into(),
@@ -100,7 +101,7 @@ fn three_gap_profile_requires_all_closed() {
     // Missing g3 → profile not satisfied → UNS (in-class, profile defined)
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "missing g3 must block DIA; in-class → UNS not OOC"
     );
 }
@@ -114,7 +115,7 @@ fn three_gap_profile_all_closed_satisfies() {
         GapRecord::closed("g3", "t"),
     ];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g1".into(),
@@ -137,7 +138,7 @@ fn three_gap_profile_all_closed_satisfies() {
     ctx.tokens = vec![t1, t2, t3];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 // ── Two-tier profile: low profile with 1 gap, high profile with 3 gaps ───────
@@ -152,7 +153,7 @@ fn two_tier_profile_partial_evidence_lands_on_lower() {
     ];
     ctx.profiles = vec![
         Profile {
-            permission: Permission::REV, // requires all 3
+            permission: Permission::REV(), // requires all 3
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -169,7 +170,7 @@ fn two_tier_profile_partial_evidence_lands_on_lower() {
             ],
         },
         Profile {
-            permission: Permission::DIA, // requires only g1
+            permission: Permission::DIA(), // requires only g1
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -183,7 +184,7 @@ fn two_tier_profile_partial_evidence_lands_on_lower() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "partial evidence → descending search lands on DIA"
     );
 }
@@ -198,7 +199,7 @@ fn two_tier_profile_full_evidence_lands_on_higher() {
     ];
     ctx.profiles = vec![
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -215,7 +216,7 @@ fn two_tier_profile_full_evidence_lands_on_higher() {
             ],
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -231,7 +232,7 @@ fn two_tier_profile_full_evidence_lands_on_higher() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REV,
+        Permission::REV(),
         "full evidence → highest satisfied profile"
     );
 }
@@ -244,7 +245,7 @@ fn bounding_token_satisfies_bounded_required() {
     let gap_id = "g1";
     ctx.gaps = vec![GapRecord::bounded(gap_id, "t", Bound::numeric(0.05))];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: gap_id.into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -275,7 +276,7 @@ fn bounding_token_satisfies_bounded_required() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "bounding token must satisfy BoundedRequired"
     );
 }
@@ -286,7 +287,7 @@ fn bounding_token_does_not_satisfy_closed_required() {
     let gap_id = "g1";
     ctx.gaps = vec![GapRecord::bounded(gap_id, "t", Bound::numeric(0.05))];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: gap_id.into(),
             minimum_status: RequiredStatus::ClosedRequired, // stricter requirement
@@ -318,7 +319,7 @@ fn bounding_token_does_not_satisfy_closed_required() {
     // Bounding token doesn't satisfy ClosedRequired → UNS (in-class, profile defined)
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "bounding token must not satisfy ClosedRequired; in-class → UNS not OOC"
     );
 }
@@ -330,7 +331,7 @@ fn single_token_closing_multiple_gaps() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::closed("g1", "t"), GapRecord::closed("g2", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g1".into(),
@@ -349,7 +350,7 @@ fn single_token_closing_multiple_gaps() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "single token closing multiple gaps must work"
     );
 }
@@ -358,11 +359,11 @@ fn single_token_closing_multiple_gaps() {
 
 fn arb_permission_operational() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 

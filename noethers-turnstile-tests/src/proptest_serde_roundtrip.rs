@@ -25,18 +25,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -100,9 +100,10 @@ fn base_ctx(suffix: &str, permission: Permission) -> ProofContext {
             Utc::now() + chrono::Duration::hours(1),
             "token validity window",
         ),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -110,7 +111,7 @@ fn base_ctx(suffix: &str, permission: Permission) -> ProofContext {
 
 #[test]
 fn proof_context_json_roundtrip_preserves_all_fields() {
-    let ctx = base_ctx("json-rt", Permission::DIA);
+    let ctx = base_ctx("json-rt", Permission::DIA());
     let json = serde_json::to_string(&ctx).expect("serialize ProofContext");
     let recovered: ProofContext = serde_json::from_str(&json).expect("deserialize ProofContext");
 
@@ -140,7 +141,7 @@ fn proof_context_json_roundtrip_preserves_all_fields() {
 
 #[test]
 fn judgment_json_roundtrip_preserves_permission() {
-    let ctx = base_ctx("j-rt", Permission::DIA);
+    let ctx = base_ctx("j-rt", Permission::DIA());
     let j = compile(ctx).unwrap();
     let json = serde_json::to_string(&j).expect("serialize Judgment");
     let recovered: noethers_turnstile_core::Judgment =
@@ -298,7 +299,7 @@ fn membership_all_variants_roundtrip() {
 
 #[test]
 fn derivation_round_trip_preserves_steps() {
-    let ctx = base_ctx("deriv-rt", Permission::DIA);
+    let ctx = base_ctx("deriv-rt", Permission::DIA());
     let j = compile(ctx).unwrap();
     let json = serde_json::to_string(&j.derivation).unwrap();
     let r: Derivation = serde_json::from_str(&json).unwrap();
@@ -315,7 +316,7 @@ fn derivation_round_trip_preserves_steps() {
 
 #[test]
 fn serde_roundtrip_then_recompile_same_permission() {
-    let ctx = base_ctx("recompile", Permission::DIA);
+    let ctx = base_ctx("recompile", Permission::DIA());
     let j1 = compile(ctx.clone()).unwrap();
 
     // Serialize the context and recover it.
@@ -337,7 +338,7 @@ proptest! {
     fn prop_serde_roundtrip_preserves_permission(
         target in arb_permission(),
     ) {
-        if target == Permission::OOC { return Ok(()); }
+        if target == Permission::OOC() { return Ok(()); }
 
         let ctx = base_ctx("prop-serde", target);
         let p_before = compile(ctx.clone()).unwrap().permission;
@@ -357,7 +358,7 @@ proptest! {
     fn prop_judgment_serde_preserves_all_fields(
         target in arb_permission(),
     ) {
-        if target == Permission::OOC { return Ok(()); }
+        if target == Permission::OOC() { return Ok(()); }
 
         let ctx = base_ctx("prop-j-serde", target);
         let j = compile(ctx).unwrap();

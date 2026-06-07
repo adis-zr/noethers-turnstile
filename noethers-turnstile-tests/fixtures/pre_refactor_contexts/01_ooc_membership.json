@@ -1,0 +1,43 @@
+{
+  "name": "01_ooc_membership",
+  "description": "OutOfClassExact membership emits OOC before any token evaluation.",
+  "context": {
+    "claim_id": "claim-ooc",
+    "candidate_id": "cand-ooc",
+    "context_id": "ctx-ooc",
+    "context_fingerprint": "fp-ooc",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [],
+    "profiles": [],
+    "tokens": [],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "OutOfClassExact"
+    }
+  },
+  "expected_permission": "OOC",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "membership_check",
+        "permission_after": "OOC",
+        "note": "out-of-class membership: OutOfClassExact",
+        "token_ids": []
+      }
+    ],
+    "provenance_hash": "1085426a65dc942768e2defa8393e47ac0face4cb7b18bc8be8ca51ac3206229",
+    "compiled_at": "2026-06-07T20:41:53.404147Z"
+  }
+}

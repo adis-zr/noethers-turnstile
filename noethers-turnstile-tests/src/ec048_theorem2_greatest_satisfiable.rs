@@ -11,13 +11,13 @@
 ///   T2-2  — Boundary: all gaps OPEN → weakest satisfying permission
 ///   T2-3  — Boundary: all gaps CLOSED → highest permission in profile
 ///   T2-4  — Evidence upgrade: closing one gap raises permission by exactly one step
-///   T2-5  — No evidence: no profile satisfied → OOC
-///   T2-6  — Two profiles (DIA, AEX): partial evidence satisfies DIA only → DIA
-///   T2-7  — Two profiles (DIA, AEX): full evidence satisfies both → AEX (greatest)
-///   T2-8  — Three profiles (DIA, REV, AEX): intermediate evidence → REV (greatest satisfied)
-///   T2-9  — authority_ceiling caps greatest satisfiable: ceiling=DIA with AEX evidence → DIA
+///   T2-5  — No evidence: no profile satisfied → Permission::OOC()
+///   T2-6  — Two profiles (Permission::DIA(), Permission::AEX()): partial evidence satisfies Permission::DIA() only → Permission::DIA()
+///   T2-7  — Two profiles (Permission::DIA(), Permission::AEX()): full evidence satisfies both → AEX (greatest)
+///   T2-8  — Three profiles (Permission::DIA(), Permission::REV(), Permission::AEX()): intermediate evidence → REV (greatest satisfied)
+///   T2-9  — authority_ceiling caps greatest satisfiable: ceiling=Permission::DIA() with Permission::AEX() evidence → Permission::DIA()
 ///   T2-10 — Profile with no gap requirements always satisfied → its permission is baseline
-///   T2-11 — Highest profile with empty gap requirements and ceiling=AAA → AAA
+///   T2-11 — Highest profile with empty gap requirements and ceiling=Permission::AAA() → Permission::AAA()
 ///   Prop  — For random well-formed profiles + random gap-status, result ≥ all lower
 ///            satisfied profiles and result ≤ all unsatisfied profiles
 use chrono::Utc;
@@ -105,9 +105,11 @@ fn ctx_with_profiles_and_closed_gaps(
         profiles,
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -115,13 +117,16 @@ fn ctx_with_profiles_and_closed_gaps(
 
 #[test]
 fn t2_1_each_permission_level_as_highest_satisfiable() {
-    use Permission::*;
-    let all_perms = [OOC, EXP, REF, UNS, ETA, ESC, ROL, DIA, REV, AEX, ALR, AAA];
+    let all_perms = [
+        Permission::OOC(), Permission::EXP(), Permission::REF(), Permission::UNS(),
+        Permission::ETA(), Permission::ESC(), Permission::ROL(), Permission::DIA(),
+        Permission::REV(), Permission::AEX(), Permission::ALR(), Permission::AAA(),
+    ];
 
-    // For each permission p (excluding OOC which is the fallback), create a profile
+    // For each permission p (excluding Permission::OOC() which is the fallback), create a profile
     // where p is the only permission level, full evidence → result = p
     for &p in &all_perms[1..] {
-        // skip OOC
+        // skip Permission::OOC()
         let profiles = vec![Profile {
             permission: p,
             required_gaps: vec![GapRequirement {
@@ -133,7 +138,7 @@ fn t2_1_each_permission_level_as_highest_satisfiable() {
             profiles,
             vec!["g1"],
             vec!["g1"],
-            Permission::AAA,
+            Permission::AAA(),
             &format!("t2-1-{p:?}"),
         );
         let j = compile(ctx).unwrap();
@@ -148,10 +153,10 @@ fn t2_1_each_permission_level_as_highest_satisfiable() {
 
 #[test]
 fn t2_2_all_gaps_open_weakest_satisfied() {
-    // DIA profile requires g1 closed; no evidence → DIA not satisfied
-    // No profile satisfied → OOC
+    // Permission::DIA() profile requires g1 closed; no evidence → Permission::DIA() not satisfied
+    // No profile satisfied → Permission::OOC()
     let profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -161,13 +166,13 @@ fn t2_2_all_gaps_open_weakest_satisfied() {
         profiles,
         vec![], // no closed gaps
         vec!["g1"],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-2",
     );
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "T2-2: no evidence → no profile satisfied → UNS (InClass, profile defined but unmet)"
     );
 }
@@ -178,14 +183,14 @@ fn t2_2_all_gaps_open_weakest_satisfied() {
 fn t2_3_all_gaps_closed_highest_profile() {
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::AEX,
+            permission: Permission::AEX(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -202,14 +207,14 @@ fn t2_3_all_gaps_closed_highest_profile() {
         profiles,
         vec!["g1", "g2"],
         vec!["g1", "g2"],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-3",
     );
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AEX,
-        "T2-3: all gaps closed → highest profile AEX"
+        Permission::AEX(),
+        "T2-3: all gaps closed → highest profile Permission::AEX()"
     );
 }
 
@@ -219,14 +224,14 @@ fn t2_3_all_gaps_closed_highest_profile() {
 fn t2_4_closing_gap_upgrades_permission() {
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -240,29 +245,29 @@ fn t2_4_closing_gap_upgrades_permission() {
         },
     ];
 
-    // Only g1 closed → DIA
+    // Only g1 closed → Permission::DIA()
     let ctx_partial = ctx_with_profiles_and_closed_gaps(
         profiles.clone(),
         vec!["g1"],
         vec!["g1", "g2"],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-4-partial",
     );
     let p_partial = compile(ctx_partial).unwrap().permission;
-    assert_eq!(p_partial, Permission::DIA, "T2-4: g1 only → DIA");
+    assert_eq!(p_partial, Permission::DIA(), "T2-4: g1 only → Permission::DIA()");
 
-    // Both closed → REV
+    // Both closed → Permission::REV()
     let ctx_full = ctx_with_profiles_and_closed_gaps(
         profiles,
         vec!["g1", "g2"],
         vec!["g1", "g2"],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-4-full",
     );
     let p_full = compile(ctx_full).unwrap().permission;
     assert_eq!(
         p_full,
-        Permission::REV,
+        Permission::REV(),
         "T2-4: g1+g2 → REV (greatest satisfied)"
     );
 
@@ -272,7 +277,7 @@ fn t2_4_closing_gap_upgrades_permission() {
     );
 }
 
-// ── T2-5: No profiles → OOC ───────────────────────────────────────────────────
+// ── T2-5: No profiles → Permission::OOC() ───────────────────────────────────────────────────
 
 #[test]
 fn t2_5_no_profiles_yields_ooc() {
@@ -280,11 +285,11 @@ fn t2_5_no_profiles_yields_ooc() {
         vec![], // no profiles
         vec![],
         vec![],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-5",
     );
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC, "T2-5: no profiles → OOC");
+    assert_eq!(j.permission, Permission::OOC(), "T2-5: no profiles → Permission::OOC()");
 }
 
 // ── T2-6: Partial evidence satisfies only lower profile ───────────────────────
@@ -293,14 +298,14 @@ fn t2_5_no_profiles_yields_ooc() {
 fn t2_6_partial_evidence_gives_lower_profile() {
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::AEX,
+            permission: Permission::AEX(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -313,19 +318,19 @@ fn t2_6_partial_evidence_gives_lower_profile() {
             ],
         },
     ];
-    // Only g1 closed → DIA satisfied, AEX not satisfied → result = DIA (greatest satisfied)
+    // Only g1 closed → Permission::DIA() satisfied, Permission::AEX() not satisfied → result = DIA (greatest satisfied)
     let ctx = ctx_with_profiles_and_closed_gaps(
         profiles,
         vec!["g1"],
         vec!["g1", "g2"],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-6",
     );
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
-        "T2-6: partial evidence (g1 only) → greatest satisfied = DIA"
+        Permission::DIA(),
+        "T2-6: partial evidence (g1 only) → greatest satisfied = Permission::DIA()"
     );
 }
 
@@ -335,14 +340,14 @@ fn t2_6_partial_evidence_gives_lower_profile() {
 fn t2_7_full_evidence_gives_highest_profile() {
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::AEX,
+            permission: Permission::AEX(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -359,14 +364,14 @@ fn t2_7_full_evidence_gives_highest_profile() {
         profiles,
         vec!["g1", "g2"],
         vec!["g1", "g2"],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-7",
     );
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AEX,
-        "T2-7: full evidence → greatest satisfied = AEX"
+        Permission::AEX(),
+        "T2-7: full evidence → greatest satisfied = Permission::AEX()"
     );
 }
 
@@ -376,14 +381,14 @@ fn t2_7_full_evidence_gives_highest_profile() {
 fn t2_8_three_profiles_intermediate_evidence_gives_middle() {
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -396,7 +401,7 @@ fn t2_8_three_profiles_intermediate_evidence_gives_middle() {
             ],
         },
         Profile {
-            permission: Permission::AEX,
+            permission: Permission::AEX(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -413,19 +418,19 @@ fn t2_8_three_profiles_intermediate_evidence_gives_middle() {
             ],
         },
     ];
-    // g1+g2 closed, g3 open → DIA and REV satisfied, AEX not → result = REV
+    // g1+g2 closed, g3 open → Permission::DIA() and Permission::REV() satisfied, Permission::AEX() not → result = Permission::REV()
     let ctx = ctx_with_profiles_and_closed_gaps(
         profiles,
         vec!["g1", "g2"],
         vec!["g1", "g2", "g3"],
-        Permission::AAA,
+        Permission::AAA(),
         "t2-8",
     );
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REV,
-        "T2-8: intermediate evidence (g1+g2) → greatest satisfied = REV"
+        Permission::REV(),
+        "T2-8: intermediate evidence (g1+g2) → greatest satisfied = Permission::REV()"
     );
 }
 
@@ -435,33 +440,33 @@ fn t2_8_three_profiles_intermediate_evidence_gives_middle() {
 fn t2_9_ceiling_caps_greatest_satisfiable() {
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::AEX,
+            permission: Permission::AEX(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
     ];
-    // Full evidence satisfies both, ceiling=DIA → result = DIA (not AEX)
+    // Full evidence satisfies both, ceiling=Permission::DIA() → result = DIA (not Permission::AEX())
     let ctx = ctx_with_profiles_and_closed_gaps(
         profiles,
         vec!["g1"],
         vec!["g1"],
-        Permission::DIA, // ceiling caps AEX
+        Permission::DIA(), // ceiling caps Permission::AEX()
         "t2-9",
     );
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
-        "T2-9: ceiling=DIA caps greatest satisfiable from AEX to DIA"
+        Permission::DIA(),
+        "T2-9: ceiling=Permission::DIA() caps greatest satisfiable from Permission::AEX() to Permission::DIA()"
     );
 }
 
@@ -469,39 +474,39 @@ fn t2_9_ceiling_caps_greatest_satisfiable() {
 
 #[test]
 fn t2_10_empty_requirements_always_satisfied() {
-    // DIA profile with no gap requirements is always satisfied → baseline = DIA
+    // Permission::DIA() profile with no gap requirements is always satisfied → baseline = Permission::DIA()
     let profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![],
     }];
-    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA, "t2-10");
+    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA(), "t2-10");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
-        "T2-10: profile with no gap requirements is always satisfied → DIA"
+        Permission::DIA(),
+        "T2-10: profile with no gap requirements is always satisfied → Permission::DIA()"
     );
 }
 
-// ── T2-11: Highest profile with empty requirements + ceiling=AAA → AAA ────────
+// ── T2-11: Highest profile with empty requirements + ceiling=Permission::AAA() → Permission::AAA() ────────
 
 #[test]
 fn t2_11_empty_requirements_aaa_profile_gives_aaa() {
     let profiles = vec![
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![],
         },
         Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![],
         },
     ];
-    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA, "t2-11");
+    let ctx = ctx_with_profiles_and_closed_gaps(profiles, vec![], vec![], Permission::AAA(), "t2-11");
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AAA,
-        "T2-11: AAA profile with no requirements and ceiling=AAA → AAA"
+        Permission::AAA(),
+        "T2-11: Permission::AAA() profile with no requirements and ceiling=Permission::AAA() → Permission::AAA()"
     );
 }

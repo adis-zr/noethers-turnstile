@@ -26,18 +26,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -47,8 +47,8 @@ fn arb_permission() -> impl Strategy<Value = Permission> {
 #[test]
 fn t8_meet_never_exceeds_either_operand_exhaustive() {
     let all: Vec<Permission> = Permission::descending().collect();
-    for &p in &all {
-        for &q in &all {
+    for p in all.iter().copied() {
+        for q in all.iter().copied() {
             let m = p.meet(q);
             assert!(m <= p, "T8 violated: meet({p}, {q}) = {m} > {p}");
             assert!(m <= q, "T8 violated: meet({p}, {q}) = {m} > {q}");
@@ -59,8 +59,8 @@ fn t8_meet_never_exceeds_either_operand_exhaustive() {
 #[test]
 fn t8_meet_is_commutative_exhaustive() {
     let all: Vec<Permission> = Permission::descending().collect();
-    for &p in &all {
-        for &q in &all {
+    for p in all.iter().copied() {
+        for q in all.iter().copied() {
             assert_eq!(p.meet(q), q.meet(p), "T8: meet({p}, {q}) ≠ meet({q}, {p})");
         }
     }
@@ -69,9 +69,9 @@ fn t8_meet_is_commutative_exhaustive() {
 #[test]
 fn t8_meet_is_associative_exhaustive() {
     let all: Vec<Permission> = Permission::descending().collect();
-    for &p in &all {
-        for &q in &all {
-            for &r in &all {
+    for p in all.iter().copied() {
+        for q in all.iter().copied() {
+            for r in all.iter().copied() {
                 assert_eq!(
                     p.meet(q).meet(r),
                     p.meet(q.meet(r)),
@@ -93,12 +93,12 @@ fn t8_meet_idempotent_exhaustive() {
 fn t8_meet_aaa_is_identity() {
     for p in Permission::descending() {
         assert_eq!(
-            p.meet(Permission::AAA),
+            p.meet(Permission::AAA()),
             p,
             "T8: meet({p}, AAA) should be {p}"
         );
         assert_eq!(
-            Permission::AAA.meet(p),
+            Permission::AAA().meet(p),
             p,
             "T8: meet(AAA, {p}) should be {p}"
         );
@@ -109,13 +109,13 @@ fn t8_meet_aaa_is_identity() {
 fn t8_meet_ooc_is_absorbing() {
     for p in Permission::descending() {
         assert_eq!(
-            p.meet(Permission::OOC),
-            Permission::OOC,
+            p.meet(Permission::OOC()),
+            Permission::OOC(),
             "T8: meet({p}, OOC) should be OOC"
         );
         assert_eq!(
-            Permission::OOC.meet(p),
-            Permission::OOC,
+            Permission::OOC().meet(p),
+            Permission::OOC(),
             "T8: meet(OOC, {p}) should be OOC"
         );
     }
@@ -125,7 +125,7 @@ fn t8_meet_ooc_is_absorbing() {
 #[test]
 fn t8_meet_n_all_permissions_is_ooc() {
     let result = Permission::meet_n(Permission::descending());
-    assert_eq!(result, Some(Permission::OOC));
+    assert_eq!(result, Some(Permission::OOC()));
 }
 
 /// meet_n of an empty iterator returns None.
@@ -157,7 +157,7 @@ fn t11_dia_context_cannot_compose_into_action_permission() {
             scope: Scope::default(),
             gaps: vec![GapRecord::closed("g1", "diagnostic_gap")],
             profiles: vec![Profile {
-                permission: Permission::DIA, // DIA is the top level in this adapter
+                permission: Permission::DIA(), // DIA is the top level in this adapter
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -178,9 +178,10 @@ fn t11_dia_context_cannot_compose_into_action_permission() {
                 is_negative_control: false,
             }],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         }
     };
 
@@ -189,14 +190,14 @@ fn t11_dia_context_cannot_compose_into_action_permission() {
 
     let p1 = compile(dia_1.clone()).unwrap().permission;
     let p2 = compile(dia_2.clone()).unwrap().permission;
-    assert_eq!(p1, Permission::DIA, "setup: dia_1 should compile to DIA");
-    assert_eq!(p2, Permission::DIA, "setup: dia_2 should compile to DIA");
+    assert_eq!(p1, Permission::DIA(), "setup: dia_1 should compile to DIA");
+    assert_eq!(p2, Permission::DIA(), "setup: dia_2 should compile to DIA");
 
     // Compose: result must not exceed DIA.
     let composed = compose(dia_1, dia_2).unwrap();
     let p_composed = compile(composed).unwrap().permission;
     assert!(
-        p_composed <= Permission::DIA,
+        p_composed <= Permission::DIA(),
         "T11: DIA + DIA must not exceed DIA; got {p_composed}"
     );
 }
@@ -226,7 +227,7 @@ fn t11_dia_ceiling_prevents_action_permission() {
         gaps: vec![GapRecord::closed("g1", "t"), GapRecord::closed("g2", "t")],
         profiles: vec![
             Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![
                     GapRequirement {
                         gap_id: "g1".into(),
@@ -239,7 +240,7 @@ fn t11_dia_ceiling_prevents_action_permission() {
                 ],
             },
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -261,26 +262,28 @@ fn t11_dia_ceiling_prevents_action_permission() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     // With DIA ceiling: result must be ≤ DIA even though evidence supports AAA.
-    let capped = make_capped_ctx("dia", Permission::DIA);
+    let capped = make_capped_ctx("dia", Permission::DIA());
     let p_capped = compile(capped).unwrap().permission;
     assert_eq!(
         p_capped,
-        Permission::DIA,
+        Permission::DIA(),
         "T11: DIA authority ceiling must prevent AAA permission"
     );
 
     // With AAA ceiling (uncapped): result is AAA (both gaps closed).
-    let uncapped = make_capped_ctx("aaa", Permission::AAA);
+    let uncapped = make_capped_ctx("aaa", Permission::AAA());
     let p_uncapped = compile(uncapped).unwrap().permission;
     assert_eq!(
         p_uncapped,
-        Permission::AAA,
+        Permission::AAA(),
         "T11 setup: AAA ceiling allows AAA permission"
     );
 }
@@ -304,7 +307,7 @@ fn t11_compose_dia_ceiling_with_aaa_stays_at_dia() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -325,25 +328,27 @@ fn t11_compose_dia_ceiling_with_aaa_stays_at_dia() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::DIA, // diagnostic ceiling
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::DIA()), // diagnostic ceiling
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let mut uncapped = base.clone();
-    uncapped.authority_ceiling = Permission::AAA;
+    uncapped.authority_ceiling = Some(Permission::AAA());
+
     uncapped.context_fingerprint = "fp-t11-comp-uncapped".into();
 
     let p_base = compile(base.clone()).unwrap().permission;
     let p_uncapped = compile(uncapped.clone()).unwrap().permission;
     assert_eq!(
         p_base,
-        Permission::DIA,
+        Permission::DIA(),
         "setup: capped context compiles to DIA"
     );
     assert_eq!(
         p_uncapped,
-        Permission::AAA,
+        Permission::AAA(),
         "setup: uncapped context compiles to AAA"
     );
 
@@ -351,7 +356,7 @@ fn t11_compose_dia_ceiling_with_aaa_stays_at_dia() {
     let composed = compose(base, uncapped).unwrap();
     let p_composed = compile(composed).unwrap().permission;
     assert!(
-        p_composed <= Permission::DIA,
+        p_composed <= Permission::DIA(),
         "T11: composition of DIA-capped + AAA context must not exceed DIA; got {p_composed}"
     );
 }

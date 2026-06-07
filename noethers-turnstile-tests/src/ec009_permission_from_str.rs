@@ -21,26 +21,28 @@
 ///   - Unicode lookalikes → None
 use noethers_turnstile_core::permission::Permission;
 
-const ALL_VARIANTS: [(Permission, &str); 12] = [
-    (Permission::OOC, "OOC"),
-    (Permission::EXP, "EXP"),
-    (Permission::REF, "REF"),
-    (Permission::UNS, "UNS"),
-    (Permission::ETA, "ETA"),
-    (Permission::ESC, "ESC"),
-    (Permission::ROL, "ROL"),
-    (Permission::DIA, "DIA"),
-    (Permission::REV, "REV"),
-    (Permission::AEX, "AEX"),
-    (Permission::ALR, "ALR"),
-    (Permission::AAA, "AAA"),
-];
+fn all_variants() -> [(Permission, &'static str); 12] {
+    [
+        (Permission::OOC(), "OOC"),
+        (Permission::EXP(), "EXP"),
+        (Permission::REF(), "REF"),
+        (Permission::UNS(), "UNS"),
+        (Permission::ETA(), "ETA"),
+        (Permission::ESC(), "ESC"),
+        (Permission::ROL(), "ROL"),
+        (Permission::DIA(), "DIA"),
+        (Permission::REV(), "REV"),
+        (Permission::AEX(), "AEX"),
+        (Permission::ALR(), "ALR"),
+        (Permission::AAA(), "AAA"),
+    ]
+}
 
 // ── All 12 codes uppercase ────────────────────────────────────────────────────
 
 #[test]
 fn all_12_codes_uppercase_parse_correctly() {
-    for (expected, code) in ALL_VARIANTS {
+    for (expected, code) in all_variants() {
         let parsed = Permission::from_str(code);
         assert_eq!(
             parsed,
@@ -54,7 +56,7 @@ fn all_12_codes_uppercase_parse_correctly() {
 
 #[test]
 fn all_12_codes_lowercase_parse_correctly() {
-    for (expected, code) in ALL_VARIANTS {
+    for (expected, code) in all_variants() {
         let lower = code.to_lowercase();
         let parsed = Permission::from_str(&lower);
         assert_eq!(
@@ -69,10 +71,10 @@ fn all_12_codes_lowercase_parse_correctly() {
 
 #[test]
 fn mixed_case_parses_correctly() {
-    assert_eq!(Permission::from_str("Dia"), Some(Permission::DIA));
-    assert_eq!(Permission::from_str("dIa"), Some(Permission::DIA));
-    assert_eq!(Permission::from_str("aAa"), Some(Permission::AAA));
-    assert_eq!(Permission::from_str("oOc"), Some(Permission::OOC));
+    assert_eq!(Permission::from_str("Dia"), Some(Permission::DIA()));
+    assert_eq!(Permission::from_str("dIa"), Some(Permission::DIA()));
+    assert_eq!(Permission::from_str("aAa"), Some(Permission::AAA()));
+    assert_eq!(Permission::from_str("oOc"), Some(Permission::OOC()));
 }
 
 // ── Unknown strings return None ──────────────────────────────────────────────
@@ -152,7 +154,7 @@ fn round_trip_all_variants() {
 
 #[test]
 fn from_str_as_str_is_identity() {
-    for (p, _) in ALL_VARIANTS {
+    for (p, _) in all_variants() {
         let s = p.as_str();
         assert_eq!(Permission::from_str(s), Some(p));
         // Lowercase also works.

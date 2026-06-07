@@ -10,7 +10,7 @@ use chrono::Utc;
 use noethers_turnstile_core::{
     compose,
     context::{Membership, ProofContext, Scope},
-    error::CompositionError,
+    error::{CompositionError, TurnstileError},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
@@ -35,7 +35,7 @@ fn base_ctx(suffix: &str, allowed_use: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -56,9 +56,10 @@ fn base_ctx(suffix: &str, allowed_use: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -69,7 +70,7 @@ fn use_conflict_is_reachable() {
     let ctx1 = base_ctx("uc-a", "use-A");
     let ctx2 = base_ctx("uc-b", "use-B");
     let err = compose(ctx1, ctx2).unwrap_err();
-    assert!(matches!(err, CompositionError::UseConflict));
+    assert!(matches!(err, TurnstileError::Composition(CompositionError::UseConflict)));
 }
 
 #[test]
@@ -132,7 +133,7 @@ fn token_conflict_is_reachable_with_token_id() {
 
     let err = compose(ctx1, ctx2).unwrap_err();
     match &err {
-        CompositionError::TokenConflict { token_id } => {
+        TurnstileError::Composition(CompositionError::TokenConflict { token_id }) => {
             assert_eq!(
                 token_id, "conflict-tok",
                 "TokenConflict must carry the conflicting token_id"
@@ -159,7 +160,7 @@ fn token_conflict_display_contains_token_id() {
 #[test]
 fn empty_composition_is_reachable() {
     let err = noethers_turnstile_core::compose_n(std::iter::empty::<ProofContext>()).unwrap_err();
-    assert!(matches!(err, CompositionError::EmptyComposition));
+    assert!(matches!(err, TurnstileError::Composition(CompositionError::EmptyComposition)));
 }
 
 #[test]
@@ -213,7 +214,7 @@ fn use_conflict_propagates_through_compose_n() {
     let ctx2 = base_ctx("cn-uc-2", "use-B"); // conflict
     let result = noethers_turnstile_core::compose_n([ctx1, ctx2]);
     assert!(
-        matches!(result, Err(CompositionError::UseConflict)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
         "UseConflict must propagate through compose_n"
     );
 }

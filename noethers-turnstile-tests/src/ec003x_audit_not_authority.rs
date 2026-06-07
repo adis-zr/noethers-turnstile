@@ -39,7 +39,7 @@ fn ctx_needs_g1_closed() -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -47,9 +47,10 @@ fn ctx_needs_g1_closed() -> ProofContext {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -68,7 +69,7 @@ fn t18_audit_store_not_consulted_by_compiler() {
         claim_id: prior_judgment_context.claim_id.clone(),
         context_id: prior_judgment_context.context_id.clone(),
         membership: "InClass".into(),
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         expiry_deadline: None,
         token_ids: vec!["fake-tok".into()],
         provenance_hash: prior_judgment_context.provenance_hash(),
@@ -90,7 +91,7 @@ fn t18_audit_store_not_consulted_by_compiler() {
     // In-class, profile defined, no proof token → UNS
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "T18: audit record must not grant permission; gap still open → UNS (in-class)"
     );
 }
@@ -101,13 +102,13 @@ fn t18_repeated_compilations_do_not_escalate() {
     let ctx = ctx_needs_g1_closed();
     let baseline = compile(ctx.clone()).unwrap().permission;
     // In-class, profile defined, no token → UNS
-    assert_eq!(baseline, Permission::UNS);
+    assert_eq!(baseline, Permission::UNS());
 
     for i in 0..100 {
         let p = compile(ctx.clone()).unwrap().permission;
         assert_eq!(
             p,
-            Permission::UNS,
+            Permission::UNS(),
             "T18: repeated compilation {i} changed permission from UNS to {p}"
         );
     }
@@ -121,7 +122,7 @@ fn t18_audit_store_append_only() {
         claim_id: "c-1".into(),
         context_id: "ctx-1".into(),
         membership: "InClass".into(),
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         expiry_deadline: None,
         token_ids: vec![],
         provenance_hash: "hash-1".into(),
@@ -133,7 +134,7 @@ fn t18_audit_store_append_only() {
         claim_id: "c-2".into(),
         context_id: "ctx-2".into(),
         membership: "InClass".into(),
-        permission: Permission::REF,
+        permission: Permission::REF(),
         expiry_deadline: None,
         token_ids: vec![],
         provenance_hash: "hash-2".into(),
@@ -163,7 +164,7 @@ fn t18_compile_result_unaffected_by_audit_store_size() {
             claim_id: "c-t18-flood".into(),
             context_id: "ctx-t18-flood".into(),
             membership: "InClass".into(),
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             expiry_deadline: None,
             token_ids: vec![format!("tok-{i}")],
             provenance_hash: format!("hash-{i}"),
@@ -179,7 +180,7 @@ fn t18_compile_result_unaffected_by_audit_store_size() {
     // In-class, profile defined, no valid tokens → UNS
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "T18: 1000 audit entries must not affect compile result; still UNS (in-class)"
     );
 }
@@ -216,7 +217,7 @@ fn t18_audit_entry_cannot_be_used_as_proof_token() {
     // Fake token with wrong provenance → PROVENANCE_MISMATCH → REF
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "T18: audit-laundering via fake token must be rejected (wrong provenance → REF)"
     );
 }
@@ -241,7 +242,7 @@ fn t18_concurrent_audit_writes_are_safe() {
                         claim_id: format!("c-{t}-{i}"),
                         context_id: format!("ctx-{t}-{i}"),
                         membership: "InClass".into(),
-                        permission: Permission::DIA,
+                        permission: Permission::DIA(),
                         expiry_deadline: None,
                         token_ids: vec![],
                         provenance_hash: format!("hash-{t}-{i}"),
@@ -288,7 +289,7 @@ fn t19_compiler_accepts_any_valid_token_regardless_of_domain_science() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -314,9 +315,10 @@ fn t19_compiler_accepts_any_valid_token_regardless_of_domain_science() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     // The compiler accepts this token because it has correct structure and provenance.
@@ -324,7 +326,7 @@ fn t19_compiler_accepts_any_valid_token_regardless_of_domain_science() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "T19: structurally valid token accepted regardless of details content"
     );
 }
@@ -357,7 +359,7 @@ fn t19_compiler_does_not_validate_details_json_schema() {
             scope: Scope::default(),
             gaps: vec![GapRecord::open("g1", "calibration_gap")],
             profiles: vec![Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -378,14 +380,15 @@ fn t19_compiler_does_not_validate_details_json_schema() {
                 is_negative_control: false,
             }],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
         assert_eq!(
             j.permission,
-            Permission::DIA,
+            Permission::DIA(),
             "T19: details content must not affect compile result"
         );
     }

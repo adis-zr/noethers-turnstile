@@ -31,18 +31,18 @@ fn arb_membership() -> impl Strategy<Value = Membership> {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -59,9 +59,10 @@ fn minimal_ctx() -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -71,7 +72,7 @@ fn minimal_ctx() -> ProofContext {
 fn no_profiles_gives_ooc() {
     let ctx = minimal_ctx();
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 #[test]
@@ -79,7 +80,7 @@ fn profile_without_token_gives_uns() {
     let mut ctx = minimal_ctx();
     ctx.gaps.push(GapRecord::open("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -87,7 +88,7 @@ fn profile_without_token_gives_uns() {
     });
     // No token supplied → gap stays Open → profile not satisfied → UNS (in-class, profile defined)
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::UNS);
+    assert_eq!(j.permission, Permission::UNS());
 }
 
 #[test]
@@ -95,7 +96,7 @@ fn open_gap_blocks_profile() {
     let mut ctx = minimal_ctx();
     ctx.gaps.push(GapRecord::open("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -103,7 +104,7 @@ fn open_gap_blocks_profile() {
     });
     // Open gap → ClosedRequired not satisfied → UNS (in-class, profile defined)
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::UNS);
+    assert_eq!(j.permission, Permission::UNS());
 }
 
 #[test]
@@ -115,7 +116,7 @@ fn bounded_gap_satisfies_bounded_required() {
         noethers_turnstile_core::gap::Bound::numeric(0.05),
     ));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -129,7 +130,7 @@ fn bounded_gap_satisfies_bounded_required() {
     // If the gap record says Bounded and no token overrides it → BoundedRequired is met.
     // Let's verify the actual semantics by testing both cases.
     // (Gap record = Bounded, no closing token → effective = Bounded → BoundedRequired satisfied)
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 #[test]
@@ -141,7 +142,7 @@ fn bounded_gap_does_not_satisfy_closed_required() {
         noethers_turnstile_core::gap::Bound::numeric(0.05),
     ));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -149,7 +150,7 @@ fn bounded_gap_does_not_satisfy_closed_required() {
     });
     let j = compile(ctx).unwrap();
     // Bounded ≠ Closed → ClosedRequired not satisfied → UNS (in-class, profile defined)
-    assert_eq!(j.permission, Permission::UNS);
+    assert_eq!(j.permission, Permission::UNS());
 }
 
 // ── T2: Token validity — only Valid tokens contribute ────────────────────────
@@ -160,7 +161,7 @@ fn malformed_token_does_not_satisfy_profile() {
     let mut ctx = minimal_ctx();
     ctx.gaps.push(GapRecord::open("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -182,7 +183,7 @@ fn malformed_token_does_not_satisfy_profile() {
     });
     // Malformed token → skipped, gap stays Open, profile not satisfied → REF
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REF);
+    assert_eq!(j.permission, Permission::REF());
 }
 
 // ── Out-of-class membership → always OOC (T6 / structural) ───────────────────
@@ -194,7 +195,7 @@ fn out_of_class_exact_gives_ooc() {
     // Even with a satisfied profile, OOC membership gives OOC
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -216,7 +217,7 @@ fn out_of_class_exact_gives_ooc() {
         is_negative_control: false,
     });
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 #[test]
@@ -224,7 +225,7 @@ fn out_of_class_no_consequential_use_gives_ooc() {
     let mut ctx = minimal_ctx();
     ctx.membership = Membership::OutOfClassNoConsequentialUse;
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 #[test]
@@ -232,7 +233,7 @@ fn out_of_class_authorized_deterministic_write_gives_ooc() {
     let mut ctx = minimal_ctx();
     ctx.membership = Membership::OutOfClassAuthorizedDeterministicWrite;
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 // ── T11: Disallowed-use ceiling at ROL ────────────────────────────────────────
@@ -242,7 +243,7 @@ fn disallowed_uses_caps_at_rol() {
     let mut ctx = minimal_ctx();
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::AAA,
+        permission: Permission::AAA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -267,7 +268,7 @@ fn disallowed_uses_caps_at_rol() {
 
     let j = compile(ctx).unwrap();
     assert!(
-        j.permission <= Permission::ROL,
+        j.permission <= Permission::ROL(),
         "disallowed_uses must cap at ROL"
     );
 }
@@ -277,7 +278,7 @@ fn disallowed_uses_only_cap_if_above_rol() {
     let mut ctx = minimal_ctx();
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::ETA, // ETA < ROL → should not be capped
+        permission: Permission::ETA(), // ETA < ROL → should not be capped
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -302,7 +303,7 @@ fn disallowed_uses_only_cap_if_above_rol() {
 
     let j = compile(ctx).unwrap();
     // ETA < ROL, so disallowed_uses ceiling does not lower it further
-    assert_eq!(j.permission, Permission::ETA);
+    assert_eq!(j.permission, Permission::ETA());
 }
 
 // ── Authority ceiling is hard cap ────────────────────────────────────────────
@@ -312,7 +313,7 @@ fn authority_ceiling_hard_caps_outcome() {
     let mut ctx = minimal_ctx();
     ctx.gaps.push(GapRecord::closed("g1", "t"));
     ctx.profiles.push(Profile {
-        permission: Permission::AAA,
+        permission: Permission::AAA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -333,10 +334,11 @@ fn authority_ceiling_hard_caps_outcome() {
         details: serde_json::Value::Null,
         is_negative_control: false,
     });
-    ctx.authority_ceiling = Permission::DIA;
+    ctx.authority_ceiling = Some(Permission::DIA());
+
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 // ── Proptest ──────────────────────────────────────────────────────────────────
@@ -358,7 +360,7 @@ proptest! {
             scope: Scope::default(),
             gaps: vec![GapRecord::closed("g1", "t")],
             profiles: vec![Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -366,12 +368,14 @@ proptest! {
             }],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: ceiling,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(ceiling),
+
+            permission_ceiling: Some(Permission::AAA()),
             membership,
+        expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
-        prop_assert_eq!(j.permission, Permission::OOC);
+        prop_assert_eq!(j.permission, Permission::OOC());
     }
 
     #[test]
@@ -381,7 +385,7 @@ proptest! {
         let mut ctx = minimal_ctx();
         ctx.gaps.push(GapRecord::closed("g1", "t"));
         ctx.profiles.push(Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -404,6 +408,6 @@ proptest! {
         });
         ctx.disallowed_uses = (0..n).map(|i| format!("use-{i}")).collect();
         let j = compile(ctx).unwrap();
-        prop_assert!(j.permission <= Permission::ROL);
+        prop_assert!(j.permission <= Permission::ROL());
     }
 }

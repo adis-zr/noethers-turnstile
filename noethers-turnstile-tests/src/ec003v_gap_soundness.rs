@@ -63,7 +63,7 @@ fn base_ctx(with_token: bool, gap_status_fn: impl Fn() -> GapRecord) -> ProofCon
         scope: Scope::default(),
         gaps: vec![gap],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id,
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -71,9 +71,10 @@ fn base_ctx(with_token: bool, gap_status_fn: impl Fn() -> GapRecord) -> ProofCon
         }],
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -86,7 +87,7 @@ fn t6_open_gap_no_token_blocks_permission() {
     // In-class, profile defined, gap open, no token → UNS
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "T6: open gap without token must not grant DIA; in-class → UNS"
     );
 }
@@ -104,7 +105,7 @@ fn t6_closed_gap_record_but_no_token_still_blocks() {
     // GapRecord::closed means the gap is already marked Closed (certifier pre-closed it).
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "gap record marked Closed must satisfy ClosedRequired even without a token"
     );
 }
@@ -127,7 +128,7 @@ fn t6_bounded_gap_does_not_satisfy_closed_required() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -148,15 +149,16 @@ fn t6_bounded_gap_does_not_satisfy_closed_required() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     // In-class, profile defined, bounding token ≠ ClosedRequired → UNS
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "T6: bounding token does not satisfy ClosedRequired; in-class → UNS"
     );
 }
@@ -179,7 +181,7 @@ fn t6_bounded_gap_satisfies_bounded_required() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired, // only bounded needed
@@ -200,14 +202,15 @@ fn t6_bounded_gap_satisfies_bounded_required() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "T6: bounding token satisfies BoundedRequired"
     );
 }
@@ -236,7 +239,7 @@ fn t5_emitted_permission_implies_all_required_gaps_satisfied() {
             GapRecord::open("g2", "freshness_gap"),
         ],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -263,15 +266,16 @@ fn t5_emitted_permission_implies_all_required_gaps_satisfied() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "both gaps closed → DIA emitted"
     );
 }
@@ -300,7 +304,7 @@ fn t5_partial_gap_satisfaction_falls_to_lower_profile() {
         ],
         profiles: vec![
             Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![
                     GapRequirement {
                         gap_id: "g1".into(),
@@ -313,7 +317,7 @@ fn t5_partial_gap_satisfaction_falls_to_lower_profile() {
                 ],
             },
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -335,15 +339,16 @@ fn t5_partial_gap_satisfaction_falls_to_lower_profile() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "T5: partial gap satisfaction falls to DIA, not AAA"
     );
 }
@@ -370,7 +375,7 @@ fn t5_wrong_gap_id_in_token_does_not_satisfy_profile() {
             GapRecord::open("g2", "freshness_gap"),
         ],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(), // requires g1
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -391,16 +396,17 @@ fn t5_wrong_gap_id_in_token_does_not_satisfy_profile() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     // In-class, token for g2 doesn't close g1 → GapNotMet → UNS
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "T5/T6: token for g2 must not satisfy g1 requirement; in-class → UNS"
     );
 }
@@ -424,7 +430,7 @@ fn t6_empty_gap_claim_in_token_satisfies_nothing() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -445,16 +451,17 @@ fn t6_empty_gap_claim_in_token_satisfies_nothing() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     // In-class, empty closes_gaps → gap not closed → UNS
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "T6: token with empty closes_gaps must not satisfy any gap requirement; in-class → UNS"
     );
 }
@@ -485,7 +492,7 @@ fn greatest_satisfiable_permission_is_emitted() {
         ],
         profiles: vec![
             Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![
                     GapRequirement {
                         gap_id: "g1".into(),
@@ -502,7 +509,7 @@ fn greatest_satisfiable_permission_is_emitted() {
                 ],
             },
             Profile {
-                permission: Permission::AEX,
+                permission: Permission::AEX(),
                 required_gaps: vec![
                     GapRequirement {
                         gap_id: "g1".into(),
@@ -515,7 +522,7 @@ fn greatest_satisfiable_permission_is_emitted() {
                 ],
             },
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -538,15 +545,16 @@ fn greatest_satisfiable_permission_is_emitted() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AEX,
+        Permission::AEX(),
         "T5: greatest satisfiable permission is AEX (g1+g2 closed; g3 still open)"
     );
 }

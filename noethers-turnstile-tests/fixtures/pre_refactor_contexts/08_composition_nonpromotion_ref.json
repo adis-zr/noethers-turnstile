@@ -1,0 +1,86 @@
+{
+  "name": "08_composition_nonpromotion_ref",
+  "description": "compose(ctx_a=DIA, ctx_b=REF) compiles to REF via the non-promotion ceiling (T9).",
+  "context": {
+    "claim_id": "claim",
+    "candidate_id": "cand",
+    "context_id": "fp",
+    "context_fingerprint": "fp+fp",
+    "allowed_use": "use",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [
+      {
+        "gap_id": "g1",
+        "gap_type": "gap",
+        "status": {
+          "status": "Open"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "permission": "DIA",
+        "required_gaps": [
+          {
+            "gap_id": "g1",
+            "minimum_status": "ClosedRequired"
+          }
+        ]
+      }
+    ],
+    "tokens": [
+      {
+        "token_id": "tok",
+        "token_type": "T",
+        "schema_version": "0.1",
+        "status": "VALID",
+        "closes_gaps": [
+          "g1"
+        ],
+        "bounds_gaps": [],
+        "provenance_hash": "816f8fc2baaa31dc140333748ad3563df76c0c5461e3c54c95abd915d8ac0478",
+        "issued_at": "2026-06-07T20:41:53.408591Z",
+        "expires_at": null,
+        "issuer": "test",
+        "details": null,
+        "is_negative_control": false
+      }
+    ],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "REF",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "REF",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "DIA",
+        "note": "profile satisfied at DIA",
+        "token_ids": [
+          "tok"
+        ]
+      },
+      {
+        "phase": "permission_ceiling",
+        "permission_after": "REF",
+        "note": "non-promotion ceiling (T9) is REF",
+        "token_ids": []
+      }
+    ],
+    "provenance_hash": "816f8fc2baaa31dc140333748ad3563df76c0c5461e3c54c95abd915d8ac0478",
+    "compiled_at": "2026-06-07T20:41:53.408718Z"
+  }
+}

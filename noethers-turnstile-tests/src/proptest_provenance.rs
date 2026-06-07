@@ -40,7 +40,7 @@ proptest! {
             scope: Scope::default(),
             gaps: vec![GapRecord::open(gap_id, "test_gap")],
             profiles: vec![Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -67,9 +67,10 @@ proptest! {
             is_negative_control: false,
             }],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         let j = compile(ctx).unwrap();
@@ -77,7 +78,7 @@ proptest! {
         // InClass candidate with profile defined but unmet → REF.
         prop_assert_eq!(
             j.permission,
-            Permission::REF,
+            Permission::REF(),
             "wrong provenance token should not close gap; got {:?}",
             j.permission,
         );
@@ -103,7 +104,7 @@ proptest! {
             scope: Scope::default(),
             gaps: vec![GapRecord::closed(gap_id, "test_gap")],
             profiles: vec![Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -129,15 +130,16 @@ proptest! {
             is_negative_control: false,
             }],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         let j = compile(ctx).unwrap();
         prop_assert_eq!(
             j.permission,
-            Permission::DIA,
+            Permission::DIA(),
             "correct provenance should close gap; got {:?}",
             j.permission,
         );

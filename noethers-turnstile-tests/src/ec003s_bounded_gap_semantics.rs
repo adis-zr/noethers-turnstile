@@ -40,9 +40,10 @@ fn base_ctx() -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -99,7 +100,7 @@ fn bounded_required_profile_satisfied_by_bounding_token() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "freshness")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -111,7 +112,7 @@ fn bounded_required_profile_satisfied_by_bounding_token() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "bounding token must satisfy BoundedRequired"
     );
 }
@@ -121,7 +122,7 @@ fn bounded_required_profile_fails_with_no_token() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "freshness")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -131,7 +132,7 @@ fn bounded_required_profile_fails_with_no_token() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "no token → BoundedRequired not met; in-class → UNS"
     );
 }
@@ -143,7 +144,7 @@ fn closed_required_profile_not_satisfied_by_bounding_token() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -156,7 +157,7 @@ fn closed_required_profile_not_satisfied_by_bounding_token() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "bounding token must NOT satisfy ClosedRequired; in-class → UNS"
     );
 }
@@ -168,7 +169,7 @@ fn closing_token_satisfies_bounded_required() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -180,7 +181,7 @@ fn closing_token_satisfies_bounded_required() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "closing token must satisfy BoundedRequired"
     );
 }
@@ -190,7 +191,7 @@ fn closing_token_satisfies_closed_required() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -202,7 +203,7 @@ fn closing_token_satisfies_closed_required() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "closing token must satisfy ClosedRequired"
     );
 }
@@ -214,7 +215,7 @@ fn pre_bounded_gap_satisfies_bounded_required_without_token() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::bounded("g1", "t", Bound::numeric(0.1))];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -224,7 +225,7 @@ fn pre_bounded_gap_satisfies_bounded_required_without_token() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "pre-bounded gap must satisfy BoundedRequired without token"
     );
 }
@@ -234,7 +235,7 @@ fn pre_closed_gap_satisfies_closed_required_without_token() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::closed("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -244,7 +245,7 @@ fn pre_closed_gap_satisfies_closed_required_without_token() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "pre-closed gap must satisfy ClosedRequired without token"
     );
 }
@@ -256,7 +257,7 @@ fn closing_wins_over_bounding_for_same_gap() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -270,7 +271,7 @@ fn closing_wins_over_bounding_for_same_gap() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "closing token wins over bounding token"
     );
 }
@@ -286,7 +287,7 @@ fn expired_bounding_token_provides_no_support() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -318,7 +319,7 @@ fn expired_bounding_token_provides_no_support() {
     // Expired token provides no gap support → gap stays Open → profile not met.
     // OOC < EXP, so expiry blocker does not lower further. Result is OOC.
     assert!(
-        j.permission <= Permission::EXP,
+        j.permission <= Permission::EXP(),
         "expired bounding token must result in OOC or EXP, got {}",
         j.permission
     );
@@ -334,7 +335,7 @@ fn expired_closing_token_floors_to_exp_when_profile_would_otherwise_pass() {
     // Gap record itself is Closed (not relying on token).
     ctx.gaps = vec![GapRecord::closed("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -370,7 +371,7 @@ fn expired_closing_token_floors_to_exp_when_profile_would_otherwise_pass() {
     // because the token is expired → floors to EXP.
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "expired token in context must floor judgment to EXP"
     );
 }
@@ -382,7 +383,7 @@ fn invalid_bounding_token_provides_no_support() {
     let mut ctx = base_ctx();
     ctx.gaps = vec![GapRecord::open("g1", "t")];
     ctx.profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::BoundedRequired,
@@ -419,7 +420,7 @@ fn invalid_bounding_token_provides_no_support() {
         // Dead bounding token → gap stays Open → REF (in-class, profile defined)
         assert_eq!(
             j.permission,
-            Permission::REF,
+            Permission::REF(),
             "{bad_status:?} bounding token must provide no gap support; in-class → REF"
         );
     }
@@ -457,14 +458,14 @@ fn two_profile_hierarchy_bounding_token_reaches_lower_permission_only() {
     // REV requires closed; DIA requires bounded.
     ctx.profiles = vec![
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
@@ -478,7 +479,7 @@ fn two_profile_hierarchy_bounding_token_reaches_lower_permission_only() {
     // Bounding satisfies DIA but not REV.
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "bounding token reaches DIA but not REV"
     );
 }
@@ -489,14 +490,14 @@ fn two_profile_hierarchy_closing_token_reaches_highest_permission() {
     ctx.gaps = vec![GapRecord::open("g1", "t")];
     ctx.profiles = vec![
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
@@ -507,5 +508,5 @@ fn two_profile_hierarchy_closing_token_reaches_highest_permission() {
     ctx.tokens = vec![tok];
 
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REV, "closing token reaches REV");
+    assert_eq!(j.permission, Permission::REV(), "closing token reaches REV");
 }

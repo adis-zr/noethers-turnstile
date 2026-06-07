@@ -1,0 +1,84 @@
+{
+  "name": "04_provenance_mismatch_ref",
+  "description": "Wrong-provenance token + open gap: descending search lands at UNS; PROVENANCE_MISMATCH blocker meets to REF.",
+  "context": {
+    "claim_id": "claim-provmismatch",
+    "candidate_id": "cand-provmismatch",
+    "context_id": "ctx-provmismatch",
+    "context_fingerprint": "fp-provmismatch",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [
+      {
+        "gap_id": "g1",
+        "gap_type": "calibration_gap",
+        "status": {
+          "status": "Open"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "permission": "DIA",
+        "required_gaps": [
+          {
+            "gap_id": "g1",
+            "minimum_status": "ClosedRequired"
+          }
+        ]
+      }
+    ],
+    "tokens": [
+      {
+        "token_id": "bad-tok",
+        "token_type": "GOLDEN",
+        "schema_version": "0.1",
+        "status": "VALID",
+        "closes_gaps": [
+          "g1"
+        ],
+        "bounds_gaps": [],
+        "provenance_hash": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+        "issued_at": "2026-06-07T20:40:53.406132Z",
+        "expires_at": null,
+        "issuer": "golden-corpus",
+        "details": null,
+        "is_negative_control": false
+      }
+    ],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "REF",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "UNS",
+        "note": "no profile satisfied",
+        "token_ids": []
+      },
+      {
+        "phase": "structural_blockers",
+        "permission_after": "REF",
+        "note": "PROVENANCE_MISMATCH: token(s) with wrong provenance seen; REF meet applied",
+        "token_ids": []
+      }
+    ],
+    "provenance_hash": "a6ae5ad2e681f6094ebf617d9f9763d2f3e844bf54f67eec8487bab0ceaf3c0d",
+    "compiled_at": "2026-06-07T20:41:53.406144Z"
+  }
+}

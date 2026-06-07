@@ -24,13 +24,13 @@ use noethers_turnstile_core::permission::Permission;
 fn t1_ooc_meets_every_permission_to_ooc() {
     for p in Permission::descending() {
         assert_eq!(
-            Permission::OOC.meet(p),
-            Permission::OOC,
+            Permission::OOC().meet(p),
+            Permission::OOC(),
             "OOC.meet({p}) must be OOC"
         );
         assert_eq!(
-            p.meet(Permission::OOC),
-            Permission::OOC,
+            p.meet(Permission::OOC()),
+            Permission::OOC(),
             "{p}.meet(OOC) must be OOC"
         );
     }
@@ -41,14 +41,14 @@ fn t1_ooc_meets_every_permission_to_ooc() {
 #[test]
 fn t2_exp_dominates_approval_and_diagnostic() {
     let approval = [
-        Permission::AEX,
-        Permission::ALR,
-        Permission::AAA,
-        Permission::REV,
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+        Permission::REV(),
     ];
-    let diagnostic = [Permission::DIA];
-    let control = [Permission::ROL, Permission::ESC];
-    let refusal = [Permission::REF, Permission::UNS];
+    let diagnostic = [Permission::DIA()];
+    let control = [Permission::ROL(), Permission::ESC()];
+    let refusal = [Permission::REF(), Permission::UNS()];
 
     for &p in approval
         .iter()
@@ -56,9 +56,9 @@ fn t2_exp_dominates_approval_and_diagnostic() {
         .chain(control.iter())
         .chain(refusal.iter())
     {
-        let m = Permission::EXP.meet(p);
+        let m = Permission::EXP().meet(p);
         assert!(
-            m <= Permission::EXP,
+            m <= Permission::EXP(),
             "EXP.meet({p}) = {m} must be ≤ EXP (EXP dominates higher tiers)"
         );
     }
@@ -69,20 +69,20 @@ fn t2_exp_dominates_approval_and_diagnostic() {
 #[test]
 fn t3_ref_dominates_approval_and_control() {
     let dominated = [
-        Permission::DIA,
-        Permission::ROL,
-        Permission::ESC,
-        Permission::ETA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::ALR,
-        Permission::AAA,
+        Permission::DIA(),
+        Permission::ROL(),
+        Permission::ESC(),
+        Permission::ETA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
     ];
 
     for &p in &dominated {
-        let m = Permission::REF.meet(p);
+        let m = Permission::REF().meet(p);
         assert!(
-            m <= Permission::REF,
+            m <= Permission::REF(),
             "REF.meet({p}) = {m}: result must be ≤ REF"
         );
     }
@@ -91,14 +91,14 @@ fn t3_ref_dominates_approval_and_control() {
 #[test]
 fn t3_uns_dominates_approval_tier() {
     let approval = [
-        Permission::REV,
-        Permission::AEX,
-        Permission::ALR,
-        Permission::AAA,
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
     ];
     for &p in &approval {
-        let m = Permission::UNS.meet(p);
-        assert!(m <= Permission::UNS, "UNS.meet({p}) must be ≤ UNS");
+        let m = Permission::UNS().meet(p);
+        assert!(m <= Permission::UNS(), "UNS.meet({p}) must be ≤ UNS");
     }
 }
 
@@ -107,13 +107,13 @@ fn t3_uns_dominates_approval_tier() {
 
 #[test]
 fn t4_rol_and_esc_are_below_dia() {
-    assert!(Permission::ROL < Permission::DIA, "ROL must be below DIA");
-    assert!(Permission::ESC < Permission::DIA, "ESC must be below DIA");
+    assert!(Permission::ROL() < Permission::DIA(), "ROL must be below DIA");
+    assert!(Permission::ESC() < Permission::DIA(), "ESC must be below DIA");
 }
 
 #[test]
 fn t4_eta_is_below_esc() {
-    assert!(Permission::ETA < Permission::ESC, "ETA must be below ESC");
+    assert!(Permission::ETA() < Permission::ESC(), "ETA must be below ESC");
 }
 
 // ── T5: DIA is the boundary between action and non-action ────────────────────
@@ -123,30 +123,30 @@ fn t4_eta_is_below_esc() {
 #[test]
 fn t5_dia_separates_action_from_non_action() {
     let action_permissions = [
-        Permission::REV,
-        Permission::AEX,
-        Permission::ALR,
-        Permission::AAA,
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
     ];
     let non_action_permissions = [
-        Permission::OOC,
-        Permission::EXP,
-        Permission::REF,
-        Permission::UNS,
-        Permission::ETA,
-        Permission::ESC,
-        Permission::ROL,
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
     ];
 
     for &p in &action_permissions {
         assert!(
-            p > Permission::DIA,
+            p > Permission::DIA(),
             "{p} must be above DIA (action permission)"
         );
     }
     for &p in &non_action_permissions {
         assert!(
-            p <= Permission::DIA,
+            p <= Permission::DIA(),
             "{p} must be at or below DIA (non-action)"
         );
     }
@@ -156,16 +156,16 @@ fn t5_dia_separates_action_from_non_action() {
 
 #[test]
 fn t6_action_permissions_are_above_rev() {
-    assert!(Permission::AEX > Permission::REV, "AEX must be above REV");
-    assert!(Permission::ALR > Permission::AEX, "ALR must be above AEX");
-    assert!(Permission::AAA > Permission::ALR, "AAA must be above ALR");
+    assert!(Permission::AEX() > Permission::REV(), "AEX must be above REV");
+    assert!(Permission::ALR() > Permission::AEX(), "ALR must be above AEX");
+    assert!(Permission::AAA() > Permission::ALR(), "AAA must be above ALR");
 }
 
 #[test]
 fn t6_rev_is_minimum_action_permission() {
     // REV is the lowest action-level permission
-    assert!(Permission::REV > Permission::DIA, "REV must be above DIA");
-    assert!(Permission::REV < Permission::AEX, "REV must be below AEX");
+    assert!(Permission::REV() > Permission::DIA(), "REV must be above DIA");
+    assert!(Permission::REV() < Permission::AEX(), "REV must be below AEX");
 }
 
 // ── T7: Cross-tier meet always returns the lower-tier value ──────────────────
@@ -173,15 +173,15 @@ fn t6_rev_is_minimum_action_permission() {
 #[test]
 fn t7_cross_tier_meet_returns_lower_tier() {
     // Tier 5 (OOC) vs tier 4 (EXP): OOC wins
-    assert_eq!(Permission::OOC.meet(Permission::EXP), Permission::OOC);
+    assert_eq!(Permission::OOC().meet(Permission::EXP()), Permission::OOC());
     // Tier 4 (EXP) vs tier 0 (AAA): EXP wins
-    assert_eq!(Permission::EXP.meet(Permission::AAA), Permission::EXP);
+    assert_eq!(Permission::EXP().meet(Permission::AAA()), Permission::EXP());
     // Tier 3 (REF) vs tier 0 (AEX): REF wins
-    assert_eq!(Permission::REF.meet(Permission::AEX), Permission::REF);
+    assert_eq!(Permission::REF().meet(Permission::AEX()), Permission::REF());
     // Tier 3 (UNS) vs tier 1 (DIA): UNS wins
-    assert_eq!(Permission::UNS.meet(Permission::DIA), Permission::UNS);
+    assert_eq!(Permission::UNS().meet(Permission::DIA()), Permission::UNS());
     // Tier 2 (ROL) vs tier 0 (REV): ROL wins (ROL < REV in total order → meet = ROL)
-    assert_eq!(Permission::ROL.meet(Permission::REV), Permission::ROL);
+    assert_eq!(Permission::ROL().meet(Permission::REV()), Permission::ROL());
 }
 
 // ── T8: Within approval chain, meet is greatest lower bound ──────────────────
@@ -189,13 +189,13 @@ fn t7_cross_tier_meet_returns_lower_tier() {
 #[test]
 fn t8_approval_chain_meet_is_lower_bound() {
     // AAA ∧ ALR = ALR
-    assert_eq!(Permission::AAA.meet(Permission::ALR), Permission::ALR);
+    assert_eq!(Permission::AAA().meet(Permission::ALR()), Permission::ALR());
     // ALR ∧ AEX = AEX
-    assert_eq!(Permission::ALR.meet(Permission::AEX), Permission::AEX);
+    assert_eq!(Permission::ALR().meet(Permission::AEX()), Permission::AEX());
     // AEX ∧ REV = REV
-    assert_eq!(Permission::AEX.meet(Permission::REV), Permission::REV);
+    assert_eq!(Permission::AEX().meet(Permission::REV()), Permission::REV());
     // REV ∧ DIA = DIA (DIA is below REV in total order)
-    assert_eq!(Permission::REV.meet(Permission::DIA), Permission::DIA);
+    assert_eq!(Permission::REV().meet(Permission::DIA()), Permission::DIA());
 }
 
 // ── T9: Non-promotion law via total order ────────────────────────────────────
@@ -220,7 +220,7 @@ fn t10_meet_n_over_all_permissions_produces_ooc() {
     let result = Permission::meet_n(all.iter().copied()).unwrap();
     assert_eq!(
         result,
-        Permission::OOC,
+        Permission::OOC(),
         "meet_n of all permissions must be OOC (bottom)"
     );
 }
@@ -229,8 +229,8 @@ fn t10_meet_n_over_all_permissions_produces_ooc() {
 fn t10_meet_n_identity_element() {
     // meet_n of single AAA is AAA
     assert_eq!(
-        Permission::meet_n(std::iter::once(Permission::AAA)),
-        Some(Permission::AAA)
+        Permission::meet_n(std::iter::once(Permission::AAA())),
+        Some(Permission::AAA())
     );
 }
 
@@ -277,10 +277,10 @@ fn meet_is_commutative_exhaustive() {
 #[test]
 fn meet_is_associative_spot_check() {
     let triples = [
-        (Permission::AAA, Permission::DIA, Permission::REF),
-        (Permission::AEX, Permission::ROL, Permission::EXP),
-        (Permission::ALR, Permission::OOC, Permission::UNS),
-        (Permission::REV, Permission::ETA, Permission::ESC),
+        (Permission::AAA(), Permission::DIA(), Permission::REF()),
+        (Permission::AEX(), Permission::ROL(), Permission::EXP()),
+        (Permission::ALR(), Permission::OOC(), Permission::UNS()),
+        (Permission::REV(), Permission::ETA(), Permission::ESC()),
     ];
     for (a, b, c) in triples {
         let lhs = a.meet(b).meet(c);

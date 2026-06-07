@@ -65,7 +65,7 @@ fn base_ctx(candidate_id: &str, scope: Scope) -> ProofContext {
         scope,
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -86,9 +86,10 @@ fn base_ctx(candidate_id: &str, scope: Scope) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -180,7 +181,7 @@ fn compiler_does_not_enforce_scope_candidate_admission() {
     // that adds enforcement will be caught here and the test can be updated.
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "DOCUMENTED BEHAVIOUR: compiler emits DIA for out-of-scope candidate; \
          callers must call validate_candidate_in_scope() before acting on judgment"
     );
@@ -196,7 +197,7 @@ fn compiler_in_scope_candidate_compiles_normally() {
 
     assert!(validate_candidate_in_scope(&ctx.scope, &ctx.candidate_id));
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 // ── Proptest ─────────────────────────────────────────────────────────────────

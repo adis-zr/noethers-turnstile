@@ -42,9 +42,10 @@ fn ooc_ctx(id: &str, membership: Membership) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership,
+        expected_chain_hash: None,
     }
 }
 
@@ -74,7 +75,7 @@ fn full_evidence_token(ctx: &ProofContext) -> ProofToken {
 fn with_fake_proof(mut ctx: ProofContext) -> ProofContext {
     ctx.gaps.push(GapRecord::closed("g1", "fake_gap"));
     ctx.profiles.push(Profile {
-        permission: Permission::AAA,
+        permission: Permission::AAA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -91,7 +92,7 @@ fn assert_ooc_with_fake_proof(id: &str, membership: Membership) {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "N family {id}: OOC system with fake proof must remain OOC"
     );
 }
@@ -200,7 +201,7 @@ fn in_class_system_with_proof_is_admitted() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "truth_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -208,9 +209,10 @@ fn in_class_system_with_proof_is_admitted() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let hash = compute_provenance_hash(
@@ -237,7 +239,7 @@ fn in_class_system_with_proof_is_admitted() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "In-class system with valid proof should be admitted"
     );
 }
@@ -248,7 +250,7 @@ fn in_class_system_with_proof_is_admitted() {
 fn ooc_membership_derivation_step_is_first() {
     let ctx = with_fake_proof(ooc_ctx("deriv-check", Membership::OutOfClassExact));
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
     assert_eq!(
         j.derivation.steps.first().map(|s| s.phase.as_str()),
         Some("membership_check"),

@@ -3,7 +3,7 @@
 /// Covers theorem:
 ///   T17 — Negative-control liveness: in strict mode, any NC token whose
 ///          live state is not `Live` floors `LiveJudgment::permission()` to
-///          `Permission::REF`.
+///          `Permission::REF()`.
 ///
 /// Tests:
 ///   - NC token with `Live` state → permission unchanged
@@ -45,7 +45,7 @@ fn base_ctx() -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "calibration")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -53,9 +53,10 @@ fn base_ctx() -> ProofContext {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -104,7 +105,7 @@ fn nc_token_live_state_passes_through() {
     let judgment = compile(ctx).unwrap();
     assert_eq!(
         judgment.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "compile-time permission must be DIA before runtime check"
     );
 
@@ -112,7 +113,7 @@ fn nc_token_live_state_passes_through() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "NC Live → permission unchanged"
     );
 }
@@ -128,7 +129,7 @@ fn nc_token_absent_from_map_floors_to_ref() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::REF,
+        Permission::REF(),
         "absent NC token defaults to Missing → must floor to REF"
     );
 }
@@ -143,7 +144,7 @@ fn nc_token_stale_state_floors_to_ref() {
     let judgment = compile(ctx).unwrap();
     let rt = runtime_with_nc_state(&tok_id, NegativeControlStatus::Stale, true);
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::REF, "Stale NC → REF");
+    assert_eq!(live.permission(), Permission::REF(), "Stale NC → REF");
 }
 
 #[test]
@@ -156,7 +157,7 @@ fn nc_token_failed_state_floors_to_ref() {
     let judgment = compile(ctx).unwrap();
     let rt = runtime_with_nc_state(&tok_id, NegativeControlStatus::Failed, true);
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::REF, "Failed NC → REF");
+    assert_eq!(live.permission(), Permission::REF(), "Failed NC → REF");
 }
 
 #[test]
@@ -171,7 +172,7 @@ fn nc_token_missing_state_explicit_floors_to_ref() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::REF,
+        Permission::REF(),
         "explicit Missing NC → REF"
     );
 }
@@ -192,7 +193,7 @@ fn non_strict_mode_skips_nc_check() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "non-strict mode: NC check skipped, permission must be DIA"
     );
 }
@@ -209,7 +210,7 @@ fn non_strict_absent_nc_does_not_floor() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "non-strict absent NC → no floor"
     );
 }
@@ -229,7 +230,7 @@ fn no_nc_tokens_strict_mode_has_no_effect() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::DIA,
+        Permission::DIA(),
         "no NC tokens: strict mode must not alter permission"
     );
 }
@@ -289,7 +290,7 @@ fn multiple_nc_tokens_all_live_passes() {
     nc_map.insert("nc-2".to_string(), NegativeControlStatus::Live);
     let rt = RuntimeContext::with_nc_states(Utc::now(), "fp-nc", nc_map, true);
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::DIA, "all NC Live → DIA");
+    assert_eq!(live.permission(), Permission::DIA(), "all NC Live → DIA");
 }
 
 #[test]
@@ -346,7 +347,7 @@ fn multiple_nc_tokens_one_non_live_floors_to_ref() {
     let live = LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::REF,
+        Permission::REF(),
         "one non-Live NC among many must floor to REF"
     );
 }
@@ -364,7 +365,7 @@ fn compile_time_permission_unaffected_by_nc_state() {
     // Compile-time result must be DIA even though no RuntimeContext exists yet.
     assert_eq!(
         judgment.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "compile() must not consult NC liveness — that is a runtime concern"
     );
 }
@@ -381,9 +382,9 @@ fn nc_floor_is_ref_not_ooc_not_exp() {
     let rt = RuntimeContext::new(Utc::now(), "fp-nc");
     let live = LiveJudgment::new(judgment, &rt);
     let p = live.permission();
-    assert_eq!(p, Permission::REF, "NC floor must be REF");
-    assert_ne!(p, Permission::OOC, "NC floor must not be OOC");
-    assert_ne!(p, Permission::EXP, "NC floor must not be EXP");
+    assert_eq!(p, Permission::REF(), "NC floor must be REF");
+    assert_ne!(p, Permission::OOC(), "NC floor must not be OOC");
+    assert_ne!(p, Permission::EXP(), "NC floor must not be EXP");
 }
 
 // ── REF > EXP — NC block is recoverable in liveness hierarchy ────────────────
@@ -393,7 +394,7 @@ fn ref_is_above_exp_in_permission_order() {
     // REF sits above EXP in the lattice (T-floor from NC is more recoverable
     // than expired evidence).
     assert!(
-        Permission::REF > Permission::EXP,
+        Permission::REF() > Permission::EXP(),
         "REF must be strictly above EXP in the permission order"
     );
 }
@@ -427,7 +428,7 @@ fn derivation_records_nc_token_ids() {
     // Phase must not change the permission.
     assert_eq!(
         step.permission_after,
-        Permission::DIA,
+        Permission::DIA(),
         "NC registration step must not alter permission in derivation"
     );
 }
@@ -475,7 +476,7 @@ proptest! {
         let live = LiveJudgment::new(judgment, &rt);
         prop_assert_eq!(
             live.permission(),
-            Permission::REF,
+            Permission::REF(),
             "non-Live state {:?} in strict mode must floor to REF",
             state
         );
@@ -485,15 +486,16 @@ proptest! {
     fn prop_live_state_strict_mode_passes_through(
         // Use a permission high enough to be above REF so we can distinguish.
         perm in prop_oneof![
-            Just(Permission::DIA),
-            Just(Permission::REV),
-            Just(Permission::AEX),
-            Just(Permission::ALR),
-            Just(Permission::AAA),
+            Just(Permission::DIA()),
+            Just(Permission::REV()),
+            Just(Permission::AEX()),
+            Just(Permission::ALR()),
+            Just(Permission::AAA()),
         ],
     ) {
         let mut ctx = base_ctx();
-        ctx.authority_ceiling = perm;
+        ctx.authority_ceiling = Some(perm);
+
         // Set a profile that matches perm.
         ctx.profiles[0].permission = perm;
 
@@ -531,7 +533,7 @@ proptest! {
         let live = LiveJudgment::new(judgment, &rt);
         prop_assert_eq!(
             live.permission(),
-            Permission::DIA,
+            Permission::DIA(),
             "non-strict mode: any NC state {:?} must not floor permission",
             state
         );

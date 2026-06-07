@@ -42,9 +42,10 @@ fn base_ctx(id: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -79,11 +80,12 @@ fn w1_judgment_serde_roundtrip_all_permissions() {
     ctx.gaps.push(GapRecord::closed("g1", "t"));
 
     for p in Permission::descending() {
-        if p == Permission::OOC {
+        if p == Permission::OOC() {
             continue; // OOC only via membership check; skip for this test
         }
         let mut c = ctx.clone();
-        c.authority_ceiling = p;
+        c.authority_ceiling = Some(p);
+
         c.profiles.push(Profile {
             permission: p,
             required_gaps: vec![GapRequirement {
@@ -121,7 +123,8 @@ fn w2_proof_context_serde_roundtrip() {
         allowed_tools: vec!["diagnostics".into()],
         allowed_resources: vec!["read-only-db".into()],
     };
-    ctx.authority_ceiling = Permission::DIA;
+    ctx.authority_ceiling = Some(Permission::DIA());
+
     ctx.expiry = Expiry::at_with_reason(Utc::now() + chrono::Duration::hours(1), "session-expiry");
 
     let json = serde_json::to_string(&ctx).expect("ProofContext must serialize");
@@ -253,18 +256,18 @@ fn w6_runtime_context_serde_roundtrip() {
 #[test]
 fn w7_permission_serializes_as_uppercase_tag() {
     let cases = [
-        (Permission::OOC, "\"OOC\""),
-        (Permission::EXP, "\"EXP\""),
-        (Permission::REF, "\"REF\""),
-        (Permission::UNS, "\"UNS\""),
-        (Permission::ETA, "\"ETA\""),
-        (Permission::ESC, "\"ESC\""),
-        (Permission::ROL, "\"ROL\""),
-        (Permission::DIA, "\"DIA\""),
-        (Permission::REV, "\"REV\""),
-        (Permission::AEX, "\"AEX\""),
-        (Permission::ALR, "\"ALR\""),
-        (Permission::AAA, "\"AAA\""),
+        (Permission::OOC(), "\"OOC\""),
+        (Permission::EXP(), "\"EXP\""),
+        (Permission::REF(), "\"REF\""),
+        (Permission::UNS(), "\"UNS\""),
+        (Permission::ETA(), "\"ETA\""),
+        (Permission::ESC(), "\"ESC\""),
+        (Permission::ROL(), "\"ROL\""),
+        (Permission::DIA(), "\"DIA\""),
+        (Permission::REV(), "\"REV\""),
+        (Permission::AEX(), "\"AEX\""),
+        (Permission::ALR(), "\"ALR\""),
+        (Permission::AAA(), "\"AAA\""),
     ];
 
     for (perm, expected_json) in &cases {
@@ -279,10 +282,10 @@ fn w7_permission_serializes_as_uppercase_tag() {
 #[test]
 fn w7_permission_deserializes_from_uppercase_tag() {
     let cases = [
-        ("\"OOC\"", Permission::OOC),
-        ("\"DIA\"", Permission::DIA),
-        ("\"AEX\"", Permission::AEX),
-        ("\"AAA\"", Permission::AAA),
+        ("\"OOC\"", Permission::OOC()),
+        ("\"DIA\"", Permission::DIA()),
+        ("\"AEX\"", Permission::AEX()),
+        ("\"AAA\"", Permission::AAA()),
     ];
 
     for (json, expected) in &cases {
@@ -365,7 +368,7 @@ fn w11_derivation_roundtrip() {
     let mut d = Derivation::new().with_provenance("abc123def456");
     d.push(DerivationStep {
         phase: "membership_check".into(),
-        permission_after: Permission::OOC,
+        permission_after: Permission::OOC(),
         note: "test step".into(),
         token_ids: vec!["tok-1".into()],
     });
@@ -376,7 +379,7 @@ fn w11_derivation_roundtrip() {
     assert_eq!(d2.provenance_hash, "abc123def456");
     assert_eq!(d2.steps.len(), 1);
     assert_eq!(d2.steps[0].phase, "membership_check");
-    assert_eq!(d2.steps[0].permission_after, Permission::OOC);
+    assert_eq!(d2.steps[0].permission_after, Permission::OOC());
 }
 
 // ── W12: compose() result round-trips ────────────────────────────────────────
@@ -389,7 +392,8 @@ fn w12_composed_context_serde_roundtrip() {
 
     let mut ctx2 = base_ctx("w12b");
     ctx2.gaps.push(GapRecord::open("g2", "t"));
-    ctx2.authority_ceiling = Permission::DIA;
+    ctx2.authority_ceiling = Some(Permission::DIA());
+
 
     let composed = compose(ctx1, ctx2).unwrap();
     let json = serde_json::to_string(&composed).expect("Composed context must serialize");
@@ -398,7 +402,7 @@ fn w12_composed_context_serde_roundtrip() {
 
     assert_eq!(
         ctx2_deser.authority_ceiling,
-        Permission::DIA,
+        Some(Permission::DIA()),
         "W12: authority ceiling must survive round-trip"
     );
     assert!(

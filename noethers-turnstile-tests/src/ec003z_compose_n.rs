@@ -18,7 +18,7 @@ use chrono::{Duration, Utc};
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
-    error::CompositionError,
+    error::{CompositionError, TurnstileError},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
     permission::Permission,
@@ -43,7 +43,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -64,9 +64,10 @@ fn base_ctx(suffix: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -76,7 +77,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
 fn compose_n_empty_returns_error() {
     let result = compose_n(std::iter::empty::<ProofContext>());
     assert!(
-        matches!(result, Err(CompositionError::EmptyComposition)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::EmptyComposition))),
         "compose_n([]) must return EmptyComposition; got {result:?}"
     );
 }
@@ -161,7 +162,7 @@ fn t9_compose_n_ooc_context_pulls_to_ooc() {
     let j = compile(composed).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "T9: one OOC context in compose_n must pull result to OOC"
     );
 }
@@ -235,14 +236,17 @@ fn compose_n_takes_meet_of_ceilings() {
     let mut c1 = base_ctx("ceil-1");
     let mut c2 = base_ctx("ceil-2");
     let mut c3 = base_ctx("ceil-3");
-    c1.authority_ceiling = Permission::AAA;
-    c2.authority_ceiling = Permission::DIA;
-    c3.authority_ceiling = Permission::REV;
+    c1.authority_ceiling = Some(Permission::AAA());
+
+    c2.authority_ceiling = Some(Permission::DIA());
+
+    c3.authority_ceiling = Some(Permission::REV());
+
 
     let composed = compose_n(vec![c1, c2, c3]).unwrap();
     assert_eq!(
         composed.authority_ceiling,
-        Permission::DIA,
+        Some(Permission::DIA()),
         "compose_n ceiling = meet(AAA, DIA, REV) = DIA"
     );
 }
@@ -257,7 +261,7 @@ fn compose_n_fails_on_use_conflict() {
 
     let result = compose_n(vec![c1, c2]);
     assert!(
-        matches!(result, Err(CompositionError::UseConflict)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
         "compose_n must propagate UseConflict"
     );
 }
@@ -266,18 +270,18 @@ fn compose_n_fails_on_use_conflict() {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -304,7 +308,7 @@ proptest! {
                 scope: Scope::default(),
                 gaps: vec![GapRecord::closed("g1", "t")],
                 profiles: vec![Profile {
-                    permission: Permission::DIA,
+                    permission: Permission::DIA(),
                     required_gaps: vec![GapRequirement {
                         gap_id: "g1".into(),
                         minimum_status: RequiredStatus::ClosedRequired,
@@ -329,9 +333,11 @@ proptest! {
                     vec![]
                 },
                 expiry: Expiry::never(),
-                authority_ceiling: ceiling,
-                permission_ceiling: Permission::AAA,
+                authority_ceiling: Some(ceiling),
+
+                permission_ceiling: Some(Permission::AAA()),
                 membership: Membership::InClass,
+        expected_chain_hash: None,
             };
             ctx
         }).collect();

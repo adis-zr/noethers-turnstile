@@ -45,7 +45,7 @@ fn ctx_with_fingerprint(fp: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed("g1", "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -66,9 +66,10 @@ fn ctx_with_fingerprint(fp: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -79,11 +80,11 @@ fn matching_fingerprint_returns_compiled_permission() {
     let fp = "sha256-abc123def456";
     let ctx = ctx_with_fingerprint(fp);
     let judgment = compile(ctx).unwrap();
-    assert_eq!(judgment.permission, Permission::DIA);
+    assert_eq!(judgment.permission, Permission::DIA());
 
     let rt = RuntimeContext::new(Utc::now(), fp);
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::DIA);
+    assert_eq!(live.permission(), Permission::DIA());
 }
 
 // ── Any mismatch → OOC ───────────────────────────────────────────────────────
@@ -97,7 +98,7 @@ fn single_char_change_returns_ooc() {
     // One character changed.
     let rt = RuntimeContext::new(Utc::now(), "sha256-abc124");
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 #[test]
@@ -108,7 +109,7 @@ fn truncated_fingerprint_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), "sha256-abc123def45"); // truncated
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 #[test]
@@ -119,7 +120,7 @@ fn extra_char_fingerprint_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), "sha256-abc123X"); // extra char
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 #[test]
@@ -130,7 +131,7 @@ fn case_sensitive_fingerprint_mismatch_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), "abc-fingerprint"); // different case
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 #[test]
@@ -141,7 +142,7 @@ fn leading_whitespace_fingerprint_mismatch_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), " fp-abc"); // leading space
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 #[test]
@@ -152,7 +153,7 @@ fn empty_runtime_fingerprint_when_compiled_nonempty_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), ""); // empty
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 #[test]
@@ -164,7 +165,7 @@ fn empty_compiled_fingerprint_matches_empty_runtime() {
     let rt = RuntimeContext::new(Utc::now(), "");
     let live = LiveJudgment::new(judgment, &rt);
     // Empty matches empty → permission passes through.
-    assert_eq!(live.permission(), Permission::DIA);
+    assert_eq!(live.permission(), Permission::DIA());
 }
 
 #[test]
@@ -175,7 +176,7 @@ fn totally_different_fingerprint_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), "env-sha256-staging-context");
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 // ── Fingerprint mismatch is independent of expiry ────────────────────────────
@@ -189,7 +190,7 @@ fn fingerprint_mismatch_with_future_expiry_still_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), "fp-wrong");
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 // ── Composed context: fingerprint is concatenation ────────────────────────────
@@ -215,7 +216,7 @@ fn composed_context_fingerprint_must_match_combined() {
     let live_ok = LiveJudgment::new(judgment.clone(), &rt_ok);
     assert_ne!(
         live_ok.permission(),
-        Permission::OOC,
+        Permission::OOC(),
         "matching combined fingerprint must not return OOC"
     );
 
@@ -224,7 +225,7 @@ fn composed_context_fingerprint_must_match_combined() {
     let live_wrong = LiveJudgment::new(judgment, &rt_wrong);
     assert_eq!(
         live_wrong.permission(),
-        Permission::OOC,
+        Permission::OOC(),
         "single sub-fingerprint for composed context must return OOC"
     );
 }
@@ -247,7 +248,7 @@ proptest! {
         let live = LiveJudgment::new(judgment, &rt);
         prop_assert_eq!(
             live.permission(),
-            Permission::OOC,
+            Permission::OOC(),
             "fingerprint change must return OOC"
         );
     }

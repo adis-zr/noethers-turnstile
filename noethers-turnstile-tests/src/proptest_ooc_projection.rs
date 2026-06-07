@@ -23,18 +23,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -71,7 +71,7 @@ fn maximally_permissive_ctx(membership: Membership, ceiling: Permission) -> Proo
             GapRecord::closed("g3", "authority_gap"),
         ],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -102,9 +102,11 @@ fn maximally_permissive_ctx(membership: Membership, ceiling: Permission) -> Proo
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: ceiling,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(ceiling),
+
+        permission_ceiling: Some(Permission::AAA()),
         membership,
+        expected_chain_hash: None,
     }
 }
 
@@ -112,32 +114,32 @@ fn maximally_permissive_ctx(membership: Membership, ceiling: Permission) -> Proo
 
 #[test]
 fn out_of_class_exact_always_ooc() {
-    let ctx = maximally_permissive_ctx(Membership::OutOfClassExact, Permission::AAA);
-    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC);
+    let ctx = maximally_permissive_ctx(Membership::OutOfClassExact, Permission::AAA());
+    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC());
 }
 
 #[test]
 fn out_of_class_deterministic_write_always_ooc() {
     let ctx = maximally_permissive_ctx(
         Membership::OutOfClassAuthorizedDeterministicWrite,
-        Permission::AAA,
+        Permission::AAA(),
     );
-    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC);
+    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC());
 }
 
 #[test]
 fn out_of_class_no_consequential_use_always_ooc() {
-    let ctx = maximally_permissive_ctx(Membership::OutOfClassNoConsequentialUse, Permission::AAA);
-    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC);
+    let ctx = maximally_permissive_ctx(Membership::OutOfClassNoConsequentialUse, Permission::AAA());
+    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC());
 }
 
 #[test]
 fn out_of_class_other_always_ooc() {
     let ctx = maximally_permissive_ctx(
         Membership::OutOfClassOther("custom-domain".into()),
-        Permission::AAA,
+        Permission::AAA(),
     );
-    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC);
+    assert_eq!(compile(ctx).unwrap().permission, Permission::OOC());
 }
 
 #[test]
@@ -173,7 +175,7 @@ fn ooc_is_independent_of_token_count() {
             .collect();
         let profiles = if n_tokens > 0 {
             vec![Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: (0..n_tokens)
                     .map(|i| GapRequirement {
                         gap_id: format!("g{i}"),
@@ -197,14 +199,15 @@ fn ooc_is_independent_of_token_count() {
             profiles,
             tokens,
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::OutOfClassExact,
+        expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
         assert_eq!(
             j.permission,
-            Permission::OOC,
+            Permission::OOC(),
             "OOC violated at n_tokens={n_tokens}"
         );
     }
@@ -214,7 +217,7 @@ fn ooc_is_independent_of_token_count() {
 fn ooc_membership_gates_before_gap_evidence() {
     // Membership check runs first (Step 1). Even if all gaps are Closed
     // and profiles are satisfied, OOC membership wins.
-    let ctx = maximally_permissive_ctx(Membership::OutOfClassExact, Permission::AAA);
+    let ctx = maximally_permissive_ctx(Membership::OutOfClassExact, Permission::AAA());
     let j = compile(ctx).unwrap();
     // The derivation must show membership_check as the first step.
     let first_step = j
@@ -223,7 +226,7 @@ fn ooc_membership_gates_before_gap_evidence() {
         .first()
         .expect("must have at least one step");
     assert_eq!(first_step.phase, "membership_check");
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 // ── Proptest: all OOC variants project to OOC under any configuration ─────
@@ -246,7 +249,7 @@ proptest! {
             .collect();
         let profiles = if n_gaps > 0 {
             vec![Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: (0..n_gaps).map(|i| GapRequirement {
                     gap_id: format!("g{i}"),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -286,15 +289,17 @@ proptest! {
             profiles,
             tokens,
             expiry: Expiry::never(),
-            authority_ceiling: ceiling,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(ceiling),
+
+            permission_ceiling: Some(Permission::AAA()),
             membership,
+        expected_chain_hash: None,
         };
 
         let j = compile(ctx).unwrap();
         prop_assert_eq!(
             j.permission,
-            Permission::OOC,
+            Permission::OOC(),
             "OOC variant must emit OOC; got {}", j.permission
         );
     }
@@ -319,16 +324,17 @@ proptest! {
             profiles: vec![],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
 
         if let Ok(composed) = noethers_turnstile_core::compose(ooc_ctx, inclass_ctx) {
             let j = compile(composed).unwrap();
             prop_assert_eq!(
                 j.permission,
-                Permission::OOC,
+                Permission::OOC(),
                 "composed context containing OOC must emit OOC"
             );
         }

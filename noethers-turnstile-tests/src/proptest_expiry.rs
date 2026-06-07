@@ -32,7 +32,7 @@ fn build_dia_ctx_with_expiry(expiry: Expiry) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "test_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -53,9 +53,10 @@ fn build_dia_ctx_with_expiry(expiry: Expiry) -> ProofContext {
             is_negative_control: false,
         }],
         expiry,
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -83,7 +84,7 @@ proptest! {
 
         prop_assert_eq!(
             live.permission(),
-            Permission::EXP,
+            Permission::EXP(),
             "expiry should fire at deadline+{}s: deadline={:?}, check_time={:?}",
             past_secs, deadline, check_time
         );
@@ -110,7 +111,7 @@ proptest! {
         // Permission should be DIA (not EXP), since we're before the deadline.
         prop_assert_ne!(
             live.permission(),
-            Permission::EXP,
+            Permission::EXP(),
             "expiry should not have fired before deadline: deadline={:?}, check_time={:?}",
             deadline, before
         );
@@ -130,15 +131,15 @@ fn expiry_fires_exactly_at_boundary() {
     // Before deadline: not expired.
     let rt_before = RuntimeContext::new(deadline - Duration::nanoseconds(1), "fp-exp");
     let live_before = LiveJudgment::new(judgment.clone(), &rt_before);
-    assert_ne!(live_before.permission(), Permission::EXP);
+    assert_ne!(live_before.permission(), Permission::EXP());
 
     // Exactly at deadline: expired.
     let rt_at = RuntimeContext::new(deadline, "fp-exp");
     let live_at = LiveJudgment::new(judgment.clone(), &rt_at);
-    assert_eq!(live_at.permission(), Permission::EXP);
+    assert_eq!(live_at.permission(), Permission::EXP());
 
     // After deadline: expired.
     let rt_after = RuntimeContext::new(deadline + Duration::seconds(1), "fp-exp");
     let live_after = LiveJudgment::new(judgment, &rt_after);
-    assert_eq!(live_after.permission(), Permission::EXP);
+    assert_eq!(live_after.permission(), Permission::EXP());
 }

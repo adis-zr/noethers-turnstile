@@ -1,0 +1,86 @@
+{
+  "name": "06_authority_ceiling_dia",
+  "description": "Profile at AAA satisfied, authority_ceiling=DIA forces outcome to DIA via step-5a meet.",
+  "context": {
+    "claim_id": "claim-authceil",
+    "candidate_id": "cand-authceil",
+    "context_id": "ctx-authceil",
+    "context_fingerprint": "fp-authceil",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [
+      {
+        "gap_id": "g1",
+        "gap_type": "gap",
+        "status": {
+          "status": "Closed"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "permission": "AAA",
+        "required_gaps": [
+          {
+            "gap_id": "g1",
+            "minimum_status": "ClosedRequired"
+          }
+        ]
+      }
+    ],
+    "tokens": [
+      {
+        "token_id": "tok-ac",
+        "token_type": "GOLDEN",
+        "schema_version": "0.1",
+        "status": "VALID",
+        "closes_gaps": [
+          "g1"
+        ],
+        "bounds_gaps": [],
+        "provenance_hash": "bfba55be5e6a0b9260037ed9ea56d6b1a344268eb954785c65102494a1499963",
+        "issued_at": "2026-06-07T20:40:53.407453Z",
+        "expires_at": null,
+        "issuer": "golden-corpus",
+        "details": null,
+        "is_negative_control": false
+      }
+    ],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "DIA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "DIA",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "AAA",
+        "note": "profile satisfied at AAA",
+        "token_ids": [
+          "tok-ac"
+        ]
+      },
+      {
+        "phase": "authority_ceiling",
+        "permission_after": "DIA",
+        "note": "authority ceiling is DIA",
+        "token_ids": []
+      }
+    ],
+    "provenance_hash": "bfba55be5e6a0b9260037ed9ea56d6b1a344268eb954785c65102494a1499963",
+    "compiled_at": "2026-06-07T20:41:53.407462Z"
+  }
+}

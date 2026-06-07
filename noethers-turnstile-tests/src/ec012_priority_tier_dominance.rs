@@ -72,9 +72,10 @@ fn make_ctx_with_profile(membership: Membership, profile_perm: Permission) -> Pr
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership,
+        expected_chain_hash: None,
     }
 }
 
@@ -88,7 +89,7 @@ fn ooc_dominates_all_profile_permissions_exhaustive() {
         let j = compile(ctx).unwrap();
         assert_eq!(
             j.permission,
-            Permission::OOC,
+            Permission::OOC(),
             "Tier 5: OOC membership must yield OOC regardless of profile {profile_perm}"
         );
     }
@@ -103,11 +104,11 @@ fn ooc_all_membership_variants_emit_ooc() {
         Membership::OutOfClassOther("custom".into()),
     ];
     for m in variants {
-        let ctx = make_ctx_with_profile(m.clone(), Permission::AAA);
+        let ctx = make_ctx_with_profile(m.clone(), Permission::AAA());
         let j = compile(ctx).unwrap();
         assert_eq!(
             j.permission,
-            Permission::OOC,
+            Permission::OOC(),
             "Tier 5: out-of-class variant {:?} must emit OOC",
             m
         );
@@ -117,9 +118,9 @@ fn ooc_all_membership_variants_emit_ooc() {
 #[test]
 fn membership_check_fires_before_descending_search() {
     // Even if the profile is perfectly satisfied (AAA), OOC membership takes priority.
-    let ctx = make_ctx_with_profile(Membership::OutOfClassExact, Permission::AAA);
+    let ctx = make_ctx_with_profile(Membership::OutOfClassExact, Permission::AAA());
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
     // The derivation must show the membership_check step, not a profile-satisfied step.
     let first_step = j
         .derivation
@@ -193,7 +194,7 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
             GapRecord::open("g_other", "other_gap"),
         ],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -201,19 +202,20 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
         }],
         tokens: vec![good_token, expired_token],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "Tier 4: expired token in context must floor outcome to EXP even when profile satisfied"
     );
     assert!(
-        j.permission < Permission::AEX,
+        j.permission < Permission::AEX(),
         "EXP must be below any action permission"
     );
 }
@@ -237,7 +239,7 @@ fn context_expiry_fired_yields_exp() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -258,15 +260,16 @@ fn context_expiry_fired_yields_exp() {
             is_negative_control: false,
         }],
         expiry: Expiry::at(Utc::now() - Duration::hours(1)), // context expired
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "Tier 4: fired context expiry must yield EXP"
     );
 }
@@ -275,7 +278,7 @@ fn context_expiry_fired_yields_exp() {
 fn exp_is_above_ooc_in_lattice_order() {
     // Sanity check: EXP > OOC in the total order.
     assert!(
-        Permission::EXP > Permission::OOC,
+        Permission::EXP() > Permission::OOC(),
         "EXP must be strictly above OOC — OOC is the absolute bottom"
     );
 }
@@ -329,9 +332,11 @@ fn authority_ceiling_clips_profile_permission_all_pairs() {
                     is_negative_control: false,
                 }],
                 expiry: Expiry::never(),
-                authority_ceiling: ceiling,
-                permission_ceiling: Permission::AAA,
+                authority_ceiling: Some(ceiling),
+
+                permission_ceiling: Some(Permission::AAA()),
                 membership: Membership::InClass,
+        expected_chain_hash: None,
             };
 
             let j = compile(ctx).unwrap();
@@ -366,7 +371,7 @@ fn disallowed_uses_ceiling_rol_applied_correctly() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -387,14 +392,15 @@ fn disallowed_uses_ceiling_rol_applied_correctly() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert!(
-        j.permission <= Permission::ROL,
+        j.permission <= Permission::ROL(),
         "disallowed_uses must cap outcome at ROL; got {}",
         j.permission
     );
@@ -419,14 +425,15 @@ fn no_matched_profile_emits_ooc_not_unsupported() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "no profiles → OOC (bottom of lattice)"
     );
 }
@@ -437,9 +444,9 @@ fn no_matched_profile_emits_ooc_not_unsupported() {
 fn tier_5_above_all_others_in_lattice() {
     // OOC (tier 5) must be the strict minimum of the whole lattice.
     for p in Permission::descending() {
-        if p != Permission::OOC {
+        if p != Permission::OOC() {
             assert!(
-                Permission::OOC < p,
+                Permission::OOC() < p,
                 "OOC must be strictly less than {p} in the total order"
             );
         }
@@ -448,8 +455,8 @@ fn tier_5_above_all_others_in_lattice() {
 
 #[test]
 fn tier_4_exp_is_above_ooc_below_ref() {
-    assert!(Permission::EXP > Permission::OOC);
-    assert!(Permission::EXP < Permission::REF);
+    assert!(Permission::EXP() > Permission::OOC());
+    assert!(Permission::EXP() < Permission::REF());
 }
 
 #[test]
@@ -457,8 +464,8 @@ fn action_permissions_are_above_control_permissions() {
     // AEX, ALR, AAA are action permissions.
     // DIA, REV are above control (ESC, ROL, ETA) in total order.
     // Control outcomes sit between diagnostic and unsupported.
-    let controls = [Permission::ESC, Permission::ROL, Permission::ETA];
-    let actions = [Permission::AEX, Permission::ALR, Permission::AAA];
+    let controls = [Permission::ESC(), Permission::ROL(), Permission::ETA()];
+    let actions = [Permission::AEX(), Permission::ALR(), Permission::AAA()];
     for ctrl in controls {
         for act in actions {
             assert!(

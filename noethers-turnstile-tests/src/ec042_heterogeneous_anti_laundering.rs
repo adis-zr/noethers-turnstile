@@ -58,7 +58,7 @@ fn in_class_ctx(suffix: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -79,9 +79,10 @@ fn in_class_ctx(suffix: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -104,9 +105,10 @@ fn minimal_ctx_with_membership(membership: Membership, suffix: &str) -> ProofCon
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership,
+        expected_chain_hash: None,
     }
 }
 
@@ -129,7 +131,7 @@ fn h1_all_membership_pairs_ooc_absorbs() {
                 if expect_ooc {
                     assert_eq!(
                         j.permission,
-                        Permission::OOC,
+                        Permission::OOC(),
                         "H1: ({m1:?} ∘ {m2:?}) must produce OOC"
                     );
                 }
@@ -158,7 +160,7 @@ fn compose_n_with_one_ooc_at(pos: usize, n: usize) -> Permission {
 fn h2_n3_one_ooc_yields_ooc() {
     assert_eq!(
         compose_n_with_one_ooc_at(1, 3),
-        Permission::OOC,
+        Permission::OOC(),
         "H2: N=3 with one OOC must yield OOC"
     );
 }
@@ -167,7 +169,7 @@ fn h2_n3_one_ooc_yields_ooc() {
 fn h3_n5_one_ooc_yields_ooc() {
     assert_eq!(
         compose_n_with_one_ooc_at(2, 5),
-        Permission::OOC,
+        Permission::OOC(),
         "H3: N=5 with one OOC must yield OOC"
     );
 }
@@ -176,7 +178,7 @@ fn h3_n5_one_ooc_yields_ooc() {
 fn h4_n10_one_ooc_yields_ooc() {
     assert_eq!(
         compose_n_with_one_ooc_at(4, 10),
-        Permission::OOC,
+        Permission::OOC(),
         "H4: N=10 with one OOC must yield OOC"
     );
 }
@@ -187,7 +189,7 @@ fn h4_n10_one_ooc_yields_ooc() {
 fn h5_ooc_at_position_0_yields_ooc() {
     assert_eq!(
         compose_n_with_one_ooc_at(0, 4),
-        Permission::OOC,
+        Permission::OOC(),
         "H5: OOC at position 0 must yield OOC"
     );
 }
@@ -196,7 +198,7 @@ fn h5_ooc_at_position_0_yields_ooc() {
 fn h6_ooc_at_last_position_yields_ooc() {
     assert_eq!(
         compose_n_with_one_ooc_at(3, 4),
-        Permission::OOC,
+        Permission::OOC(),
         "H6: OOC at last position must yield OOC"
     );
 }
@@ -205,7 +207,7 @@ fn h6_ooc_at_last_position_yields_ooc() {
 fn h7_ooc_at_middle_position_yields_ooc() {
     assert_eq!(
         compose_n_with_one_ooc_at(2, 5),
-        Permission::OOC,
+        Permission::OOC(),
         "H7: OOC at middle position must yield OOC"
     );
 }
@@ -223,7 +225,7 @@ fn h8_nine_fresh_plus_one_ooc_yields_ooc() {
     let j = compile(composed).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "H8: 9 fresh AAA + 1 OOC must yield OOC (majority attack blocked)"
     );
 }
@@ -233,7 +235,8 @@ fn h8_nine_fresh_plus_one_ooc_yields_ooc() {
 #[test]
 fn h9_highest_ceiling_plus_ooc_yields_ooc() {
     let mut fresh = in_class_ctx("h9-fresh");
-    fresh.authority_ceiling = Permission::AAA;
+    fresh.authority_ceiling = Some(Permission::AAA());
+
 
     let ooc = ooc_ctx(Membership::OutOfClassExact, "h9-ooc");
 
@@ -241,7 +244,7 @@ fn h9_highest_ceiling_plus_ooc_yields_ooc() {
     let j = compile(composed).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "H9: fresh AAA ceiling + OOC must yield OOC"
     );
 }
@@ -257,7 +260,7 @@ fn h10_inclass_compose_adw_yields_ooc() {
     let j = compile(composed).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "H10: InClass ∘ OutOfClassAuthorizedDeterministicWrite → OOC"
     );
 }
@@ -270,7 +273,7 @@ fn h11_inclass_compose_exact_yields_ooc() {
     let j = compile(composed).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "H11: InClass ∘ OutOfClassExact → OOC"
     );
 }
@@ -283,7 +286,7 @@ fn h12_inclass_compose_ncu_yields_ooc() {
     let j = compile(composed).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "H12: InClass ∘ OutOfClassNoConsequentialUse → OOC"
     );
 }
@@ -297,7 +300,7 @@ fn h13_exact_compose_adw_yields_ooc() {
     let j = compile(composed).unwrap();
     assert_eq!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "H13: OutOfClassExact ∘ OutOfClassAuthorizedDeterministicWrite → OOC"
     );
 }
@@ -335,7 +338,7 @@ fn h15_all_16_pairs_produce_correct_class() {
                 if !both_in_class {
                     assert_eq!(
                         result.permission,
-                        Permission::OOC,
+                        Permission::OOC(),
                         "H15: ({m1:?}, {m2:?}) must yield OOC"
                     );
                 }
@@ -353,7 +356,7 @@ fn h16_all_inclass_compose_n_does_not_degrade_to_ooc() {
     let j = compile(composed).unwrap();
     assert_ne!(
         j.permission,
-        Permission::OOC,
+        Permission::OOC(),
         "H16: all-InClass composition must not degrade to OOC"
     );
 }
@@ -391,7 +394,7 @@ proptest! {
             let j = compile(composed).unwrap();
             prop_assert_eq!(
                 j.permission,
-                Permission::OOC,
+                Permission::OOC(),
                 "any OOC in compose_n must yield OOC"
             );
         }
@@ -405,7 +408,7 @@ proptest! {
         // Same set of contexts, OOC placed at two different positions → both OOC
         let p1 = compose_n_with_one_ooc_at(pos1 % 5, 5);
         let p2 = compose_n_with_one_ooc_at(pos2 % 5, 5);
-        prop_assert_eq!(p1, Permission::OOC, "OOC at position must yield OOC");
-        prop_assert_eq!(p2, Permission::OOC, "OOC at position must yield OOC");
+        prop_assert_eq!(p1, Permission::OOC(), "OOC at position must yield OOC");
+        prop_assert_eq!(p2, Permission::OOC(), "OOC at position must yield OOC");
     }
 }

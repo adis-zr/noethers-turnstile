@@ -15,28 +15,28 @@ use noethers_turnstile_core::permission::Permission;
 ///   Prop  — GLB property holds for random triples (proptest)
 use proptest::prelude::*;
 
-const ALL: [Permission; 12] = [
-    Permission::OOC,
-    Permission::EXP,
-    Permission::REF,
-    Permission::UNS,
-    Permission::ETA,
-    Permission::ESC,
-    Permission::ROL,
-    Permission::DIA,
-    Permission::REV,
-    Permission::AEX,
-    Permission::ALR,
-    Permission::AAA,
-];
+fn all() -> [Permission; 12] { [
+    Permission::OOC(),
+    Permission::EXP(),
+    Permission::REF(),
+    Permission::UNS(),
+    Permission::ETA(),
+    Permission::ESC(),
+    Permission::ROL(),
+    Permission::DIA(),
+    Permission::REV(),
+    Permission::AEX(),
+    Permission::ALR(),
+    Permission::AAA(),
+] }
 
 // ── GLB1: meet(a,b) ≤ a and meet(a,b) ≤ b for all 144 pairs ─────────────────
 
 #[test]
 fn glb1_meet_is_lower_bound_all_144_pairs() {
     let mut failures = 0u32;
-    for &a in &ALL {
-        for &b in &ALL {
+    for a in all() {
+        for b in all() {
             let m = a.meet(b);
             if m > a {
                 eprintln!("GLB1 FAIL: meet({a:?},{b:?})={m:?} is not ≤ {a:?}");
@@ -56,10 +56,10 @@ fn glb1_meet_is_lower_bound_all_144_pairs() {
 #[test]
 fn glb2_meet_is_greatest_lower_bound_all_1728_checks() {
     let mut failures = 0u32;
-    for &a in &ALL {
-        for &b in &ALL {
+    for a in all() {
+        for b in all() {
             let m = a.meet(b);
-            for &x in &ALL {
+            for x in all() {
                 // If x is a common lower bound of a and b, then x ≤ meet(a,b)
                 if x <= a && x <= b && (x > m) {
                     eprintln!("GLB2 FAIL: x={x:?} ≤ {a:?} and x ≤ {b:?} but x ≰ meet={m:?}");
@@ -79,11 +79,11 @@ fn glb2_meet_is_greatest_lower_bound_all_1728_checks() {
 #[test]
 fn glb3_no_strictly_greater_lower_bound_exists() {
     let mut failures = 0u32;
-    for &a in &ALL {
-        for &b in &ALL {
+    for a in all() {
+        for b in all() {
             let m = a.meet(b);
             // Check that no m2 > m satisfies m2 ≤ a AND m2 ≤ b
-            for &m2 in &ALL {
+            for m2 in all() {
                 if m2 > m && m2 <= a && m2 <= b {
                     eprintln!("GLB3 FAIL: m2={m2:?} > meet={m:?} but m2 ≤ {a:?} and m2 ≤ {b:?}");
                     failures += 1;
@@ -101,7 +101,7 @@ fn glb3_no_strictly_greater_lower_bound_exists() {
 
 #[test]
 fn glb4_meet_idempotent_all_12() {
-    for &a in &ALL {
+    for a in all() {
         assert_eq!(a.meet(a), a, "GLB4: meet({a:?},{a:?}) must equal {a:?}");
     }
 }
@@ -110,7 +110,7 @@ fn glb4_meet_idempotent_all_12() {
 
 #[test]
 fn glb5_meet_n_singleton_is_identity() {
-    for &a in &ALL {
+    for a in all() {
         let result = Permission::meet_n([a]).unwrap();
         assert_eq!(result, a, "GLB5: meet_n([{a:?}]) must equal {a:?}");
     }
@@ -120,18 +120,18 @@ fn glb5_meet_n_singleton_is_identity() {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 

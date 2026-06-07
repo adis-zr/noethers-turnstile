@@ -28,7 +28,7 @@ fn make_entry(id: usize) -> AuditEntry {
         claim_id: format!("claim-{id}"),
         context_id: format!("ctx-{id}"),
         membership: "InClass".into(),
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         expiry_deadline: None,
         token_ids: vec![format!("tok-{id}")],
         provenance_hash: format!("hash-{id:064}"),

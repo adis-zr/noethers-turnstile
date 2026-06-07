@@ -151,9 +151,10 @@ fn certifier_validates_correctly_issued_token() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let result = certifier.validate(&token, &ctx);
     assert!(result.valid, "correctly issued token must validate");
@@ -180,9 +181,10 @@ fn certifier_validation_fails_wrong_candidate() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let result = certifier.validate(&token, &wrong_ctx);
     assert!(!result.valid, "token must not validate for wrong candidate");
@@ -241,7 +243,7 @@ fn certifier_issued_token_accepted_by_compiler() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, gap_id)],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -249,15 +251,16 @@ fn certifier_issued_token_accepted_by_compiler() {
         }],
         tokens: vec![token],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::DIA,
+        Permission::DIA(),
         "certifier-issued token must compile to DIA"
     );
 }
@@ -283,7 +286,7 @@ fn token_for_z1_not_accepted_for_z2_end_to_end() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -291,16 +294,17 @@ fn token_for_z1_not_accepted_for_z2_end_to_end() {
         }],
         tokens: vec![token_for_z1],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let j = compile(ctx_z2).unwrap();
     // z1 token has wrong provenance for z2 → PROVENANCE_MISMATCH → REF
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "z1 token must not license z2; PROVENANCE_MISMATCH floors to REF"
     );
 }

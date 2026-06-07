@@ -37,9 +37,10 @@ fn base_ctx(suffix: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -106,7 +107,7 @@ fn v2_profile_referencing_absent_gap_id_is_rejected() {
     let mut ctx = base_ctx("v2");
     ctx.gaps.push(GapRecord::open("g1", "calibration_gap"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "nonexistent_gap".into(), // not in ctx.gaps
             minimum_status: RequiredStatus::ClosedRequired,
@@ -123,7 +124,7 @@ fn v2_profile_with_one_valid_and_one_invalid_gap_ref_is_rejected() {
     let mut ctx = base_ctx("v2b");
     ctx.gaps.push(GapRecord::open("g1", "gap1"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![
             GapRequirement {
                 gap_id: "g1".into(), // valid
@@ -147,7 +148,7 @@ fn v2_multiple_profiles_one_bad_ref_is_rejected() {
     ctx.gaps.push(GapRecord::open("g1", "gap1"));
     // Valid profile.
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -155,7 +156,7 @@ fn v2_multiple_profiles_one_bad_ref_is_rejected() {
     });
     // Invalid profile (references missing gap).
     ctx.profiles.push(Profile {
-        permission: Permission::REV,
+        permission: Permission::REV(),
         required_gaps: vec![GapRequirement {
             gap_id: "missing".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -200,14 +201,14 @@ fn v4_two_profiles_at_same_permission_level_is_rejected() {
     ctx.gaps.push(GapRecord::open("g1", "g"));
     ctx.gaps.push(GapRecord::open("g2", "g"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::DIA, // same level
+        permission: Permission::DIA(), // same level
         required_gaps: vec![GapRequirement {
             gap_id: "g2".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -226,21 +227,21 @@ fn v4_three_profiles_one_duplicate_level_is_rejected() {
     ctx.gaps.push(GapRecord::open("g2", "g"));
     ctx.gaps.push(GapRecord::open("g3", "g"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::REV,
+        permission: Permission::REV(),
         required_gaps: vec![GapRequirement {
             gap_id: "g2".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::DIA, // duplicate of first
+        permission: Permission::DIA(), // duplicate of first
         required_gaps: vec![GapRequirement {
             gap_id: "g3".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -269,14 +270,14 @@ fn v5_context_with_multiple_valid_profiles_compiles_ok() {
     ctx.gaps.push(GapRecord::open("g1", "g1"));
     ctx.gaps.push(GapRecord::open("g2", "g2"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
         }],
     });
     ctx.profiles.push(Profile {
-        permission: Permission::REV,
+        permission: Permission::REV(),
         required_gaps: vec![GapRequirement {
             gap_id: "g2".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -293,7 +294,7 @@ fn v5_context_with_tokens_and_gaps_compiles_ok() {
     let mut ctx = base_ctx("v5c");
     ctx.gaps.push(GapRecord::open("g1", "calibration_gap"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -306,7 +307,7 @@ fn v5_context_with_tokens_and_gaps_compiles_ok() {
         result.is_ok(),
         "V5: full valid context with token must compile"
     );
-    assert_eq!(result.unwrap().permission, Permission::DIA);
+    assert_eq!(result.unwrap().permission, Permission::DIA());
 }
 
 // ── V6: OOC membership contexts are still validated ──────────────────────────
@@ -372,7 +373,7 @@ fn v8_bad_gap_ref_error_message_names_the_gap() {
     let mut ctx = base_ctx("v8b");
     ctx.gaps.push(GapRecord::open("real_gap", "type"));
     ctx.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "phantom_gap_id".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -422,9 +423,10 @@ proptest! {
             profiles: vec![],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
         prop_assert!(
             is_malformed(compile(ctx)),

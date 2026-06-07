@@ -44,7 +44,7 @@ fn stable_ctx() -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "calibration_gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -65,9 +65,10 @@ fn stable_ctx() -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -221,7 +222,7 @@ fn d6_structurally_identical_contexts_same_permission() {
             scope: Scope::default(),
             gaps: vec![GapRecord::open("g1", "calibration_gap")],
             profiles: vec![Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -242,9 +243,10 @@ fn d6_structurally_identical_contexts_same_permission() {
                 is_negative_control: false,
             }],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         }
     };
 
@@ -270,7 +272,7 @@ fn ooc_context_is_deterministic() {
     let p1 = compile(ctx.clone()).unwrap().permission;
     let p2 = compile(ctx.clone()).unwrap().permission;
     let p3 = compile(ctx).unwrap().permission;
-    assert_eq!(p1, Permission::OOC);
-    assert_eq!(p2, Permission::OOC);
-    assert_eq!(p3, Permission::OOC);
+    assert_eq!(p1, Permission::OOC());
+    assert_eq!(p2, Permission::OOC());
+    assert_eq!(p3, Permission::OOC());
 }

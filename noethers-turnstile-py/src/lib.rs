@@ -198,79 +198,79 @@ impl PyPermission {
     #[classattr]
     fn OOC() -> Self {
         Self {
-            inner: RustPermission::OOC,
+            inner: RustPermission::OOC(),
         }
     }
     #[classattr]
     fn EXP() -> Self {
         Self {
-            inner: RustPermission::EXP,
+            inner: RustPermission::EXP(),
         }
     }
     #[classattr]
     fn REF() -> Self {
         Self {
-            inner: RustPermission::REF,
+            inner: RustPermission::REF(),
         }
     }
     #[classattr]
     fn UNS() -> Self {
         Self {
-            inner: RustPermission::UNS,
+            inner: RustPermission::UNS(),
         }
     }
     #[classattr]
     fn ETA() -> Self {
         Self {
-            inner: RustPermission::ETA,
+            inner: RustPermission::ETA(),
         }
     }
     #[classattr]
     fn ESC() -> Self {
         Self {
-            inner: RustPermission::ESC,
+            inner: RustPermission::ESC(),
         }
     }
     #[classattr]
     fn ROL() -> Self {
         Self {
-            inner: RustPermission::ROL,
+            inner: RustPermission::ROL(),
         }
     }
     #[classattr]
     fn DIA() -> Self {
         Self {
-            inner: RustPermission::DIA,
+            inner: RustPermission::DIA(),
         }
     }
     #[classattr]
     fn REV() -> Self {
         Self {
-            inner: RustPermission::REV,
+            inner: RustPermission::REV(),
         }
     }
     #[classattr]
     fn AEX() -> Self {
         Self {
-            inner: RustPermission::AEX,
+            inner: RustPermission::AEX(),
         }
     }
     #[classattr]
     fn ALR() -> Self {
         Self {
-            inner: RustPermission::ALR,
+            inner: RustPermission::ALR(),
         }
     }
     #[classattr]
     fn AAA() -> Self {
         Self {
-            inner: RustPermission::AAA,
+            inner: RustPermission::AAA(),
         }
     }
 
     fn meet(&self, other: &PyPermission) -> PyPermission {
         PyPermission {
-            inner: self.inner.meet(other.inner),
+            inner: self.inner.meet(&other.inner),
         }
     }
 
@@ -847,9 +847,10 @@ impl PyProofContext {
                     .map(|t| t.inner)
                     .collect(),
                 expiry: expiry.inner.clone(),
-                authority_ceiling: authority_ceiling.inner,
-                permission_ceiling: noethers_turnstile_core::permission::Permission::AAA,
+                authority_ceiling: Some(authority_ceiling.inner),
+                permission_ceiling: None,
                 membership: membership.inner.clone(),
+                expected_chain_hash: None,
             },
         }
     }
@@ -873,7 +874,11 @@ impl PyProofContext {
     #[getter]
     fn authority_ceiling(&self) -> PyPermission {
         PyPermission {
-            inner: self.inner.authority_ceiling,
+            inner: self
+                .inner
+                .authority_ceiling
+                .clone()
+                .unwrap_or_else(RustPermission::AAA),
         }
     }
 
@@ -1006,7 +1011,7 @@ impl PyLiveJudgment {
     fn permission(&self, runtime: &PyRuntimeContext) -> PyResult<PyPermission> {
         let live = RustLiveJudgment::new(self.judgment.clone(), &runtime.inner);
         let p = live.permission();
-        if p == RustPermission::EXP {
+        if p == RustPermission::EXP() {
             return Err(ExpiredError::new_err(format!(
                 "judgment expired at {:?}",
                 self.judgment.expiry.deadline

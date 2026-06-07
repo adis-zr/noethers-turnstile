@@ -21,18 +21,18 @@ use proptest::prelude::*;
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::REF),
-        Just(Permission::UNS),
-        Just(Permission::ETA),
-        Just(Permission::ESC),
-        Just(Permission::ROL),
-        Just(Permission::DIA),
-        Just(Permission::REV),
-        Just(Permission::AEX),
-        Just(Permission::ALR),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::REF()),
+        Just(Permission::UNS()),
+        Just(Permission::ETA()),
+        Just(Permission::ESC()),
+        Just(Permission::ROL()),
+        Just(Permission::DIA()),
+        Just(Permission::REV()),
+        Just(Permission::AEX()),
+        Just(Permission::ALR()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -54,7 +54,7 @@ fn build_dia_ctx(expiry: Expiry) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -75,32 +75,35 @@ fn build_dia_ctx(expiry: Expiry) -> ProofContext {
             is_negative_control: false,
         }],
         expiry,
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
 // ── Runtime non-upgrade: live.permission() ≤ compiled.permission ─────────────
 
-const OPERATIONAL: [Permission; 10] = [
-    Permission::REF,
-    Permission::UNS,
-    Permission::ETA,
-    Permission::ESC,
-    Permission::ROL,
-    Permission::DIA,
-    Permission::REV,
-    Permission::AEX,
-    Permission::ALR,
-    Permission::AAA,
-];
+fn operational() -> [Permission; 10] {
+    [
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
+    ]
+}
 
 #[test]
 fn runtime_matching_fp_never_upgrades_all_operational() {
-    for p in OPERATIONAL {
+    for p in operational() {
         let mut ctx = build_dia_ctx(Expiry::never());
-        ctx.authority_ceiling = p; // cap at p
+        ctx.authority_ceiling = Some(p); // cap at p
         let judgment = compile(ctx).unwrap();
         let compiled_p = judgment.permission;
 
@@ -121,7 +124,7 @@ fn runtime_mismatched_fp_returns_ooc() {
 
     let rt = RuntimeContext::new(Utc::now(), "fp-wrong"); // mismatched
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::OOC);
+    assert_eq!(live.permission(), Permission::OOC());
 }
 
 #[test]
@@ -132,19 +135,19 @@ fn runtime_expired_context_returns_exp() {
     // Even though compile succeeded, expiry is already in the past
     let rt = RuntimeContext::new(Utc::now(), "fp-rt");
     let live = LiveJudgment::new(judgment, &rt);
-    assert_eq!(live.permission(), Permission::EXP);
+    assert_eq!(live.permission(), Permission::EXP());
 }
 
 #[test]
 fn runtime_dia_cannot_become_rev() {
     let ctx = build_dia_ctx(Expiry::never());
     let judgment = compile(ctx).unwrap();
-    assert_eq!(judgment.permission, Permission::DIA);
+    assert_eq!(judgment.permission, Permission::DIA());
 
     let rt = RuntimeContext::new(Utc::now(), "fp-rt");
     let live = LiveJudgment::new(judgment, &rt);
-    assert!(live.permission() <= Permission::DIA);
-    assert_ne!(live.permission(), Permission::REV);
+    assert!(live.permission() <= Permission::DIA());
+    assert_ne!(live.permission(), Permission::REV());
 }
 
 // ── Expiry fires at the boundary (T7) ────────────────────────────────────────
@@ -159,17 +162,17 @@ fn expiry_fires_exactly_at_boundary() {
     // Before: not expired
     let rt_before = RuntimeContext::new(deadline - Duration::nanoseconds(1), "fp-rt");
     let live_before = LiveJudgment::new(judgment.clone(), &rt_before);
-    assert_ne!(live_before.permission(), Permission::EXP);
+    assert_ne!(live_before.permission(), Permission::EXP());
 
     // At boundary: expired
     let rt_at = RuntimeContext::new(deadline, "fp-rt");
     let live_at = LiveJudgment::new(judgment.clone(), &rt_at);
-    assert_eq!(live_at.permission(), Permission::EXP);
+    assert_eq!(live_at.permission(), Permission::EXP());
 
     // After: expired
     let rt_after = RuntimeContext::new(deadline + Duration::seconds(1), "fp-rt");
     let live_after = LiveJudgment::new(judgment, &rt_after);
-    assert_eq!(live_after.permission(), Permission::EXP);
+    assert_eq!(live_after.permission(), Permission::EXP());
 }
 
 #[test]
@@ -192,7 +195,7 @@ fn expired_token_floors_to_exp_during_compile() {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -213,15 +216,16 @@ fn expired_token_floors_to_exp_during_compile() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let judgment = compile(ctx).unwrap();
     assert_eq!(
         judgment.permission,
-        Permission::EXP,
+        Permission::EXP(),
         "expired token should floor to EXP at compile time"
     );
 }
@@ -248,7 +252,8 @@ proptest! {
         let deadline = now + Duration::seconds(offset_secs);
         let ctx = {
             let mut c = build_dia_ctx(Expiry::at(deadline));
-            c.authority_ceiling = ceiling;
+            c.authority_ceiling = Some(ceiling);
+
             c
         };
         let judgment = compile(ctx).unwrap();
@@ -276,7 +281,7 @@ proptest! {
         let check_time = deadline + Duration::seconds(past_secs);
         let rt = RuntimeContext::new(check_time, "fp-rt");
         let live = LiveJudgment::new(judgment, &rt);
-        prop_assert_eq!(live.permission(), Permission::EXP);
+        prop_assert_eq!(live.permission(), Permission::EXP());
     }
 
     #[test]
@@ -291,6 +296,6 @@ proptest! {
         let before = deadline - Duration::nanoseconds(1);
         let rt = RuntimeContext::new(before, "fp-rt");
         let live = LiveJudgment::new(judgment, &rt);
-        prop_assert_ne!(live.permission(), Permission::EXP);
+        prop_assert_ne!(live.permission(), Permission::EXP());
     }
 }

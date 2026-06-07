@@ -1,0 +1,43 @@
+{
+  "name": "02_no_profiles_ooc",
+  "description": "In-class membership but no profiles defined emits OOC.",
+  "context": {
+    "claim_id": "claim-noprof",
+    "candidate_id": "cand-noprof",
+    "context_id": "ctx-noprof",
+    "context_fingerprint": "fp-noprof",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [],
+    "profiles": [],
+    "tokens": [],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "OOC",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "OOC",
+        "note": "no profiles defined",
+        "token_ids": []
+      }
+    ],
+    "provenance_hash": "3ece4d3781c9e0c5f4338c2660dd8833045c2fe866681ab24e3c735de6b88bf6",
+    "compiled_at": "2026-06-07T20:41:53.404917Z"
+  }
+}

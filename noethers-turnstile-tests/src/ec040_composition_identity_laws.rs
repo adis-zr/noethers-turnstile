@@ -24,7 +24,7 @@ use chrono::Utc;
 use noethers_turnstile_core::{
     compile, compose, compose_n,
     context::{Membership, ProofContext, Scope},
-    error::CompositionError,
+    error::{CompositionError, TurnstileError},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, GapStatus, Profile, RequiredStatus},
     permission::Permission,
@@ -44,9 +44,10 @@ fn base_ctx(id: &str) -> ProofContext {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -78,12 +79,13 @@ fn valid_token(id: &str, closes: Vec<&str>, ctx: &ProofContext) -> ProofToken {
 #[test]
 fn ci1_compose_self_authority_ceiling_idempotent() {
     let mut ctx = base_ctx("ci1");
-    ctx.authority_ceiling = Permission::DIA;
+    ctx.authority_ceiling = Some(Permission::DIA());
+
 
     let composed = compose(ctx.clone(), ctx.clone()).unwrap();
     assert_eq!(
         composed.authority_ceiling,
-        Permission::DIA,
+        Some(Permission::DIA()),
         "CI1: compose(ctx,ctx) authority_ceiling must equal ctx's ceiling"
     );
 }
@@ -157,11 +159,14 @@ fn ci4_compose_self_gap_status_is_minimum_closed() {
 #[test]
 fn ci5_authority_ceiling_is_associative() {
     let mut a = base_ctx("ci5a");
-    a.authority_ceiling = Permission::AEX;
+    a.authority_ceiling = Some(Permission::AEX());
+
     let mut b = base_ctx("ci5b");
-    b.authority_ceiling = Permission::DIA;
+    b.authority_ceiling = Some(Permission::DIA());
+
     let mut c = base_ctx("ci5c");
-    c.authority_ceiling = Permission::REV;
+    c.authority_ceiling = Some(Permission::REV());
+
 
     // (A ∩ B) ∩ C
     let lhs = {
@@ -182,7 +187,7 @@ fn ci5_authority_ceiling_is_associative() {
     // Meet(AEX, DIA, REV) = DIA (minimum of the three)
     assert_eq!(
         lhs.authority_ceiling,
-        Permission::DIA,
+        Some(Permission::DIA()),
         "CI5: meet(AEX, DIA, REV) must be DIA"
     );
 }
@@ -262,15 +267,18 @@ fn ci7_disallowed_uses_is_associative() {
 #[test]
 fn ci8_compose_n_equals_left_fold() {
     let mut a = base_ctx("ci8a");
-    a.authority_ceiling = Permission::AEX;
+    a.authority_ceiling = Some(Permission::AEX());
+
     a.disallowed_uses = vec!["use-a".into()];
 
     let mut b = base_ctx("ci8b");
-    b.authority_ceiling = Permission::DIA;
+    b.authority_ceiling = Some(Permission::DIA());
+
     b.disallowed_uses = vec!["use-b".into()];
 
     let mut c = base_ctx("ci8c");
-    c.authority_ceiling = Permission::REV;
+    c.authority_ceiling = Some(Permission::REV());
+
     c.disallowed_uses = vec!["use-c".into()];
 
     // Left-fold
@@ -302,11 +310,14 @@ fn ci8_compose_n_equals_left_fold() {
 #[test]
 fn ci9_right_associative_equals_compose_n() {
     let mut a = base_ctx("ci9a");
-    a.authority_ceiling = Permission::AEX;
+    a.authority_ceiling = Some(Permission::AEX());
+
     let mut b = base_ctx("ci9b");
-    b.authority_ceiling = Permission::DIA;
+    b.authority_ceiling = Some(Permission::DIA());
+
     let mut c = base_ctx("ci9c");
-    c.authority_ceiling = Permission::REV;
+    c.authority_ceiling = Some(Permission::REV());
+
 
     let right_fold = {
         let bc = compose(b.clone(), c.clone()).unwrap();
@@ -331,7 +342,7 @@ fn ci10_use_conflict_always_fails_closed() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(CompositionError::UseConflict)),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::UseConflict))),
         "CI10: UseConflict must fail closed"
     );
 }
@@ -345,8 +356,8 @@ fn ci10_use_conflict_is_symmetric() {
     let fwd = compose(ctx_a.clone(), ctx_b.clone());
     let rev = compose(ctx_b, ctx_a);
 
-    assert!(matches!(fwd, Err(CompositionError::UseConflict)));
-    assert!(matches!(rev, Err(CompositionError::UseConflict)));
+    assert!(matches!(fwd, Err(TurnstileError::Composition(CompositionError::UseConflict))));
+    assert!(matches!(rev, Err(TurnstileError::Composition(CompositionError::UseConflict))));
 }
 
 // ── CI11: TokenConflict always fails closed ───────────────────────────────────
@@ -367,7 +378,7 @@ fn ci11_token_conflict_always_fails_closed() {
 
     let result = compose(ctx1, ctx2);
     assert!(
-        matches!(result, Err(CompositionError::TokenConflict { .. })),
+        matches!(result, Err(TurnstileError::Composition(CompositionError::TokenConflict { .. }))),
         "CI11: TokenConflict must fail closed"
     );
 }
@@ -377,7 +388,8 @@ fn ci11_token_conflict_always_fails_closed() {
 #[test]
 fn ci12_compose_n_single_element_identity() {
     let mut ctx = base_ctx("ci12");
-    ctx.authority_ceiling = Permission::DIA;
+    ctx.authority_ceiling = Some(Permission::DIA());
+
     ctx.disallowed_uses = vec!["write".into()];
     ctx.gaps.push(GapRecord::closed("g1", "t"));
 
@@ -405,7 +417,7 @@ fn compile_compose_non_promotion_end_to_end() {
     let mut ctx1 = base_ctx("e2e1");
     ctx1.gaps.push(GapRecord::closed("g1", "t"));
     ctx1.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -416,9 +428,9 @@ fn compile_compose_non_promotion_end_to_end() {
 
     let mut ctx2 = base_ctx("e2e2");
     ctx2.gaps.push(GapRecord::closed("g1", "t"));
-    ctx2.authority_ceiling = Permission::ROL; // this will cap the composed result
+    ctx2.authority_ceiling = Some(Permission::ROL()); // this will cap the composed result
     ctx2.profiles.push(Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,

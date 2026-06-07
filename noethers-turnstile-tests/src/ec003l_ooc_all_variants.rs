@@ -36,7 +36,7 @@ fn saturated_ctx(membership: Membership) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -57,9 +57,10 @@ fn saturated_ctx(membership: Membership) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership,
+        expected_chain_hash: None,
     }
 }
 
@@ -68,7 +69,7 @@ fn saturated_ctx(membership: Membership) -> ProofContext {
 #[test]
 fn out_of_class_exact_gives_ooc() {
     let j = compile(saturated_ctx(Membership::OutOfClassExact)).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 #[test]
@@ -77,13 +78,13 @@ fn out_of_class_authorized_deterministic_write_gives_ooc() {
         Membership::OutOfClassAuthorizedDeterministicWrite,
     ))
     .unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 #[test]
 fn out_of_class_no_consequential_use_gives_ooc() {
     let j = compile(saturated_ctx(Membership::OutOfClassNoConsequentialUse)).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 #[test]
@@ -92,7 +93,7 @@ fn out_of_class_other_gives_ooc() {
         "adversarial reason".into(),
     )))
     .unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 // ── OOC with empty context also gives OOC ─────────────────────────────────────
@@ -111,12 +112,13 @@ fn out_of_class_exact_empty_ctx_gives_ooc() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::OutOfClassExact,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 // ── Membership derivation step is first ──────────────────────────────────────
@@ -128,7 +130,7 @@ fn ooc_derivation_first_step_is_membership_check() {
     assert!(!j.derivation.steps.is_empty(), "derivation must have steps");
     let first = &j.derivation.steps[0];
     assert_eq!(first.phase, "membership_check");
-    assert_eq!(first.permission_after, Permission::OOC);
+    assert_eq!(first.permission_after, Permission::OOC());
 }
 
 // ── OOC membership overrides disallowed_uses (already OOC) ───────────────────
@@ -138,7 +140,7 @@ fn ooc_with_disallowed_uses_still_ooc() {
     let mut ctx = saturated_ctx(Membership::OutOfClassNoConsequentialUse);
     ctx.disallowed_uses = vec!["write".into()];
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC);
+    assert_eq!(j.permission, Permission::OOC());
 }
 
 // ── OOC membership overrides low authority ceiling ───────────────────────────
@@ -146,9 +148,10 @@ fn ooc_with_disallowed_uses_still_ooc() {
 #[test]
 fn ooc_with_low_authority_ceiling_still_ooc_not_lower() {
     let mut ctx = saturated_ctx(Membership::OutOfClassExact);
-    ctx.authority_ceiling = Permission::OOC;
+    ctx.authority_ceiling = Some(Permission::OOC());
+
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::OOC); // already OOC, ceiling is OOC.meet(OOC) = OOC
+    assert_eq!(j.permission, Permission::OOC()); // already OOC, ceiling is OOC.meet(OOC) = OOC
 }
 
 // ── InClass membership enables evidence evaluation ────────────────────────────
@@ -156,7 +159,7 @@ fn ooc_with_low_authority_ceiling_still_ooc_not_lower() {
 #[test]
 fn in_class_membership_enables_aaa() {
     let j = compile(saturated_ctx(Membership::InClass)).unwrap();
-    assert_eq!(j.permission, Permission::AAA);
+    assert_eq!(j.permission, Permission::AAA());
 }
 
 // ── Proptest: all non-InClass variants project to OOC ────────────────────────
@@ -172,10 +175,10 @@ fn arb_ooc_membership() -> impl Strategy<Value = Membership> {
 
 fn arb_permission() -> impl Strategy<Value = Permission> {
     prop_oneof![
-        Just(Permission::OOC),
-        Just(Permission::EXP),
-        Just(Permission::DIA),
-        Just(Permission::AAA),
+        Just(Permission::OOC()),
+        Just(Permission::EXP()),
+        Just(Permission::DIA()),
+        Just(Permission::AAA()),
     ]
 }
 
@@ -186,9 +189,10 @@ proptest! {
         ceiling in arb_permission(),
     ) {
         let mut ctx = saturated_ctx(membership);
-        ctx.authority_ceiling = ceiling;
+        ctx.authority_ceiling = Some(ceiling);
+
         let j = compile(ctx).unwrap();
-        prop_assert_eq!(j.permission, Permission::OOC,
+        prop_assert_eq!(j.permission, Permission::OOC(),
             "OOC membership must project to OOC regardless of evidence");
     }
 
@@ -199,6 +203,6 @@ proptest! {
         let mut ctx = saturated_ctx(Membership::OutOfClassExact);
         ctx.disallowed_uses = (0..n_disallowed).map(|i| format!("use-{i}")).collect();
         let j = compile(ctx).unwrap();
-        prop_assert_eq!(j.permission, Permission::OOC);
+        prop_assert_eq!(j.permission, Permission::OOC());
     }
 }

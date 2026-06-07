@@ -42,7 +42,7 @@ fn ctx_needs_g1_closed() -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::open("g1", "gap")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -50,9 +50,10 @@ fn ctx_needs_g1_closed() -> ProofContext {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -62,7 +63,7 @@ fn fake_aaa_entry(i: usize) -> AuditEntry {
         claim_id: "claim-t18".into(),
         context_id: "ctx-t18".into(),
         membership: "InClass".into(),
-        permission: Permission::AAA,
+        permission: Permission::AAA(),
         expiry_deadline: None,
         token_ids: vec![format!("fake-{i}")],
         provenance_hash: format!("hash-{i}"),
@@ -85,7 +86,7 @@ fn a1_ten_thousand_aaa_entries_do_not_affect_compile() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "A1: 10k fabricated AAA audit entries must not affect compile result; InClass unmet profile → UNS"
     );
 }
@@ -127,7 +128,7 @@ fn a2_concurrent_writes_and_compiles_stable() {
         let p = h.join().expect("compiler thread panicked");
         assert_eq!(
             p,
-            Permission::UNS,
+            Permission::UNS(),
             "A2: concurrent audit writes must not affect compile result; InClass unmet profile → UNS"
         );
     }
@@ -143,7 +144,7 @@ fn a3_fabricated_aaa_audit_entry_ignored() {
         claim_id: "claim-t18".into(),
         context_id: "ctx-t18".into(),
         membership: "InClass".into(),
-        permission: Permission::AAA,
+        permission: Permission::AAA(),
         expiry_deadline: None,
         token_ids: vec![],
         provenance_hash: "any".into(),
@@ -155,7 +156,7 @@ fn a3_fabricated_aaa_audit_entry_ignored() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "A3: AuditEntry claiming AAA must be ignored by compile(); InClass unmet profile → UNS"
     );
 }
@@ -170,7 +171,7 @@ fn a4_future_emitted_at_has_no_effect() {
         claim_id: "claim-t18".into(),
         context_id: "ctx-t18".into(),
         membership: "InClass".into(),
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         expiry_deadline: None,
         token_ids: vec![],
         provenance_hash: "any".into(),
@@ -182,7 +183,7 @@ fn a4_future_emitted_at_has_no_effect() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "A4: future-emitted audit entry must not grant permission; InClass unmet profile → UNS"
     );
 }
@@ -198,7 +199,7 @@ fn a5_duplicate_entries_same_result() {
         p1, p2,
         "A5: compiling same context twice must produce same result"
     );
-    assert_eq!(p1, Permission::UNS);
+    assert_eq!(p1, Permission::UNS());
 }
 
 // ── A6: Replay attack — AuditEntry data as ProofToken with fake hash ──────────
@@ -225,7 +226,7 @@ fn a6_audit_replay_as_proof_token_rejected() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "A6: audit replay via ProofToken with wrong provenance hash must be rejected; PROVENANCE_MISMATCH → REF"
     );
 }
@@ -263,7 +264,7 @@ fn a7_audit_entry_fields_do_not_map_to_proof_token() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "A7: audit entry provenance hash does not match real context; PROVENANCE_MISMATCH → REF"
     );
 }
@@ -274,10 +275,10 @@ fn a7_audit_entry_fields_do_not_map_to_proof_token() {
 fn a8_mixed_permission_entries_do_not_interfere() {
     let store = InMemoryAuditStore::default();
     for (perm, suffix) in [
-        (Permission::DIA, "dia"),
-        (Permission::AAA, "aaa"),
-        (Permission::REF, "ref"),
-        (Permission::OOC, "ooc"),
+        (Permission::DIA(), "dia"),
+        (Permission::AAA(), "aaa"),
+        (Permission::REF(), "ref"),
+        (Permission::OOC(), "ooc"),
     ] {
         store.record(AuditEntry {
             candidate_id: "z-t18".into(),
@@ -297,7 +298,7 @@ fn a8_mixed_permission_entries_do_not_interfere() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "A8: mixed-permission audit entries must not affect compile result; InClass unmet profile → UNS"
     );
 }
@@ -320,7 +321,7 @@ fn a9_result_independent_of_store_read_count() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::UNS,
+        Permission::UNS(),
         "A9: repeated store reads must not affect compile result; InClass unmet profile → UNS"
     );
 }
@@ -338,7 +339,7 @@ proptest::proptest! {
         let j = compile(ctx).unwrap();
         proptest::prop_assert_eq!(
             j.permission,
-            Permission::UNS,
+            Permission::UNS(),
             "audit entries must not affect compile result; InClass unmet profile → UNS"
         );
     }

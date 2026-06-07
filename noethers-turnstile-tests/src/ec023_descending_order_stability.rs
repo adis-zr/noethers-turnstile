@@ -22,18 +22,18 @@ use noethers_turnstile_core::permission::Permission;
 fn o1_exact_descending_sequence() {
     let got: Vec<Permission> = Permission::descending().collect();
     let expected = vec![
-        Permission::AAA,
-        Permission::ALR,
-        Permission::AEX,
-        Permission::REV,
-        Permission::DIA,
-        Permission::ROL,
-        Permission::ESC,
-        Permission::ETA,
-        Permission::UNS,
-        Permission::REF,
-        Permission::EXP,
-        Permission::OOC,
+        Permission::AAA(),
+        Permission::ALR(),
+        Permission::AEX(),
+        Permission::REV(),
+        Permission::DIA(),
+        Permission::ROL(),
+        Permission::ESC(),
+        Permission::ETA(),
+        Permission::UNS(),
+        Permission::REF(),
+        Permission::EXP(),
+        Permission::OOC(),
     ];
     assert_eq!(
         got, expected,
@@ -75,7 +75,7 @@ fn o3_descending_is_idempotent() {
 fn o4_first_element_is_aaa() {
     assert_eq!(
         Permission::descending().next(),
-        Some(Permission::AAA),
+        Some(Permission::AAA()),
         "O4: descending() must begin with AAA (highest permission)"
     );
 }
@@ -84,7 +84,7 @@ fn o4_first_element_is_aaa() {
 fn o4_last_element_is_ooc() {
     assert_eq!(
         Permission::descending().last(),
-        Some(Permission::OOC),
+        Some(Permission::OOC()),
         "O4: descending() must end with OOC (lowest permission)"
     );
 }
@@ -156,18 +156,18 @@ fn o7_ord_consistent_with_descending() {
 #[test]
 fn all_12_permissions_appear_exactly_once() {
     let expected = [
-        Permission::OOC,
-        Permission::EXP,
-        Permission::REF,
-        Permission::UNS,
-        Permission::ETA,
-        Permission::ESC,
-        Permission::ROL,
-        Permission::DIA,
-        Permission::REV,
-        Permission::AEX,
-        Permission::ALR,
-        Permission::AAA,
+        Permission::OOC(),
+        Permission::EXP(),
+        Permission::REF(),
+        Permission::UNS(),
+        Permission::ETA(),
+        Permission::ESC(),
+        Permission::ROL(),
+        Permission::DIA(),
+        Permission::REV(),
+        Permission::AEX(),
+        Permission::ALR(),
+        Permission::AAA(),
     ];
     let seq: Vec<Permission> = Permission::descending().collect();
     assert_eq!(seq.len(), 12, "must have exactly 12 permissions");

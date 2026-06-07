@@ -1,0 +1,88 @@
+{
+  "name": "07_disallowed_uses_rol",
+  "description": "Profile at AAA satisfied but disallowed_uses present floors to ROL via structural blocker.",
+  "context": {
+    "claim_id": "claim-disallowed",
+    "candidate_id": "cand-disallowed",
+    "context_id": "ctx-disallowed",
+    "context_fingerprint": "fp-disallowed",
+    "allowed_use": "diagnostics",
+    "disallowed_uses": [
+      "production-write"
+    ],
+    "scope": {
+      "allowed_candidates": [],
+      "allowed_paths": [],
+      "allowed_tools": [],
+      "allowed_resources": []
+    },
+    "gaps": [
+      {
+        "gap_id": "g1",
+        "gap_type": "gap",
+        "status": {
+          "status": "Closed"
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "permission": "AAA",
+        "required_gaps": [
+          {
+            "gap_id": "g1",
+            "minimum_status": "ClosedRequired"
+          }
+        ]
+      }
+    ],
+    "tokens": [
+      {
+        "token_id": "tok-du",
+        "token_type": "GOLDEN",
+        "schema_version": "0.1",
+        "status": "VALID",
+        "closes_gaps": [
+          "g1"
+        ],
+        "bounds_gaps": [],
+        "provenance_hash": "015a3c7f129eb51856c2a9c3968b8bd954cfa56f0508b2c4781cebdeee9a6770",
+        "issued_at": "2026-06-07T20:40:53.408054Z",
+        "expires_at": null,
+        "issuer": "golden-corpus",
+        "details": null,
+        "is_negative_control": false
+      }
+    ],
+    "expiry": {
+      "deadline": null,
+      "reason": null
+    },
+    "authority_ceiling": "AAA",
+    "permission_ceiling": "AAA",
+    "membership": {
+      "kind": "InClass"
+    }
+  },
+  "expected_permission": "ROL",
+  "expected_derivation": {
+    "steps": [
+      {
+        "phase": "descending_search",
+        "permission_after": "AAA",
+        "note": "profile satisfied at AAA",
+        "token_ids": [
+          "tok-du"
+        ]
+      },
+      {
+        "phase": "structural_blockers",
+        "permission_after": "ROL",
+        "note": "disallowed_uses present (production-write), ceiling at ROL",
+        "token_ids": []
+      }
+    ],
+    "provenance_hash": "015a3c7f129eb51856c2a9c3968b8bd954cfa56f0508b2c4781cebdeee9a6770",
+    "compiled_at": "2026-06-07T20:41:53.408064Z"
+  }
+}

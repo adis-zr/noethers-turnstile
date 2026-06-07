@@ -92,7 +92,7 @@ pub fn validate_profile_monotonicity(profiles: &[Profile]) -> Option<Monotonicit
 fn monotone_profiles_pass_validation() {
     let profiles = vec![
         Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![
                 GapRequirement {
                     gap_id: "g1".into(),
@@ -105,7 +105,7 @@ fn monotone_profiles_pass_validation() {
             ],
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired,
@@ -121,14 +121,14 @@ fn monotone_profiles_pass_validation() {
 fn monotone_equal_requirements_pass_validation() {
     let profiles = vec![
         Profile {
-            permission: Permission::REV,
+            permission: Permission::REV(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
             }],
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -145,14 +145,14 @@ fn monotone_equal_requirements_pass_validation() {
 fn non_monotone_profile_violation_detected() {
     let profiles = vec![
         Profile {
-            permission: Permission::AAA,
+            permission: Permission::AAA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::BoundedRequired, // weaker than DIA!
             }],
         },
         Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: "g1".into(),
                 minimum_status: RequiredStatus::ClosedRequired, // stricter at lower permission
@@ -163,8 +163,8 @@ fn non_monotone_profile_violation_detected() {
     assert!(violation.is_some(), "non-monotone profile must be detected");
     let v = violation.unwrap();
     assert_eq!(v.gap_id, "g1");
-    assert_eq!(v.high_permission, Permission::AAA);
-    assert_eq!(v.low_permission, Permission::DIA);
+    assert_eq!(v.high_permission, Permission::AAA());
+    assert_eq!(v.low_permission, Permission::DIA());
 }
 
 // ── Single profile is trivially monotone ────────────────────────────────────
@@ -172,7 +172,7 @@ fn non_monotone_profile_violation_detected() {
 #[test]
 fn single_profile_is_trivially_monotone() {
     let profiles = vec![Profile {
-        permission: Permission::DIA,
+        permission: Permission::DIA(),
         required_gaps: vec![GapRequirement {
             gap_id: "g1".into(),
             minimum_status: RequiredStatus::ClosedRequired,
@@ -217,14 +217,14 @@ fn compiler_with_non_monotone_profiles_emits_lower_if_higher_fails() {
         gaps: vec![GapRecord::open("g1", "t")],
         profiles: vec![
             Profile {
-                permission: Permission::AAA,
+                permission: Permission::AAA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::BoundedRequired,
                 }],
             },
             Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -246,9 +246,10 @@ fn compiler_with_non_monotone_profiles_emits_lower_if_higher_fails() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
 
     let profiles_to_check = ctx.profiles.clone();
@@ -263,7 +264,7 @@ fn compiler_with_non_monotone_profiles_emits_lower_if_higher_fails() {
     let j = compile(ctx).unwrap();
     assert_eq!(
         j.permission,
-        Permission::AAA,
+        Permission::AAA(),
         "non-monotone profile: AAA (BoundedRequired) is satisfied by bounding token \
          even though DIA (ClosedRequired) would NOT be — callers must validate G01"
     );
@@ -320,9 +321,10 @@ fn make_ctx(gap_closed: bool, permission: Permission) -> ProofContext {
         }],
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -330,11 +332,11 @@ proptest! {
     #[test]
     fn prop_monotone_adding_evidence_never_lowers(
         permission in prop_oneof![
-            Just(Permission::DIA),
-            Just(Permission::REV),
-            Just(Permission::AEX),
-            Just(Permission::ALR),
-            Just(Permission::AAA),
+            Just(Permission::DIA()),
+            Just(Permission::REV()),
+            Just(Permission::AEX()),
+            Just(Permission::ALR()),
+            Just(Permission::AAA()),
         ],
     ) {
         let p_without = compile(make_ctx(false, permission)).unwrap().permission;
@@ -349,11 +351,11 @@ proptest! {
     #[test]
     fn prop_validate_monotonicity_on_all_single_profiles(
         p in prop_oneof![
-            Just(Permission::DIA),
-            Just(Permission::REV),
-            Just(Permission::AEX),
-            Just(Permission::ALR),
-            Just(Permission::AAA),
+            Just(Permission::DIA()),
+            Just(Permission::REV()),
+            Just(Permission::AEX()),
+            Just(Permission::ALR()),
+            Just(Permission::AAA()),
         ],
     ) {
         let profiles = vec![Profile {

@@ -45,7 +45,7 @@ fn ctx_with_token(
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -66,9 +66,10 @@ fn ctx_with_token(
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -83,7 +84,7 @@ fn wrong_candidate_token_rejected() {
     // Wrong provenance → PROVENANCE_MISMATCH structural failure → REF meet applied.
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "wrong provenance token must not close gap; PROVENANCE_MISMATCH floors to REF"
     );
 }
@@ -94,7 +95,7 @@ fn correct_provenance_closes_gap() {
     let mut ctx = ctx_with_token("claim", "z-1", "ctx", "use", &hash);
     ctx.gaps[0] = GapRecord::closed("g1", "t"); // gap is attested closed
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::DIA);
+    assert_eq!(j.permission, Permission::DIA());
 }
 
 #[test]
@@ -102,7 +103,7 @@ fn wrong_claim_token_rejected() {
     let wrong_hash = compute_provenance_hash("claim-WRONG", "z-1", "ctx", "use");
     let ctx = ctx_with_token("claim-RIGHT", "z-1", "ctx", "use", &wrong_hash);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REF);
+    assert_eq!(j.permission, Permission::REF());
 }
 
 #[test]
@@ -110,7 +111,7 @@ fn wrong_context_id_token_rejected() {
     let wrong_hash = compute_provenance_hash("claim", "z-1", "ctx-WRONG", "use");
     let ctx = ctx_with_token("claim", "z-1", "ctx-RIGHT", "use", &wrong_hash);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REF);
+    assert_eq!(j.permission, Permission::REF());
 }
 
 #[test]
@@ -118,7 +119,7 @@ fn wrong_allowed_use_token_rejected() {
     let wrong_hash = compute_provenance_hash("claim", "z-1", "ctx", "use-WRONG");
     let ctx = ctx_with_token("claim", "z-1", "ctx", "use-RIGHT", &wrong_hash);
     let j = compile(ctx).unwrap();
-    assert_eq!(j.permission, Permission::REF);
+    assert_eq!(j.permission, Permission::REF());
 }
 
 // ── T4: Token for z₁ cannot license z₂ ──────────────────────────────────────
@@ -132,7 +133,7 @@ fn token_for_z1_does_not_license_z2() {
     // Wrong provenance → PROVENANCE_MISMATCH → REF (not OOC; candidate is in-class).
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "token for z-1 must not license z-2; PROVENANCE_MISMATCH floors to REF"
     );
 }
@@ -153,7 +154,7 @@ fn invalid_token_does_not_close_gap() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -174,16 +175,17 @@ fn invalid_token_does_not_close_gap() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     // Correct provenance but Invalid status → token skipped, gap stays Open,
     // profile not satisfied → REF (in-class candidate with profile defined).
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "invalid token must not close gap; in-class with unmet profile → REF"
     );
 }
@@ -202,7 +204,7 @@ fn revoked_token_does_not_close_gap() {
         scope: Scope::default(),
         gaps: vec![GapRecord::open(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -223,16 +225,17 @@ fn revoked_token_does_not_close_gap() {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     };
     let j = compile(ctx).unwrap();
     // Correct provenance but Revoked status → token skipped, gap stays Open,
     // profile not satisfied → REF (in-class candidate with profile defined).
     assert_eq!(
         j.permission,
-        Permission::REF,
+        Permission::REF(),
         "revoked token must not close gap; in-class with unmet profile → REF"
     );
 }
@@ -252,7 +255,7 @@ fn dia_ctx_with_fp(fp_fingerprint: &str) -> ProofContext {
         scope: Scope::default(),
         gaps: vec![GapRecord::closed(gap_id, "t")],
         profiles: vec![Profile {
-            permission: Permission::DIA,
+            permission: Permission::DIA(),
             required_gaps: vec![GapRequirement {
                 gap_id: gap_id.into(),
                 minimum_status: RequiredStatus::ClosedRequired,
@@ -273,9 +276,10 @@ fn dia_ctx_with_fp(fp_fingerprint: &str) -> ProofContext {
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Permission::AAA,
-        permission_ceiling: Permission::AAA,
+        authority_ceiling: Some(Permission::AAA()),
+        permission_ceiling: Some(Permission::AAA()),
         membership: Membership::InClass,
+        expected_chain_hash: None,
     }
 }
 
@@ -288,7 +292,7 @@ fn stale_context_fingerprint_downgrades_via_live_judgment() {
     let live = noethers_turnstile_core::expiry::LiveJudgment::new(judgment, &rt);
     assert_eq!(
         live.permission(),
-        Permission::OOC,
+        Permission::OOC(),
         "stale fp should downgrade to OOC (wrong context entirely, not expiry)"
     );
 }
@@ -298,7 +302,8 @@ fn two_contexts_order_independent_same_fp() {
     let ctx1 = dia_ctx_with_fp("fp-live");
     let ctx2 = {
         let mut c = dia_ctx_with_fp("fp-live");
-        c.authority_ceiling = Permission::DIA;
+        c.authority_ceiling = Some(Permission::DIA());
+
         c
     };
     // Compose forward and backward — authority ceiling is meet → commutative
@@ -316,7 +321,8 @@ fn adding_stale_context_cannot_upgrade() {
     // add a stale context via composition
     let stale = {
         let mut c = dia_ctx_with_fp("fp-old");
-        c.authority_ceiling = Permission::AAA;
+        c.authority_ceiling = Some(Permission::AAA());
+
         c
     };
 
@@ -352,7 +358,7 @@ proptest! {
         let j = compile(ctx).unwrap();
         // Wrong provenance → PROVENANCE_MISMATCH structural failure → REF meet applied.
         // Permission must be ≤ REF (cannot be higher than REF when a provenance mismatch exists).
-        prop_assert!(j.permission <= Permission::REF,
+        prop_assert!(j.permission <= Permission::REF(),
             "wrong provenance must not emit above REF; got {:?}", j.permission);
     }
 
@@ -375,7 +381,7 @@ proptest! {
             scope: Scope::default(),
             gaps: vec![GapRecord::closed(gap_id, "t")],
             profiles: vec![Profile {
-                permission: Permission::DIA,
+                permission: Permission::DIA(),
                 required_gaps: vec![GapRequirement {
                     gap_id: gap_id.into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -396,11 +402,12 @@ proptest! {
             is_negative_control: false,
             }],
             expiry: Expiry::never(),
-            authority_ceiling: Permission::AAA,
-            permission_ceiling: Permission::AAA,
+            authority_ceiling: Some(Permission::AAA()),
+            permission_ceiling: Some(Permission::AAA()),
             membership: Membership::InClass,
+        expected_chain_hash: None,
         };
         let j = compile(ctx).unwrap();
-        prop_assert_eq!(j.permission, Permission::DIA);
+        prop_assert_eq!(j.permission, Permission::DIA());
     }
 }
