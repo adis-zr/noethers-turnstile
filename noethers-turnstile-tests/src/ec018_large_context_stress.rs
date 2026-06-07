@@ -45,7 +45,7 @@ fn make_large_ctx(
         .map(|i| GapRequirement {
             gap_id: format!("g{i}"),
             minimum_status: RequiredStatus::ClosedRequired,
-                        any_of: None,
+            any_of: None,
         })
         .collect();
 

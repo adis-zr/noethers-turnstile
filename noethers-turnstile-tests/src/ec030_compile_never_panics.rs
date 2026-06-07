@@ -326,7 +326,7 @@ fn n12_profile_with_100_gap_requirements_does_not_panic() {
             .map(|i| GapRequirement {
                 gap_id: format!("g{i}"),
                 minimum_status: RequiredStatus::ClosedRequired,
-                        any_of: None,
+                any_of: None,
             })
             .collect(),
     });

@@ -183,7 +183,10 @@ fn any_of_validates_unknown_arm_gap_id() {
         .any_of
         .as_mut()
         .unwrap()
-        .push(GapRequirement::single("nonexistent", RequiredStatus::ClosedRequired));
+        .push(GapRequirement::single(
+            "nonexistent",
+            RequiredStatus::ClosedRequired,
+        ));
     let result = compile(ctx);
     assert!(
         matches!(result, Err(TurnstileError::MalformedContext(_))),

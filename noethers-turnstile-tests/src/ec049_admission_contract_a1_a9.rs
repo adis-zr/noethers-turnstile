@@ -489,7 +489,7 @@ fn a9_3_one_thousand_profiles_all_open_terminates_ooc() {
             required_gaps: vec![GapRequirement {
                 gap_id: format!("gap-{}", i % 20),
                 minimum_status: RequiredStatus::ClosedRequired,
-            any_of: None,
+                any_of: None,
             }],
         })
         .collect();
