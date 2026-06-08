@@ -1,6 +1,6 @@
 {
-  "timestamp_utc": "2026-06-07T23:27:50.618161Z",
-  "git_rev": "839f70de54d85c0b35edafd55eca5a79f2827cec",
+  "timestamp_utc": "2026-06-08T04:02:19.554596Z",
+  "git_rev": "b205027399d4e6ca5b53d76e6a905da7cbb1d3a2",
   "spec_version": "meteorology-v1",
   "constants": {
     "DAMAGE_THRESHOLD_C": -2.5,

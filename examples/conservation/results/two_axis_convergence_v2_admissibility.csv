@@ -1,0 +1,11 @@
+path,case_id,family,expert_judgment,level,level_name,n_gaps,admissible,k,perm_m,C_mn,A_e,gap,sound,monotone_m,monotone_n
+nonresolving,H02,held_out,REV,5,L5_collapsed_2_gaps_FLAT,2,0,4,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,H02,held_out,REV,5,L5_collapsed_2_gaps_FLAT,2,0,8,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,H02,held_out,REV,5,L5_collapsed_2_gaps_FLAT,2,0,16,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,H02,held_out,REV,5,L5_collapsed_2_gaps_FLAT,2,0,32,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,H02,held_out,REV,5,L5_collapsed_2_gaps_FLAT,2,0,64,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,S-REV,synthetic_ladder,REV,5,L5_collapsed_2_gaps_FLAT,2,0,4,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,S-REV,synthetic_ladder,REV,5,L5_collapsed_2_gaps_FLAT,2,0,8,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,S-REV,synthetic_ladder,REV,5,L5_collapsed_2_gaps_FLAT,2,0,16,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,S-REV,synthetic_ladder,REV,5,L5_collapsed_2_gaps_FLAT,2,0,32,AEX,0.75,0.5,-0.25,0,1,1
+nonresolving,S-REV,synthetic_ladder,REV,5,L5_collapsed_2_gaps_FLAT,2,0,64,AEX,0.75,0.5,-0.25,0,1,1

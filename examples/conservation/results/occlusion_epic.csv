@@ -1,0 +1,11 @@
+domain,step,gap_opened_this_step,gaps_opened_count,permission,blocking_gap
+Epic,0,,0,ALR,
+Epic,1,clinical_utility_gap,1,AEX,clinical_utility_gap
+Epic,2,model_specification_gap,2,AEX,clinical_utility_gap
+Epic,3,distribution_shift_gap,3,AEX,clinical_utility_gap
+Epic,4,individual_population_gap,4,AEX,clinical_utility_gap
+Epic,5,blast_radius_gap,5,AEX,clinical_utility_gap
+Epic,6,authority_gap,6,AEX,clinical_utility_gap
+Epic,7,reason_traceability_gap,7,AEX,clinical_utility_gap
+Epic,8,freshness_gap,8,REV,freshness_gap
+Epic,9,approximation_quality_gap,9,DIA,approximation_quality_gap

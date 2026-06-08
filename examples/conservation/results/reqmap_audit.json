@@ -1,0 +1,327 @@
+{
+  "n_cases": 21,
+  "n_clean": 16,
+  "n_deviating": 5,
+  "aaa_only_deviations": [],
+  "chain_level_deviations": [
+    "S-REF",
+    "W-currency",
+    "W-deployment",
+    "W-population",
+    "W-clinical"
+  ],
+  "verdict": "deviates_at_chain_level",
+  "per_case": {
+    "M01": {
+      "family": "induction",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "M02": {
+      "family": "induction",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "M03": {
+      "family": "induction",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "M04": {
+      "family": "induction",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "M05": {
+      "family": "induction",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "M06": {
+      "family": "induction",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "M07": {
+      "family": "induction",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "H01": {
+      "family": "held_out",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "H02": {
+      "family": "held_out",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "H03": {
+      "family": "held_out",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "H04": {
+      "family": "held_out",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "H05": {
+      "family": "held_out",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "S-REF": {
+      "family": "synthetic_ladder",
+      "deviates": true,
+      "n_diffs": 22,
+      "diffs": [
+        {
+          "level": "AAA",
+          "gap": "approximation_quality_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        },
+        {
+          "level": "AAA",
+          "gap": "authority_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AAA",
+          "gap": "blast_radius_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AAA",
+          "gap": "clinical_utility_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AAA",
+          "gap": "distribution_shift_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AAA",
+          "gap": "freshness_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AAA",
+          "gap": "individual_population_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AAA",
+          "gap": "model_specification_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AAA",
+          "gap": "reason_traceability_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "AEX",
+          "gap": "approximation_quality_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        },
+        {
+          "level": "AEX",
+          "gap": "freshness_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "approximation_quality_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        },
+        {
+          "level": "ALR",
+          "gap": "authority_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "blast_radius_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "clinical_utility_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "distribution_shift_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "freshness_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "individual_population_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "model_specification_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "ALR",
+          "gap": "reason_traceability_gap",
+          "expected": "bounded",
+          "actual": null
+        },
+        {
+          "level": "DIA",
+          "gap": "approximation_quality_gap",
+          "expected": null,
+          "actual": "closed"
+        },
+        {
+          "level": "REV",
+          "gap": "approximation_quality_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        }
+      ]
+    },
+    "S-DIA": {
+      "family": "synthetic_ladder",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "S-REV": {
+      "family": "synthetic_ladder",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "S-AEX": {
+      "family": "synthetic_ladder",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "S-ALR": {
+      "family": "synthetic_ladder",
+      "deviates": false,
+      "n_diffs": 0,
+      "diffs": []
+    },
+    "W-currency": {
+      "family": "active_witness",
+      "deviates": true,
+      "n_diffs": 2,
+      "diffs": [
+        {
+          "level": "AAA",
+          "gap": "freshness_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        },
+        {
+          "level": "ALR",
+          "gap": "freshness_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        }
+      ]
+    },
+    "W-deployment": {
+      "family": "active_witness",
+      "deviates": true,
+      "n_diffs": 2,
+      "diffs": [
+        {
+          "level": "AAA",
+          "gap": "blast_radius_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        },
+        {
+          "level": "ALR",
+          "gap": "blast_radius_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        }
+      ]
+    },
+    "W-population": {
+      "family": "active_witness",
+      "deviates": true,
+      "n_diffs": 2,
+      "diffs": [
+        {
+          "level": "AAA",
+          "gap": "distribution_shift_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        },
+        {
+          "level": "ALR",
+          "gap": "distribution_shift_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        }
+      ]
+    },
+    "W-clinical": {
+      "family": "active_witness",
+      "deviates": true,
+      "n_diffs": 2,
+      "diffs": [
+        {
+          "level": "AAA",
+          "gap": "clinical_utility_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        },
+        {
+          "level": "ALR",
+          "gap": "clinical_utility_gap",
+          "expected": "bounded",
+          "actual": "closed"
+        }
+      ]
+    }
+  }
+}

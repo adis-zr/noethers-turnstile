@@ -1,0 +1,151 @@
+{
+  "n_cases": 21,
+  "recovered_chain": [
+    "REF",
+    "DIA",
+    "REV",
+    "AEX",
+    "ALR"
+  ],
+  "gap_universe": [
+    "approximation_quality_gap",
+    "authority_gap",
+    "blast_radius_gap",
+    "clinical_utility_gap",
+    "distribution_shift_gap",
+    "freshness_gap",
+    "individual_population_gap",
+    "model_specification_gap",
+    "reason_traceability_gap"
+  ],
+  "covarying_classes": [],
+  "invariant_gaps": [],
+  "boundaries": {
+    "REF\u2192DIA": {
+      "n_pairs": 2,
+      "min_delta_size": 1,
+      "single_gap_gates": [
+        "freshness_gap"
+      ],
+      "candidate_gates": [
+        "freshness_gap"
+      ]
+    },
+    "DIA\u2192REV": {
+      "n_pairs": 4,
+      "min_delta_size": 1,
+      "single_gap_gates": [
+        "approximation_quality_gap"
+      ],
+      "candidate_gates": [
+        "approximation_quality_gap"
+      ]
+    },
+    "REV\u2192AEX": {
+      "n_pairs": 22,
+      "min_delta_size": 2,
+      "single_gap_gates": [],
+      "candidate_gates": [
+        "freshness_gap",
+        "individual_population_gap",
+        "model_specification_gap",
+        "reason_traceability_gap"
+      ]
+    },
+    "AEX\u2192ALR": {
+      "n_pairs": 55,
+      "min_delta_size": 1,
+      "single_gap_gates": [
+        "model_specification_gap",
+        "reason_traceability_gap"
+      ],
+      "candidate_gates": [
+        "model_specification_gap",
+        "reason_traceability_gap"
+      ]
+    }
+  },
+  "recovered_requirements": {
+    "REF": {},
+    "DIA": {
+      "freshness_gap": "open"
+    },
+    "REV": {
+      "freshness_gap": "open",
+      "approximation_quality_gap": "bounded"
+    },
+    "AEX": {
+      "freshness_gap": "bounded",
+      "approximation_quality_gap": "bounded",
+      "individual_population_gap": "open",
+      "model_specification_gap": "open",
+      "reason_traceability_gap": "open"
+    },
+    "ALR": {
+      "freshness_gap": "bounded",
+      "approximation_quality_gap": "bounded",
+      "individual_population_gap": "open",
+      "model_specification_gap": "bounded",
+      "reason_traceability_gap": "bounded"
+    }
+  },
+  "identifiability_report": {
+    "confirmed_gates": {
+      "REF\u2192DIA": [
+        "freshness_gap"
+      ],
+      "DIA\u2192REV": [
+        "approximation_quality_gap"
+      ],
+      "AEX\u2192ALR": [
+        "model_specification_gap",
+        "reason_traceability_gap"
+      ]
+    },
+    "ambiguous_gates": {
+      "REV\u2192AEX": [
+        "freshness_gap",
+        "individual_population_gap",
+        "model_specification_gap",
+        "reason_traceability_gap"
+      ]
+    },
+    "covarying_classes": [],
+    "invariant_gaps": [],
+    "unobservable_or_inactive": [
+      "authority_gap",
+      "blast_radius_gap",
+      "clinical_utility_gap",
+      "distribution_shift_gap"
+    ],
+    "identified_gaps": [
+      "approximation_quality_gap",
+      "freshness_gap",
+      "individual_population_gap",
+      "model_specification_gap",
+      "reason_traceability_gap"
+    ]
+  },
+  "ground_truth_requirements": {
+    "REF": {},
+    "DIA": {},
+    "REV": {
+      "approximation_quality_gap": "bounded"
+    },
+    "AEX": {
+      "approximation_quality_gap": "bounded",
+      "freshness_gap": "bounded"
+    },
+    "ALR": {
+      "approximation_quality_gap": "bounded",
+      "freshness_gap": "bounded",
+      "clinical_utility_gap": "bounded",
+      "model_specification_gap": "bounded",
+      "distribution_shift_gap": "bounded",
+      "individual_population_gap": "bounded",
+      "blast_radius_gap": "bounded",
+      "authority_gap": "bounded",
+      "reason_traceability_gap": "bounded"
+    }
+  }
+}

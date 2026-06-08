@@ -1,0 +1,5 @@
+domain,step,gap_opened_this_step,gaps_opened_count,permission,blocking_gap
+ILS,0,,0,ALR,
+ILS,1,sub_cat1_authorization,1,REV,sub_cat1_authorization
+ILS,2,visual_reference,2,DIA,visual_reference
+ILS,3,ils_signal_integrity,3,REF,
