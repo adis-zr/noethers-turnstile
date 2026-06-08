@@ -408,6 +408,14 @@ path = "src/ec060b_publication_smoke.rs"
 name = "ec061_any_of_arm_attribution"
 path = "src/ec061_any_of_arm_attribution.rs"
 
+[[test]]
+name = "ec062_compile_fixed_clock"
+path = "src/ec062_compile_fixed_clock.rs"
+
+[[test]]
+name = "ec063_any_of_composition"
+path = "src/ec063_any_of_composition.rs"
+
 [dependencies]
 noethers-turnstile-core = { path = "../noethers-turnstile-core" }
 serde = { workspace = true }

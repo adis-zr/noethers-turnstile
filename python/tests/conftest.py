@@ -30,6 +30,14 @@ def make_ctx(
     membership=None,
     context_fingerprint: str | None = None,
 ) -> t.ProofContext:
+    # F13: when context_fingerprint is omitted, the binding now derives one
+    # from the canonical (claim, candidate, context_id, allowed_use) hash.
+    # For test convenience, expose the same hash here so existing tests can
+    # construct a RuntimeContext that matches.
+    if context_fingerprint is None:
+        context_fingerprint = t.compute_provenance_hash(
+            claim_id, candidate_id, context_id, allowed_use
+        )
     kwargs = dict(
         claim_id=claim_id,
         candidate_id=candidate_id,
@@ -38,6 +46,7 @@ def make_ctx(
         membership=membership if membership is not None else t.Membership.InClass,
         authority_ceiling=authority_ceiling if authority_ceiling is not None else t.Permission.AAA,
         expiry=expiry if expiry is not None else t.Expiry.never(),
+        context_fingerprint=context_fingerprint,
     )
     if gaps is not None:
         kwargs["gaps"] = gaps
@@ -45,8 +54,6 @@ def make_ctx(
         kwargs["profiles"] = profiles
     if tokens is not None:
         kwargs["tokens"] = tokens
-    if context_fingerprint is not None:
-        kwargs["context_fingerprint"] = context_fingerprint
     return t.ProofContext(**kwargs)
 
 
@@ -109,4 +116,6 @@ def now() -> float:
 
 @pytest.fixture
 def rt(now) -> t.RuntimeContext:
-    return t.RuntimeContext(now_unix=now, context_fingerprint="ctx-py")
+    # Matches the implicit fingerprint computed by make_ctx() above.
+    fp = t.compute_provenance_hash("claim-py", "z-py", "ctx-py", "py-use")
+    return t.RuntimeContext(now_unix=now, context_fingerprint=fp)

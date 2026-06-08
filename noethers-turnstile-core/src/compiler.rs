@@ -14,7 +14,7 @@
 //!
 //! Every step expressed as `outcome = chain.meet(outcome, ...)` so non-promotion
 //! is a one-line theorem: meet is min, min never raises.
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument, warn};
 
@@ -182,13 +182,29 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, TurnstileError> {
     compile_with_chain(ctx, PermissionChain::default_chain())
 }
 
+/// Compile against the default chain at a pinned clock. Useful for tests and
+/// any caller that wants deterministic re-runs across wall-clock drift.
+pub fn compile_at(ctx: ProofContext, now: DateTime<Utc>) -> Result<Judgment, TurnstileError> {
+    compile_at_with_chain(ctx, PermissionChain::default_chain(), now)
+}
+
 /// Compile a proof context against a specific permission chain.
 ///
 /// Returns `Err(TurnstileError::MalformedContext)` if the context is structurally
 /// invalid (see `validate_context`).
+pub fn compile_with_chain(
+    ctx: ProofContext,
+    chain: &PermissionChain,
+) -> Result<Judgment, TurnstileError> {
+    compile_at_with_chain(ctx, chain, Utc::now())
+}
+
+/// Compile a proof context against a specific permission chain at a pinned
+/// clock. Every expiry-sensitive check observes `now` — never `Utc::now()`.
+/// This is the single observation-point guarantee from EC-062.
 #[instrument(
     name = "turnstile.compile",
-    skip(ctx, chain),
+    skip(ctx, chain, now),
     fields(
         claim_id = %ctx.claim_id,
         candidate_id = %ctx.candidate_id,
@@ -197,9 +213,10 @@ pub fn compile(ctx: ProofContext) -> Result<Judgment, TurnstileError> {
         chain_hash = %chain.chain_hash(),
     )
 )]
-pub fn compile_with_chain(
+pub fn compile_at_with_chain(
     ctx: ProofContext,
     chain: &PermissionChain,
+    now: DateTime<Utc>,
 ) -> Result<Judgment, TurnstileError> {
     validate_context(&ctx, chain)?;
 
@@ -237,7 +254,6 @@ pub fn compile_with_chain(
     }
 
     // Step 2: early expiry check — halt before touching any tokens (spec §14 step 4).
-    let now = Utc::now();
     if ctx.expiry.fired(now) {
         warn!(
             phase = "context_expiry",
@@ -277,6 +293,7 @@ pub fn compile_with_chain(
         match profile_satisfied(
             &ctx,
             p,
+            now,
             &mut consulted_tokens,
             &mut provenance_mismatch_seen,
             &mut dead_credential_seen,
@@ -533,6 +550,7 @@ enum ProfileCheckResult {
 fn profile_satisfied(
     ctx: &ProofContext,
     p: &Permission,
+    now: DateTime<Utc>,
     consulted: &mut Vec<String>,
     provenance_mismatch: &mut bool,
     dead_credential: &mut bool,
@@ -547,6 +565,7 @@ fn profile_satisfied(
         if !check_requirement(
             ctx,
             req,
+            now,
             consulted,
             provenance_mismatch,
             dead_credential,
@@ -565,6 +584,7 @@ fn profile_satisfied(
 fn check_requirement(
     ctx: &ProofContext,
     req: &crate::gap::GapRequirement,
+    now: DateTime<Utc>,
     consulted: &mut Vec<String>,
     provenance_mismatch: &mut bool,
     dead_credential: &mut bool,
@@ -576,6 +596,7 @@ fn check_requirement(
             if check_requirement(
                 ctx,
                 arm,
+                now,
                 consulted,
                 provenance_mismatch,
                 dead_credential,
@@ -598,7 +619,7 @@ fn check_requirement(
         None => return false,
     };
     let effective_status =
-        effective_gap_status(ctx, gap, consulted, provenance_mismatch, dead_credential);
+        effective_gap_status(ctx, gap, now, consulted, provenance_mismatch, dead_credential);
     req.minimum_status.satisfied_by(&effective_status)
 }
 
@@ -607,6 +628,7 @@ fn check_requirement(
 fn effective_gap_status(
     ctx: &ProofContext,
     gap: &crate::gap::GapRecord,
+    now: DateTime<Utc>,
     consulted: &mut Vec<String>,
     provenance_mismatch: &mut bool,
     dead_credential: &mut bool,
@@ -631,7 +653,7 @@ fn effective_gap_status(
             continue;
         }
 
-        if !token.is_live(Utc::now()) {
+        if !token.is_live(now) {
             continue;
         }
 

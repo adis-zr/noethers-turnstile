@@ -42,6 +42,17 @@ impl<'de> Deserialize<'de> for Permission {
 /// Global string intern table. Names are leaked as `&'static str` on first
 /// insertion. Bounded by the number of distinct permission names a process
 /// ever sees — in practice <100 even for stress tests.
+///
+/// NOTE: callers that synthesize permission names dynamically from untrusted
+/// or unbounded input must rate-limit at the boundary. Each unique name
+/// `Box::leak`s a `String`; an attacker controlling the name space can grow
+/// resident memory without bound. The library does no rate-limiting here
+/// because legitimate use (chain construction at startup, default-chain
+/// lookups, audit-time resolution) saturates well below any cap that would
+/// be useful. If your application accepts permission names from a
+/// network protocol, validate them against a known chain via
+/// `chain.parse(name)` (returns `None` for foreign levels) rather than
+/// constructing a `Permission` directly.
 static INTERN: OnceLock<Mutex<HashMap<String, &'static str>>> = OnceLock::new();
 
 fn intern(s: &str) -> &'static str {

@@ -1,6 +1,7 @@
 /// Audit trail and derivation record.
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use tracing::warn;
 
 use crate::permission::Permission;
 
@@ -19,6 +20,12 @@ pub struct DerivationStep {
 
 /// The derivation record for a judgment: the full audit trail from context
 /// to emitted permission.
+///
+/// NOTE: `compiled_at` is set to wall-clock `Utc::now()` at construction. It
+/// is therefore the only non-deterministic field in a Judgment — two compiles
+/// of the same context will agree on `permission`, `provenance_hash`, and
+/// `chain_hash`, but will disagree on `compiled_at`. Excluded from any
+/// equality check that needs to round-trip across compiles.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Derivation {
     pub steps: Vec<DerivationStep>,
@@ -77,14 +84,23 @@ impl AuditStore for InMemoryAuditStore {
     fn record(&self, entry: AuditEntry) {
         match self.entries.lock() {
             Ok(mut guard) => guard.push(entry),
-            Err(poisoned) => poisoned.into_inner().push(entry),
+            Err(poisoned) => {
+                warn!(
+                    candidate_id = %entry.candidate_id,
+                    "audit store mutex poisoned; recovering and recording entry"
+                );
+                poisoned.into_inner().push(entry)
+            }
         }
     }
 
     fn entries(&self) -> Vec<AuditEntry> {
         match self.entries.lock() {
             Ok(guard) => guard.clone(),
-            Err(poisoned) => poisoned.into_inner().clone(),
+            Err(poisoned) => {
+                warn!("audit store mutex poisoned; returning recovered entries");
+                poisoned.into_inner().clone()
+            }
         }
     }
 }

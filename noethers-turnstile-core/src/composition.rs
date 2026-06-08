@@ -105,13 +105,15 @@ pub fn compose_with_chain(
     // Composed context retains expected_chain_hash if either input pinned it
     // (and they pinned the same chain).
     let expected_chain_hash = match (&g1.expected_chain_hash, &g2.expected_chain_hash) {
-        (Some(a), Some(b)) if a == b => Some(*a),
+        (Some(a), Some(b)) => {
+            if a == b {
+                Some(*a)
+            } else {
+                return Err(CompositionError::ChainMismatch.into());
+            }
+        }
         (Some(a), None) | (None, Some(a)) => Some(*a),
         (None, None) => None,
-        (Some(a), Some(b)) if a != b => {
-            return Err(CompositionError::ChainMismatch.into());
-        }
-        _ => None,
     };
 
     Ok(ProofContext {
@@ -236,10 +238,21 @@ fn compose_profiles(
 fn merge_profile_requirements(target: &mut Profile, source: &Profile) {
     use crate::gap::RequiredStatus;
     for src_req in &source.required_gaps {
+        // Disjunctive (`any_of`) requirements are independent clauses — each
+        // must be satisfied by the composed context. Never merge them; push
+        // each one as its own clause. This keeps composition conservative:
+        // the composed profile demands every any_of choice from every source.
+        if src_req.is_any_of() {
+            target.required_gaps.push(src_req.clone());
+            continue;
+        }
+        // For conjunctive single-gap requirements, merge by gap_id and pick
+        // the stricter minimum_status. Only collapse against other
+        // single-gap requirements; never into an any_of clause.
         match target
             .required_gaps
             .iter_mut()
-            .find(|r| r.gap_id == src_req.gap_id)
+            .find(|r| !r.is_any_of() && r.gap_id == src_req.gap_id)
         {
             Some(tgt_req) => {
                 tgt_req.minimum_status =

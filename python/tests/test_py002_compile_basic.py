@@ -35,8 +35,8 @@ def test_c2_valid_token_dia():
     ctx = make_dia_ctx()
     now = time.time()
     live = t.compile(ctx)
-    # make_dia_ctx uses context_id="ctx-1" as the default fingerprint
-    rt = t.RuntimeContext(now_unix=now, context_fingerprint="ctx-1")
+    # The implicit fingerprint is the canonical content hash (F13).
+    rt = t.RuntimeContext(now_unix=now, context_fingerprint=ctx.provenance_hash())
     assert live.permission(rt) == t.Permission.DIA
 
 
@@ -189,3 +189,118 @@ def test_c13_authority_ceiling_caps_at_ref():
     )
     j = t.compile_static(ctx)
     assert j.permission == t.Permission.REF
+
+
+# ── F13: context_fingerprint default is a content hash, not a copy of id ──────
+#
+# Previously: if context_fingerprint was omitted, it was set to a literal copy
+# of context_id. That made LiveJudgment fingerprint revalidation a no-op —
+# two contexts with the same id but different payloads compared equal at the
+# runtime boundary.
+#
+# Fix: when omitted, derive the fingerprint from the context payload (claim,
+# candidate, context_id, allowed_use). Two contexts that differ in any of
+# those produce different fingerprints, so LiveJudgment can detect mismatch.
+
+
+def _dia_ctx_implicit_fingerprint(allowed_use: str) -> t.ProofContext:
+    """A context that compiles to DIA when its fingerprint is matched, and
+    falls to OOC when not — so the fingerprint check is observable."""
+    placeholder = t.ProofContext(
+        claim_id="claim-fp",
+        candidate_id="z-fp",
+        context_id="ctx-fp",
+        allowed_use=allowed_use,
+        membership=t.Membership.InClass,
+        authority_ceiling=t.Permission.AAA,
+        expiry=t.Expiry.never(),
+        gaps=[t.GapRecord("g1", "gap")],
+        profiles=[
+            t.Profile(
+                permission=t.Permission.DIA,
+                required_gaps=[t.GapRequirement("g1", "closed")],
+            )
+        ],
+        # context_fingerprint omitted on purpose
+    )
+    h = t.compute_provenance_hash(
+        placeholder.claim_id,
+        placeholder.candidate_id,
+        placeholder.context_id,
+        placeholder.allowed_use,
+    )
+    tok = t.ProofToken(
+        token_id="tok",
+        token_type="T",
+        schema_version="0.1",
+        status="valid",
+        closes_gaps=["g1"],
+        bounds_gaps=[],
+        provenance_hash=h,
+        issued_at=time.time(),
+        issuer="test",
+    )
+    return t.ProofContext(
+        claim_id="claim-fp",
+        candidate_id="z-fp",
+        context_id="ctx-fp",
+        allowed_use=allowed_use,
+        membership=t.Membership.InClass,
+        authority_ceiling=t.Permission.AAA,
+        expiry=t.Expiry.never(),
+        gaps=[t.GapRecord("g1", "gap")],
+        profiles=[
+            t.Profile(
+                permission=t.Permission.DIA,
+                required_gaps=[t.GapRequirement("g1", "closed")],
+            )
+        ],
+        tokens=[tok],
+        # context_fingerprint omitted on purpose
+    )
+
+
+def test_f13_implicit_fingerprint_is_not_literal_context_id():
+    """An omitted context_fingerprint must not equal the bare context_id.
+    Otherwise a runtime that supplies just the id passes fingerprint check
+    even though the payload could have been swapped underneath it."""
+    ctx = _dia_ctx_implicit_fingerprint("use-a")
+    live = t.compile(ctx)
+    # Try a runtime with the literal context_id as fingerprint.
+    rt = t.RuntimeContext(now_unix=time.time(), context_fingerprint="ctx-fp")
+    result = live.permission_str(rt)
+    # If the implicit fingerprint were a literal copy of "ctx-fp", this would
+    # match and the live read would return "DIA". Post-fix: no match,
+    # returns Bottom ("OOC").
+    assert result == "OOC", (
+        "implicit fingerprint must not match a bare context_id at the runtime "
+        f"boundary; got {result!r}"
+    )
+
+
+def test_f13_runtime_with_content_hash_fingerprint_is_accepted():
+    """A runtime supplying the canonical provenance hash as fingerprint must
+    be accepted (since that's the post-fix default)."""
+    ctx = _dia_ctx_implicit_fingerprint("use-a")
+    live = t.compile(ctx)
+    rt = t.RuntimeContext(
+        now_unix=time.time(),
+        context_fingerprint=ctx.provenance_hash(),
+    )
+    assert live.permission_str(rt) == "DIA"
+
+
+def test_f13_implicit_fingerprint_differs_when_payload_differs():
+    """Two contexts identical except for allowed_use must produce different
+    implicit fingerprints — so a runtime fingerprint built for one does NOT
+    satisfy the other."""
+    ctx_a = _dia_ctx_implicit_fingerprint("use-a")
+    ctx_b = _dia_ctx_implicit_fingerprint("use-b")
+    live_b = t.compile(ctx_b)
+    # Build a runtime carrying ctx_a's content hash.
+    rt_a = t.RuntimeContext(
+        now_unix=time.time(),
+        context_fingerprint=ctx_a.provenance_hash(),
+    )
+    # It must not validate ctx_b's live read.
+    assert live_b.permission_str(rt_a) == "OOC"

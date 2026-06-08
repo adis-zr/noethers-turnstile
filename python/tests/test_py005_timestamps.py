@@ -232,3 +232,72 @@ def test_t11_far_future_expiry():
     far_future = 4_102_444_800.0  # 2100-01-01 00:00:00 UTC
     exp = t.Expiry.at(far_future)
     assert not exp.fired(time.time()), "T11: far-future expiry must not fire now"
+
+
+# ── F2 regressions: bad Unix timestamps must raise, not silently use now() ───
+#
+# Previously: chrono::DateTime::from_timestamp(bad).unwrap_or_else(Utc::now) —
+# an out-of-range timestamp would be silently replaced by the current wall clock,
+# converting "expires at NaN" to "expires now". These tests pin the contract:
+# pass-through of bad inputs must surface as ValueError.
+
+# i64::MAX seconds ≈ 9.2e18; chrono rejects anything that would overflow the
+# inner i64 microsecond representation. 1e19 is safely past that boundary.
+_OUT_OF_RANGE = 1e19
+
+
+def test_f2_expiry_at_rejects_out_of_range_timestamp():
+    with pytest.raises(ValueError):
+        t.Expiry.at(_OUT_OF_RANGE)
+
+
+def test_f2_expiry_at_rejects_nan():
+    with pytest.raises(ValueError):
+        t.Expiry.at(float("nan"))
+
+
+def test_f2_expiry_fired_rejects_out_of_range_now():
+    exp = t.Expiry.at(time.time() + 100)
+    with pytest.raises(ValueError):
+        exp.fired(_OUT_OF_RANGE)
+
+
+def test_f2_runtime_context_rejects_out_of_range_now():
+    with pytest.raises(ValueError):
+        t.RuntimeContext(now_unix=_OUT_OF_RANGE, context_fingerprint="fp")
+
+
+def test_f2_runtime_context_rejects_nan_now():
+    with pytest.raises(ValueError):
+        t.RuntimeContext(now_unix=float("nan"), context_fingerprint="fp")
+
+
+def test_f2_proof_token_rejects_out_of_range_issued_at():
+    with pytest.raises(ValueError):
+        t.ProofToken(
+            token_id="t",
+            token_type="T",
+            schema_version="0.1",
+            status="valid",
+            closes_gaps=[],
+            bounds_gaps=[],
+            provenance_hash="a" * 64,
+            issued_at=_OUT_OF_RANGE,
+            issuer="test",
+        )
+
+
+def test_f2_proof_token_rejects_out_of_range_expires_at():
+    with pytest.raises(ValueError):
+        t.ProofToken(
+            token_id="t",
+            token_type="T",
+            schema_version="0.1",
+            status="valid",
+            closes_gaps=[],
+            bounds_gaps=[],
+            provenance_hash="a" * 64,
+            issued_at=time.time(),
+            issuer="test",
+            expires_at=_OUT_OF_RANGE,
+        )

@@ -5,6 +5,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use tracing::warn;
 
 /// A registered schema entry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,7 +43,13 @@ impl SchemaRegistry {
     pub fn register(&self, entry: SchemaEntry) -> Result<(), String> {
         let mut inner = match self.inner.write() {
             Ok(g) => g,
-            Err(p) => p.into_inner(),
+            Err(p) => {
+                warn!(
+                    schema_id = %entry.schema_id,
+                    "schema registry write lock poisoned; recovering and continuing"
+                );
+                p.into_inner()
+            }
         };
         let key = (entry.schema_id.clone(), entry.version.clone());
         if inner.entries.contains_key(&key) {
@@ -62,7 +69,10 @@ impl SchemaRegistry {
     pub fn get(&self, schema_id: &str, version: &str) -> Option<SchemaEntry> {
         let inner = match self.inner.read() {
             Ok(g) => g,
-            Err(p) => p.into_inner(),
+            Err(p) => {
+                warn!("schema registry read lock poisoned; recovering and continuing");
+                p.into_inner()
+            }
         };
         inner
             .entries
@@ -74,7 +84,10 @@ impl SchemaRegistry {
     pub fn current_version(&self, schema_id: &str) -> Option<String> {
         let inner = match self.inner.read() {
             Ok(g) => g,
-            Err(p) => p.into_inner(),
+            Err(p) => {
+                warn!("schema registry read lock poisoned; recovering and continuing");
+                p.into_inner()
+            }
         };
         inner.current_versions.get(schema_id).cloned()
     }
@@ -83,7 +96,10 @@ impl SchemaRegistry {
     pub fn all_entries(&self) -> Vec<SchemaEntry> {
         let inner = match self.inner.read() {
             Ok(g) => g,
-            Err(p) => p.into_inner(),
+            Err(p) => {
+                warn!("schema registry read lock poisoned; recovering and continuing");
+                p.into_inner()
+            }
         };
         inner.entries.values().cloned().collect()
     }

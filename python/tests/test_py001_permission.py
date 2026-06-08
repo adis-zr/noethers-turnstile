@@ -141,3 +141,61 @@ def test_p11_equality_is_structural():
 def test_p12_meet_at_ceiling():
     assert t.Permission.DIA.meet(t.Permission.AAA) == t.Permission.DIA
     assert t.Permission.AAA.meet(t.Permission.DIA) == t.Permission.DIA
+
+
+# ── F7: Comparing a foreign-chain Permission must raise, not panic ────────────
+#
+# PyPermission's __lt__/__le__/__gt__/__ge__ used to call self.inner < other.inner,
+# which in turn invokes the default-chain Ord impl. That impl panics on a level
+# not in the default chain — a panic crossing the FFI under PyO3 is undefined
+# behavior. The fix surfaces foreign levels as a Python TypeError or returns
+# NotImplemented; either way no panic.
+
+
+def _foreign_perm() -> t.Permission:
+    """A Permission whose name is not in the default 12-level chain."""
+    c = t.PermissionChain.new(
+        levels=["FOREIGN_A", "FOREIGN_B"],
+        roles={
+            t.ChainRole.Bottom: 0,
+            t.ChainRole.ExpiryFloor: 0,
+            t.ChainRole.Refused: 0,
+            t.ChainRole.Unsatisfied: 0,
+            t.ChainRole.DisallowedUsesCeiling: 0,
+            t.ChainRole.BlockerThreshold: 1,
+            t.ChainRole.Top: 1,
+        },
+    )
+    return c.parse("FOREIGN_A")
+
+
+def test_f7_foreign_perm_lt_raises_not_panics():
+    foreign = _foreign_perm()
+    with pytest.raises((TypeError, ValueError)):
+        _ = foreign < t.Permission.DIA
+
+
+def test_f7_foreign_perm_le_raises_not_panics():
+    foreign = _foreign_perm()
+    with pytest.raises((TypeError, ValueError)):
+        _ = foreign <= t.Permission.DIA
+
+
+def test_f7_foreign_perm_gt_raises_not_panics():
+    foreign = _foreign_perm()
+    with pytest.raises((TypeError, ValueError)):
+        _ = foreign > t.Permission.DIA
+
+
+def test_f7_foreign_perm_meet_raises_not_panics():
+    foreign = _foreign_perm()
+    with pytest.raises((TypeError, ValueError)):
+        _ = foreign.meet(t.Permission.DIA)
+
+
+def test_f7_default_chain_perms_still_compare_normally():
+    # Sanity: the fix must not regress default-chain ordering.
+    assert t.Permission.DIA < t.Permission.ALR
+    assert t.Permission.AAA > t.Permission.OOC
+    assert t.Permission.DIA <= t.Permission.DIA
+    assert t.Permission.DIA.meet(t.Permission.AAA) == t.Permission.DIA

@@ -235,3 +235,76 @@ def test_g16_provenance_hash_field_order_sensitive():
     assert h1 != h2, "G16: swapping claim_id and candidate_id must change hash"
     assert h1 != h3, "G16: swapping context_id and allowed_use must change hash"
     assert h2 != h3
+
+
+# ── F14: ProofToken __eq__ aligns with Rust tokens_content_equal ──────────────
+#
+# Previously: Python equality checked only token_id and provenance_hash. Rust
+# composition's tokens_content_equal additionally requires token_type,
+# schema_version, closes_gaps, bounds_gaps, issuer, details to match. A Python
+# user seeing `t1 == t2` would assume composition would accept them; Rust
+# would reject them as a TokenConflict.
+
+
+def _tok(**overrides) -> t.ProofToken:
+    kwargs = dict(
+        token_id="tok",
+        token_type="T",
+        schema_version="0.1",
+        status="valid",
+        closes_gaps=["g1"],
+        bounds_gaps=[],
+        provenance_hash="a" * 64,
+        issued_at=time.time(),
+        issuer="issuer-x",
+    )
+    kwargs.update(overrides)
+    return t.ProofToken(**kwargs)
+
+
+def test_f14_tokens_equal_when_all_substantive_fields_match():
+    a = _tok()
+    b = _tok()
+    assert a == b
+
+
+def test_f14_tokens_unequal_on_token_type_difference():
+    a = _tok(token_type="T1")
+    b = _tok(token_type="T2")
+    assert a != b
+
+
+def test_f14_tokens_unequal_on_schema_version_difference():
+    a = _tok(schema_version="0.1")
+    b = _tok(schema_version="0.2")
+    assert a != b
+
+
+def test_f14_tokens_unequal_on_closes_gaps_difference():
+    a = _tok(closes_gaps=["g1"])
+    b = _tok(closes_gaps=["g2"])
+    assert a != b
+
+
+def test_f14_tokens_unequal_on_bounds_gaps_difference():
+    a = _tok(bounds_gaps=[])
+    b = _tok(bounds_gaps=["g_x"])
+    assert a != b
+
+
+def test_f14_tokens_unequal_on_issuer_difference():
+    a = _tok(issuer="alice")
+    b = _tok(issuer="mallory")
+    assert a != b
+
+
+def test_f14_tokens_unequal_on_provenance_hash_difference():
+    a = _tok(provenance_hash="a" * 64)
+    b = _tok(provenance_hash="b" * 64)
+    assert a != b
+
+
+def test_f14_tokens_unequal_on_token_id_difference():
+    a = _tok(token_id="tok-a")
+    b = _tok(token_id="tok-b")
+    assert a != b

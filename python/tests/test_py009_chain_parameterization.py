@@ -167,3 +167,80 @@ def test_chain_hash_hex_round_trip():
     h2 = t.ChainHash.from_hex(h.to_hex())
     assert h == h2
     assert str(h) == h.to_hex()
+
+
+# ── LiveJudgment honors the compiled-against chain ────────────────────────────
+#
+# Regression for F1: PyLiveJudgment must look up Bottom / ExpiryFloor / Refused
+# in the chain the judgment was compiled against, not the default chain.
+
+
+def _chain_with_distinct_expiry_floor() -> t.PermissionChain:
+    """6-level chain with a uniquely-named ExpiryFloor (not 'EXP')."""
+    return t.PermissionChain.new(
+        levels=["FLOOR", "STALE", "RFSD", "DIAG", "REVIEW", "TOP"],
+        roles={
+            t.ChainRole.Bottom: 0,
+            t.ChainRole.ExpiryFloor: 1,  # "STALE" — distinct from default chain's "EXP"
+            t.ChainRole.Refused: 2,
+            t.ChainRole.Unsatisfied: 2,
+            t.ChainRole.DisallowedUsesCeiling: 2,
+            t.ChainRole.BlockerThreshold: 3,
+            t.ChainRole.Top: 5,
+        },
+    )
+
+
+def _ctx_with_expiry(chain: t.PermissionChain, expiry: t.Expiry, fp: str = "fp"):
+    return t.ProofContext(
+        claim_id="c",
+        candidate_id="z",
+        context_id="ctx",
+        context_fingerprint=fp,
+        allowed_use="use",
+        membership=t.Membership.InClass,
+        authority_ceiling=chain.role(t.ChainRole.Top),
+        expiry=expiry,
+        gaps=[],
+        profiles=[],
+        tokens=[],
+    )
+
+
+def test_live_judgment_expired_under_custom_chain_returns_chains_expiry_floor():
+    """When a judgment compiled against a custom chain expires at live-read time,
+    LiveJudgment must return chain.role(ExpiryFloor), not the default chain's EXP.
+    """
+    c = _chain_with_distinct_expiry_floor()
+    now = time.time()
+    ctx = _ctx_with_expiry(c, t.Expiry.at(now + 3600))  # not yet expired at compile
+    live = t.compile(ctx, chain=c)
+    # Probe with a runtime that's past the deadline.
+    rt = t.RuntimeContext(now_unix=now + 7200, context_fingerprint="fp")
+    # permission_str must report the chain's ExpiryFloor name ("STALE"),
+    # not the default chain's "EXP".
+    assert live.permission_str(rt) == "STALE"
+
+
+def test_live_judgment_expired_under_custom_chain_raises():
+    """ExpiredError must fire when the live permission == chain.role(ExpiryFloor),
+    regardless of the chain's level name.
+    """
+    c = _chain_with_distinct_expiry_floor()
+    now = time.time()
+    ctx = _ctx_with_expiry(c, t.Expiry.at(now + 3600))
+    live = t.compile(ctx, chain=c)
+    rt = t.RuntimeContext(now_unix=now + 7200, context_fingerprint="fp")
+    with pytest.raises(t.ExpiredError):
+        live.permission(rt)
+
+
+def test_live_judgment_fingerprint_mismatch_under_custom_chain_returns_chains_bottom():
+    """Fingerprint mismatch must return chain.role(Bottom), not default-chain OOC."""
+    c = _chain_with_distinct_expiry_floor()
+    now = time.time()
+    ctx = _ctx_with_expiry(c, t.Expiry.never())
+    live = t.compile(ctx, chain=c)
+    rt = t.RuntimeContext(now_unix=now, context_fingerprint="WRONG-FP")
+    # Bottom in this chain is "FLOOR", not "OOC".
+    assert live.permission_str(rt) == "FLOOR"

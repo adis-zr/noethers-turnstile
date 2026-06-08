@@ -122,13 +122,23 @@ pub fn verify_provenance(
     constant_time_eq(&token.provenance_hash, &expected)
 }
 
-/// Constant-time string comparison (hex strings, same length expected).
+/// Constant-time string comparison.
+///
+/// Provenance hashes are always 64-char SHA-256 hex, so the length-equal case
+/// is the common path. The length-differ case folds into the same XOR loop
+/// (the shorter side's missing bytes contribute a non-zero diff) so the
+/// running time does not branch on the length-equal / length-differ predicate.
 fn constant_time_eq(a: &str, b: &str) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
+    let a_bytes = a.as_bytes();
+    let b_bytes = b.as_bytes();
+    let n = a_bytes.len().max(b_bytes.len());
     let mut diff: u8 = 0;
-    for (x, y) in a.bytes().zip(b.bytes()) {
+    // OR in a "length differs" sentinel as a single byte so the loop body
+    // is independent of which side is longer.
+    diff |= if a_bytes.len() == b_bytes.len() { 0 } else { 1 };
+    for i in 0..n {
+        let x = a_bytes.get(i).copied().unwrap_or(0);
+        let y = b_bytes.get(i).copied().unwrap_or(0);
         diff |= x ^ y;
     }
     diff == 0

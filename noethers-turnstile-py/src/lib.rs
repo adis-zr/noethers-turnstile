@@ -33,6 +33,53 @@ use noethers_turnstile_core::{
 };
 use std::collections::HashMap;
 
+// ── Timestamp helpers ─────────────────────────────────────────────────────────
+
+/// Convert a Python-supplied Unix timestamp (seconds, float) to a
+/// `chrono::DateTime<Utc>`.
+///
+/// Rejects NaN, non-finite, and values that overflow chrono's representation.
+/// This replaces the previous silent fallback to `Utc::now()`, which could
+/// convert "expires at NaN" into "expires now" — the opposite of safe.
+fn unix_to_datetime(unix_seconds: f64, field: &str) -> PyResult<chrono::DateTime<chrono::Utc>> {
+    if !unix_seconds.is_finite() {
+        return Err(PyValueError::new_err(format!(
+            "{}: timestamp must be finite, got {}",
+            field, unix_seconds
+        )));
+    }
+    // Round-half-to-even style cast guards against silent saturation: an
+    // out-of-i64-range float casts to i64::MAX/MIN, which chrono then accepts.
+    // Bound-check explicitly.
+    if unix_seconds < (i64::MIN as f64) || unix_seconds > (i64::MAX as f64) {
+        return Err(PyValueError::new_err(format!(
+            "{}: timestamp {} is out of i64 range",
+            field, unix_seconds
+        )));
+    }
+    chrono::DateTime::from_timestamp(unix_seconds as i64, 0).ok_or_else(|| {
+        PyValueError::new_err(format!(
+            "{}: timestamp {} is out of chrono's representable range",
+            field, unix_seconds
+        ))
+    })
+}
+
+/// Compare two permissions under the default chain. Returns a Python
+/// ValueError if either is foreign — never panics.
+fn default_chain_cmp(a: &RustPermission, b: &RustPermission) -> PyResult<std::cmp::Ordering> {
+    RustPermissionChain::default_chain()
+        .cmp(a, b)
+        .ok_or_else(|| {
+            PyValueError::new_err(format!(
+                "Permission ordering requires both operands to be in the default chain; \
+                 got {:?} and {:?}",
+                a.as_str(),
+                b.as_str()
+            ))
+        })
+}
+
 // ── Python exceptions ─────────────────────────────────────────────────────────
 
 pyo3::create_exception!(
@@ -286,10 +333,18 @@ impl PyPermission {
         }
     }
 
-    fn meet(&self, other: &PyPermission) -> PyPermission {
-        PyPermission {
-            inner: self.inner.meet(&other.inner),
-        }
+    /// Meet under the default chain. Returns a Python ValueError if either
+    /// operand is not in the default chain (no panic crosses the FFI).
+    fn meet(&self, other: &PyPermission) -> PyResult<PyPermission> {
+        RustPermissionChain::default_chain()
+            .meet(&self.inner, &other.inner)
+            .map(|inner| PyPermission { inner })
+            .map_err(|e| {
+                PyValueError::new_err(format!(
+                    "Permission.meet requires both operands to be in the default chain: {}",
+                    e
+                ))
+            })
     }
 
     fn __repr__(&self) -> String {
@@ -304,20 +359,27 @@ impl PyPermission {
         self.inner == other.inner
     }
 
-    fn __lt__(&self, other: &PyPermission) -> bool {
-        self.inner < other.inner
+    /// Default-chain ordering. Returns a Python ValueError if either operand
+    /// is not in the default chain. Use `PermissionChain.cmp(a, b)` (via the
+    /// underlying Rust API) for custom chains.
+    fn __lt__(&self, other: &PyPermission) -> PyResult<bool> {
+        default_chain_cmp(&self.inner, &other.inner)
+            .map(|o| o == std::cmp::Ordering::Less)
     }
 
-    fn __le__(&self, other: &PyPermission) -> bool {
-        self.inner <= other.inner
+    fn __le__(&self, other: &PyPermission) -> PyResult<bool> {
+        default_chain_cmp(&self.inner, &other.inner)
+            .map(|o| o != std::cmp::Ordering::Greater)
     }
 
-    fn __gt__(&self, other: &PyPermission) -> bool {
-        self.inner > other.inner
+    fn __gt__(&self, other: &PyPermission) -> PyResult<bool> {
+        default_chain_cmp(&self.inner, &other.inner)
+            .map(|o| o == std::cmp::Ordering::Greater)
     }
 
-    fn __ge__(&self, other: &PyPermission) -> bool {
-        self.inner >= other.inner
+    fn __ge__(&self, other: &PyPermission) -> PyResult<bool> {
+        default_chain_cmp(&self.inner, &other.inner)
+            .map(|o| o != std::cmp::Ordering::Less)
     }
 
     fn __hash__(&self) -> u64 {
@@ -635,10 +697,11 @@ impl PyProofToken {
             }
         };
 
-        let issued_at_dt =
-            chrono::DateTime::from_timestamp(issued_at as i64, 0).unwrap_or_else(chrono::Utc::now);
-        let expires_at_dt =
-            expires_at.and_then(|ts| chrono::DateTime::from_timestamp(ts as i64, 0));
+        let issued_at_dt = unix_to_datetime(issued_at, "ProofToken issued_at")?;
+        let expires_at_dt = match expires_at {
+            Some(ts) => Some(unix_to_datetime(ts, "ProofToken expires_at")?),
+            None => None,
+        };
 
         let details_value = match details {
             Some(s) => serde_json::from_str(s)
@@ -722,9 +785,20 @@ impl PyProofToken {
         )
     }
 
+    /// Structural equality. Matches the predicate Rust composition uses to
+    /// decide whether two tokens with the same token_id can coexist
+    /// (`tokens_content_equal`): all substantive fields must agree.
     fn __eq__(&self, other: &PyProofToken) -> bool {
         self.inner.token_id == other.inner.token_id
+            && self.inner.token_type == other.inner.token_type
+            && self.inner.schema_version == other.inner.schema_version
+            && self.inner.status == other.inner.status
+            && self.inner.closes_gaps == other.inner.closes_gaps
+            && self.inner.bounds_gaps == other.inner.bounds_gaps
             && self.inner.provenance_hash == other.inner.provenance_hash
+            && self.inner.issuer == other.inner.issuer
+            && self.inner.details == other.inner.details
+            && self.inner.is_negative_control == other.inner.is_negative_control
     }
 }
 
@@ -746,18 +820,16 @@ impl PyExpiry {
     }
 
     #[staticmethod]
-    fn at(deadline_unix: f64) -> Self {
-        let dt = chrono::DateTime::from_timestamp(deadline_unix as i64, 0)
-            .unwrap_or_else(chrono::Utc::now);
-        Self {
+    fn at(deadline_unix: f64) -> PyResult<Self> {
+        let dt = unix_to_datetime(deadline_unix, "Expiry.at deadline")?;
+        Ok(Self {
             inner: RustExpiry::at(dt),
-        }
+        })
     }
 
-    fn fired(&self, now_unix: f64) -> bool {
-        let now =
-            chrono::DateTime::from_timestamp(now_unix as i64, 0).unwrap_or_else(chrono::Utc::now);
-        self.inner.fired(now)
+    fn fired(&self, now_unix: f64) -> PyResult<bool> {
+        let now = unix_to_datetime(now_unix, "Expiry.fired now")?;
+        Ok(self.inner.fired(now))
     }
 
     fn __repr__(&self) -> String {
@@ -862,12 +934,22 @@ impl PyProofContext {
         scope: Option<&PyScope>,
         context_fingerprint: Option<String>,
     ) -> Self {
+        // F13: if no context_fingerprint is supplied, derive one from the
+        // context payload. A literal copy of context_id is the wrong default
+        // because it makes runtime fingerprint revalidation trivially
+        // satisfiable: two contexts with the same id but different payloads
+        // would pass the same check. The canonical provenance hash binds the
+        // fingerprint to the (claim, candidate, context, allowed_use) tuple
+        // so payload tampering is detectable at the runtime boundary.
+        let fingerprint = context_fingerprint.unwrap_or_else(|| {
+            rust_compute_provenance_hash(&claim_id, &candidate_id, &context_id, &allowed_use)
+        });
         Self {
             inner: RustProofContext {
                 claim_id,
                 candidate_id,
-                context_id: context_id.clone(),
-                context_fingerprint: context_fingerprint.unwrap_or(context_id),
+                context_id,
+                context_fingerprint: fingerprint,
                 allowed_use,
                 disallowed_uses: disallowed_uses.unwrap_or_default(),
                 scope: scope.map(|s| s.inner.clone()).unwrap_or_default(),
@@ -917,7 +999,6 @@ impl PyProofContext {
             inner: self
                 .inner
                 .authority_ceiling
-                .clone()
                 .unwrap_or_else(RustPermission::AAA),
         }
     }
@@ -1010,22 +1091,21 @@ impl PyRuntimeContext {
         context_fingerprint: String,
         negative_control_states: Option<std::collections::HashMap<String, PyNegativeControlStatus>>,
         strict_mode: bool,
-    ) -> Self {
-        let now =
-            chrono::DateTime::from_timestamp(now_unix as i64, 0).unwrap_or_else(chrono::Utc::now);
+    ) -> PyResult<Self> {
+        let now = unix_to_datetime(now_unix, "RuntimeContext now_unix")?;
         let nc_states = negative_control_states
             .unwrap_or_default()
             .into_iter()
             .map(|(k, v)| (k, v.inner))
             .collect();
-        Self {
+        Ok(Self {
             inner: RustRuntimeContext::with_nc_states(
                 now,
                 context_fingerprint,
                 nc_states,
                 strict_mode,
             ),
-        }
+        })
     }
 
     #[getter]
@@ -1046,21 +1126,29 @@ impl PyRuntimeContext {
 // ── PyLiveJudgment ────────────────────────────────────────────────────────────
 
 /// A live judgment handle.  The Python binding holds the judgment by value and
-/// evaluates expiry when `.permission(runtime_context)` is called.
+/// the chain it was compiled against, and evaluates expiry / fingerprint /
+/// negative-control checks when `.permission(runtime_context)` is called.
+///
+/// The chain is required so that role lookups (ExpiryFloor / Bottom / Refused)
+/// resolve in the same chain that authorized the judgment, not the default
+/// chain. See LiveJudgment::with_chain in turnstile-core.
 #[pyclass(name = "LiveJudgment")]
 pub struct PyLiveJudgment {
     judgment: RustJudgment,
+    chain: RustPermissionChain,
 }
 
 #[pymethods]
 impl PyLiveJudgment {
     /// Evaluate the effective permission at the given runtime context.
     ///
-    /// Raises `ExpiredError` if the judgment has expired.
+    /// Raises `ExpiredError` if the judgment has expired (the live read returned
+    /// this chain's `ExpiryFloor` level).
     fn permission(&self, runtime: &PyRuntimeContext) -> PyResult<PyPermission> {
-        let live = RustLiveJudgment::new(self.judgment.clone(), &runtime.inner);
+        let live =
+            RustLiveJudgment::with_chain(self.judgment.clone(), &runtime.inner, &self.chain);
         let p = live.permission();
-        if p == RustPermission::EXP() {
+        if p == *self.chain.role(RustChainRole::ExpiryFloor) {
             return Err(ExpiredError::new_err(format!(
                 "judgment expired at {:?}",
                 self.judgment.expiry.deadline
@@ -1069,9 +1157,11 @@ impl PyLiveJudgment {
         Ok(PyPermission { inner: p })
     }
 
-    /// Get the permission without raising on EXP — returns the string "EXP" if expired.
+    /// Get the permission without raising on expiry — returns the
+    /// chain-specific ExpiryFloor name when expired.
     fn permission_str(&self, runtime: &PyRuntimeContext) -> String {
-        let live = RustLiveJudgment::new(self.judgment.clone(), &runtime.inner);
+        let live =
+            RustLiveJudgment::with_chain(self.judgment.clone(), &runtime.inner, &self.chain);
         live.permission().as_str().to_owned()
     }
 
@@ -1113,18 +1203,29 @@ fn init_tracing() -> PyResult<()> {
 /// If `chain` is None, uses the default chain (and the resulting judgment's
 /// chain_hash is the default chain's hash — the decision is recorded even when
 /// implicit). If `chain` is supplied, the compiler uses that chain explicitly.
+///
+/// The returned LiveJudgment carries the chain by value, so subsequent live
+/// reads (expiry, fingerprint, NC-liveness) resolve role anchors against the
+/// authorizing chain rather than the default chain.
 #[pyfunction]
 #[pyo3(signature = (ctx, chain=None))]
 fn compile(
     ctx: &PyProofContext,
     chain: Option<&PyPermissionChain>,
 ) -> PyResult<PyLiveJudgment> {
+    let chain_for_live = match chain {
+        Some(c) => c.inner.clone(),
+        None => RustPermissionChain::default_chain().clone(),
+    };
     let result = match chain {
         Some(c) => rust_compile_with_chain(ctx.inner.clone(), &c.inner),
         None => rust_compile(ctx.inner.clone()),
     };
     result
-        .map(|j| PyLiveJudgment { judgment: j })
+        .map(|j| PyLiveJudgment {
+            judgment: j,
+            chain: chain_for_live,
+        })
         .map_err(|e| TurnstileError::new_err(format!("{}", e)))
 }
 
@@ -1222,10 +1323,19 @@ impl PyChainRole {
     }
 
     fn __hash__(&self) -> u64 {
-        use std::hash::{Hash, Hasher};
-        let mut h = std::collections::hash_map::DefaultHasher::new();
-        format!("{:?}", self.inner).hash(&mut h);
-        h.finish()
+        // ChainRole has 7 variants; the discriminant is a stable per-variant
+        // integer that's cheaper and less fragile than hashing the Debug
+        // format. Cast through u8 first so the hash is independent of
+        // platform pointer size.
+        match self.inner {
+            RustChainRole::Bottom => 0u64,
+            RustChainRole::ExpiryFloor => 1,
+            RustChainRole::Refused => 2,
+            RustChainRole::Unsatisfied => 3,
+            RustChainRole::DisallowedUsesCeiling => 4,
+            RustChainRole::BlockerThreshold => 5,
+            RustChainRole::Top => 6,
+        }
     }
 }
 

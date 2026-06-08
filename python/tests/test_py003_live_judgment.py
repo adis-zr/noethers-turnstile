@@ -79,8 +79,7 @@ def test_l6_permission_is_idempotent():
     ctx = make_dia_ctx()
     now = time.time()
     live = t.compile(ctx)
-    # make_dia_ctx uses context_id="ctx-1" which becomes the default fingerprint
-    rt = t.RuntimeContext(now_unix=now, context_fingerprint="ctx-1")
+    rt = t.RuntimeContext(now_unix=now, context_fingerprint=ctx.provenance_hash())
     p1 = live.permission(rt)
     p2 = live.permission(rt)
     assert p1 == p2
@@ -113,8 +112,7 @@ def test_l8_dia_judgment_returns_dia():
     ctx = make_dia_ctx()
     now = time.time()
     live = t.compile(ctx)
-    # make_dia_ctx context_id="ctx-1" is used as the fingerprint
-    rt = t.RuntimeContext(now_unix=now, context_fingerprint="ctx-1")
+    rt = t.RuntimeContext(now_unix=now, context_fingerprint=ctx.provenance_hash())
     assert live.permission(rt) == t.Permission.DIA
 
 
