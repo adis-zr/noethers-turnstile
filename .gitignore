@@ -24,6 +24,10 @@ build/
 .obsidian/
 .vscode/
 .idea/
+.claude/
+
+# Local scratch
+scratch.md
 
 # Data files (large / binary / generated)
 *.bif
