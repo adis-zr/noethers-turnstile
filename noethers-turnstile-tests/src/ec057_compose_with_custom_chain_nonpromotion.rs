@@ -53,8 +53,8 @@ fn satisfied_ctx(chain: &PermissionChain, profile_perm: Permission, suffix: &str
         }],
         tokens: vec![tok],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     }

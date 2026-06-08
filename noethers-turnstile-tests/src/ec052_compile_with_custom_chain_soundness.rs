@@ -9,7 +9,7 @@ use noethers_turnstile_core::{
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
-    permission::{ChainRole, PermissionChain},
+    permission::ChainRole,
 };
 use noethers_turnstile_tests::chain_helpers::{minimal_3_level, paper_5_level};
 
@@ -35,7 +35,7 @@ fn t_sound_01_paper_chain_unsatisfied_profile_emits_unsatisfied() {
             scope: Scope::default(),
             gaps: vec![GapRecord::open("g1", "test-gap")],
             profiles: vec![Profile {
-                permission: level.clone(),
+                permission: level,
                 required_gaps: vec![GapRequirement {
                     gap_id: "g1".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -44,8 +44,8 @@ fn t_sound_01_paper_chain_unsatisfied_profile_emits_unsatisfied() {
             }],
             tokens: vec![],
             expiry: Expiry::never(),
-            authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-            permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+            authority_ceiling: Some(*chain.role(ChainRole::Top)),
+            permission_ceiling: Some(*chain.role(ChainRole::Top)),
             membership: Membership::InClass,
             expected_chain_hash: None,
         };
@@ -65,7 +65,7 @@ fn t_sound_01_paper_chain_unsatisfied_profile_emits_unsatisfied() {
 #[test]
 fn t_sound_02_minimal_chain_unsatisfied_emits_role() {
     let chain = minimal_3_level();
-    let top = chain.role(ChainRole::Top).clone();
+    let top = *chain.role(ChainRole::Top);
 
     let ctx = ProofContext {
         claim_id: "c".into(),
@@ -86,8 +86,8 @@ fn t_sound_02_minimal_chain_unsatisfied_emits_role() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };
@@ -111,8 +111,8 @@ fn membership_out_of_class_emits_chain_bottom() {
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::OutOfClassExact,
         expected_chain_hash: None,
     };

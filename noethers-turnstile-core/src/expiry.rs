@@ -193,7 +193,7 @@ impl<'ctx> LiveJudgment<'ctx> {
                 claim_id = %self.inner.context.claim_id,
                 "judgment expired; returning ExpiryFloor"
             );
-            return self.chain.role(ChainRole::ExpiryFloor).clone();
+            return *self.chain.role(ChainRole::ExpiryFloor);
         }
         if !self.runtime.satisfies(&self.inner.context) {
             warn!(
@@ -203,7 +203,7 @@ impl<'ctx> LiveJudgment<'ctx> {
                 compile_fingerprint = %self.inner.context.context_fingerprint,
                 "fingerprint mismatch; returning Bottom"
             );
-            return self.chain.role(ChainRole::Bottom).clone();
+            return *self.chain.role(ChainRole::Bottom);
         }
         // T17: negative-control liveness check.
         let nc_ids = self
@@ -220,7 +220,7 @@ impl<'ctx> LiveJudgment<'ctx> {
                 failed_nc_token_id = %failed_id,
                 "T17: negative-control not live; flooring to Refused"
             );
-            return self.chain.role(ChainRole::Refused).clone();
+            return *self.chain.role(ChainRole::Refused);
         }
         debug!(
             candidate_id = %self.inner.context.candidate_id,
@@ -228,7 +228,7 @@ impl<'ctx> LiveJudgment<'ctx> {
             permission = %self.inner.permission,
             "live permission read"
         );
-        self.inner.permission.clone()
+        self.inner.permission
     }
 
     pub fn deadline(&self) -> Option<DateTime<Utc>> {

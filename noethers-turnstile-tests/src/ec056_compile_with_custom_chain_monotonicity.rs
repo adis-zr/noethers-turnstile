@@ -77,8 +77,8 @@ fn ctx_with_two_gaps(
         }],
         tokens,
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     }

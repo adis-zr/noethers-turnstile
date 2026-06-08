@@ -86,8 +86,8 @@ fn make_ctx_satisfied_at(chain: &PermissionChain, level: Permission, suffix: &st
             is_negative_control: false,
         }],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     }
@@ -103,8 +103,8 @@ proptest! {
     ) {
         let levels = chain.levels();
         let idx = (profile_idx as usize) % levels.len();
-        let profile_perm = levels[idx].clone();
-        let ctx = make_ctx_satisfied_at(&chain, profile_perm.clone(), "p01");
+        let profile_perm = levels[idx];
+        let ctx = make_ctx_satisfied_at(&chain, profile_perm, "p01");
         let j = compile_with_chain(ctx, &chain).unwrap();
         let p_rank = chain.rank(&j.permission).unwrap();
         let prof_rank = chain.rank(&profile_perm).unwrap();
@@ -124,8 +124,8 @@ proptest! {
     #[test]
     fn p_chain_03_meet_is_glb(chain in arb_chain(), a_idx in any::<u8>(), b_idx in any::<u8>()) {
         let levels = chain.levels();
-        let a = levels[(a_idx as usize) % levels.len()].clone();
-        let b = levels[(b_idx as usize) % levels.len()].clone();
+        let a = levels[(a_idx as usize) % levels.len()];
+        let b = levels[(b_idx as usize) % levels.len()];
         let m = chain.meet(&a, &b).unwrap();
         let m_rank = chain.rank(&m).unwrap();
         let a_rank = chain.rank(&a).unwrap();
@@ -148,7 +148,7 @@ proptest! {
         idx in any::<u8>(),
     ) {
         let levels = chain.levels();
-        let level = levels[(idx as usize) % levels.len()].clone();
+        let level = levels[(idx as usize) % levels.len()];
         let ctx = make_ctx_satisfied_at(&chain, level, "p04");
         let j1 = compile_with_chain(ctx.clone(), &chain).unwrap();
         let j2 = compile_with_chain(ctx, &chain).unwrap();

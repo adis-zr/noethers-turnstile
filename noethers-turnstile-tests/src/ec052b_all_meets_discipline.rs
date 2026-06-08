@@ -82,7 +82,7 @@ fn am_01_mid_chain_expiry_floor_meet_does_not_promote_from_below() {
         gaps: vec![GapRecord::open("g_unmet", "t")],
         profiles: vec![
             Profile {
-                permission: l5.clone(),
+                permission: l5,
                 required_gaps: vec![GapRequirement {
                     gap_id: "g_unmet".into(),
                     minimum_status: RequiredStatus::ClosedRequired,
@@ -90,14 +90,14 @@ fn am_01_mid_chain_expiry_floor_meet_does_not_promote_from_below() {
                 }],
             },
             Profile {
-                permission: l1.clone(),
+                permission: l1,
                 required_gaps: vec![], // auto-satisfied
             },
         ],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };
@@ -160,8 +160,8 @@ fn am_02_expiry_meet_does_lower_from_above_threshold() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };
@@ -221,8 +221,8 @@ fn am_03_mid_chain_refused_meet_does_not_promote_from_below() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };
@@ -285,8 +285,8 @@ fn am_04_refused_meet_lowers_outcome_at_threshold() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };
@@ -395,8 +395,8 @@ fn make_satisfied_ctx(
         }],
         tokens: vec![tok],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     }
@@ -421,9 +421,9 @@ fn am_06_derivation_steps_are_monotone() {
         for _ in 0..30 {
             // Random profile permission within the chain (above bottom).
             let levels = chain.levels();
-            let mut idx_tree = (1usize..levels.len()).new_tree(&mut runner).unwrap();
+            let idx_tree = (1usize..levels.len()).new_tree(&mut runner).unwrap();
             let idx = idx_tree.current();
-            let profile_perm = levels[idx].clone();
+            let profile_perm = levels[idx];
             let ctx = make_satisfied_ctx(chain, "am06", profile_perm);
             let j = compile_with_chain(ctx, chain).unwrap();
             let mut prev_rank: Option<u8> = None;
@@ -474,8 +474,8 @@ fn am_07_collapsed_anchor_multi_blocker_compile_is_monotone() {
         }],
         tokens: vec![],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };

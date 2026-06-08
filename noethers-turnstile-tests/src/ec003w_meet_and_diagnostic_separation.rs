@@ -69,9 +69,9 @@ fn t8_meet_is_commutative_exhaustive() {
 #[test]
 fn t8_meet_is_associative_exhaustive() {
     let all: Vec<Permission> = Permission::descending().collect();
-    for p in all.iter().copied() {
-        for q in all.iter().copied() {
-            for r in all.iter().copied() {
+    for &p in all.iter() {
+        for &q in all.iter() {
+            for &r in all.iter() {
                 assert_eq!(
                     p.meet(q).meet(r),
                     p.meet(q.meet(r)),

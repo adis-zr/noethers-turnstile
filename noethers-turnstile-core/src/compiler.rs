@@ -6,8 +6,8 @@
 //! 3. Descending search over chain → strongest p such that profile_satisfied(Γ, p)
 //! 4. Structural blockers (PROVENANCE_MISMATCH / DEAD_CREDENTIAL) → meet with role(Refused)
 //!    when outcome < role(BlockerThreshold); disallowed_uses → ROL-equivalent meet
-//! 5a. Meet with authority_ceiling (structural delegation limit)
-//! 5b. Meet with permission_ceiling (non-promotion ceiling T9, set by compose())
+//!    5a. Meet with authority_ceiling (structural delegation limit)
+//!    5b. Meet with permission_ceiling (non-promotion ceiling T9, set by compose())
 //! 6. Token-level expiry → meet with role(ExpiryFloor) when any usable correct-provenance
 //!    token has expired
 //! 7. Record negative-control token IDs in the derivation (liveness checked at runtime)
@@ -205,12 +205,12 @@ pub fn compile_with_chain(
 
     let mut derivation = Derivation::new().with_provenance(ctx.provenance_hash());
 
-    let bottom = chain.role(ChainRole::Bottom).clone();
-    let expiry_floor = chain.role(ChainRole::ExpiryFloor).clone();
-    let refused = chain.role(ChainRole::Refused).clone();
-    let unsatisfied = chain.role(ChainRole::Unsatisfied).clone();
-    let threshold = chain.role(ChainRole::BlockerThreshold).clone();
-    let top = chain.role(ChainRole::Top).clone();
+    let bottom = *chain.role(ChainRole::Bottom);
+    let expiry_floor = *chain.role(ChainRole::ExpiryFloor);
+    let refused = *chain.role(ChainRole::Refused);
+    let unsatisfied = *chain.role(ChainRole::Unsatisfied);
+    let threshold = *chain.role(ChainRole::BlockerThreshold);
+    let top = *chain.role(ChainRole::Top);
 
     // Step 1: membership check.
     if !ctx.membership.is_in_class() {
@@ -222,7 +222,7 @@ pub fn compile_with_chain(
         );
         derivation.push(DerivationStep {
             phase: "membership_check".into(),
-            permission_after: bottom.clone(),
+            permission_after: bottom,
             note: format!("out-of-class membership: {:?}", ctx.membership),
             token_ids: vec![],
         });
@@ -245,7 +245,7 @@ pub fn compile_with_chain(
         );
         derivation.push(DerivationStep {
             phase: "context_expiry".into(),
-            permission_after: expiry_floor.clone(),
+            permission_after: expiry_floor,
             note: "context expiry fired before token evaluation".into(),
             token_ids: vec![],
         });
@@ -264,7 +264,7 @@ pub fn compile_with_chain(
     // satisfiable given the current evidence." Refused is reserved for explicit
     // structural refusals (wrong-provenance, step 4 blocker). Bottom is reserved
     // for out-of-class membership (step 1, already handled above).
-    let mut outcome = unsatisfied.clone();
+    let mut outcome = unsatisfied;
     let mut search_note = "no profile satisfied".to_string();
     let mut consulted_tokens: Vec<String> = vec![];
     let mut had_any_profile = false;
@@ -283,7 +283,7 @@ pub fn compile_with_chain(
             &mut arms_for_this_profile,
         ) {
             ProfileCheckResult::Satisfied => {
-                outcome = p.clone();
+                outcome = *p;
                 if arms_for_this_profile.is_empty() {
                     search_note = format!("profile satisfied at {}", p);
                 } else {
@@ -315,7 +315,7 @@ pub fn compile_with_chain(
 
     // If no profiles were defined at all, emit Bottom (undefined class behavior).
     if !had_any_profile {
-        outcome = bottom.clone();
+        outcome = bottom;
         search_note = "no profiles defined".to_string();
     }
 
@@ -334,7 +334,7 @@ pub fn compile_with_chain(
     }
     derivation.push(DerivationStep {
         phase: "descending_search".into(),
-        permission_after: outcome.clone(),
+        permission_after: outcome,
         note: search_note,
         token_ids: all_attribution,
     });
@@ -375,7 +375,7 @@ pub fn compile_with_chain(
         let after = chain.meet(&outcome, &refused)?;
         derivation.push(DerivationStep {
             phase: "structural_blockers".into(),
-            permission_after: after.clone(),
+            permission_after: after,
             note,
             token_ids: vec![],
         });
@@ -385,7 +385,7 @@ pub fn compile_with_chain(
     // disallowed_uses blocker: meet with the chain's DisallowedUsesCeiling role.
     // No level naming — the role is the structural anchor.
     if !ctx.disallowed_uses.is_empty() {
-        let disallowed_ceiling = chain.role(ChainRole::DisallowedUsesCeiling).clone();
+        let disallowed_ceiling = *chain.role(ChainRole::DisallowedUsesCeiling);
         let after = chain.meet(&outcome, &disallowed_ceiling)?;
         if chain.rank(&after) < chain.rank(&outcome) {
             warn!(
@@ -396,7 +396,7 @@ pub fn compile_with_chain(
             );
             derivation.push(DerivationStep {
                 phase: "structural_blockers".into(),
-                permission_after: after.clone(),
+                permission_after: after,
                 note: format!(
                     "disallowed_uses present ({}), ceiling at {}",
                     ctx.disallowed_uses.join(", "),
@@ -409,7 +409,7 @@ pub fn compile_with_chain(
     }
 
     // Step 5a: authority ceiling (structural delegation limit).
-    let authority_ceiling = ctx.authority_ceiling.clone().unwrap_or_else(|| top.clone());
+    let authority_ceiling = ctx.authority_ceiling.unwrap_or(top);
     let after_auth = chain.meet(&outcome, &authority_ceiling)?;
     if chain.rank(&after_auth) < chain.rank(&outcome) {
         warn!(
@@ -420,7 +420,7 @@ pub fn compile_with_chain(
         );
         derivation.push(DerivationStep {
             phase: "authority_ceiling".into(),
-            permission_after: after_auth.clone(),
+            permission_after: after_auth,
             note: format!("authority ceiling is {}", authority_ceiling),
             token_ids: vec![],
         });
@@ -428,10 +428,7 @@ pub fn compile_with_chain(
     outcome = after_auth;
 
     // Step 5b: permission ceiling (non-promotion ceiling, T9).
-    let permission_ceiling = ctx
-        .permission_ceiling
-        .clone()
-        .unwrap_or_else(|| top.clone());
+    let permission_ceiling = ctx.permission_ceiling.unwrap_or(top);
     let after_perm = chain.meet(&outcome, &permission_ceiling)?;
     if chain.rank(&after_perm) < chain.rank(&outcome) {
         warn!(
@@ -442,7 +439,7 @@ pub fn compile_with_chain(
         );
         derivation.push(DerivationStep {
             phase: "permission_ceiling".into(),
-            permission_after: after_perm.clone(),
+            permission_after: after_perm,
             note: format!("non-promotion ceiling (T9) is {}", permission_ceiling),
             token_ids: vec![],
         });
@@ -477,7 +474,7 @@ pub fn compile_with_chain(
             );
             derivation.push(DerivationStep {
                 phase: "expiry_blocker".into(),
-                permission_after: after_exp.clone(),
+                permission_after: after_exp,
                 note: "at least one proof token has expired".into(),
                 token_ids: expired_ids,
             });
@@ -500,7 +497,7 @@ pub fn compile_with_chain(
         );
         derivation.push(DerivationStep {
             phase: "negative_control_registration".into(),
-            permission_after: outcome.clone(),
+            permission_after: outcome,
             note: format!(
                 "{} negative-control token(s) registered; liveness checked at runtime",
                 nc_token_ids.len()

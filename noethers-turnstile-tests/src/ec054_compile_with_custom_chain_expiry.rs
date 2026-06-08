@@ -9,7 +9,7 @@ use noethers_turnstile_core::{
     context::{Membership, ProofContext, Scope},
     expiry::Expiry,
     gap::{GapRecord, GapRequirement, Profile, RequiredStatus},
-    permission::{ChainRole, PermissionChain},
+    permission::ChainRole,
     token::{compute_provenance_hash, ProofToken, TokenStatus},
 };
 use noethers_turnstile_tests::chain_helpers::anon_16_level_distinct_anchors;
@@ -54,8 +54,8 @@ fn t_expiry_01_floors_to_chain_role_not_hardcoded_exp() {
         }],
         tokens: vec![tok],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };
@@ -125,8 +125,8 @@ fn t_expiry_02_expiry_meet_only_lowers_never_raises() {
         }],
         tokens: vec![met_tok, expired_tok],
         expiry: Expiry::never(),
-        authority_ceiling: Some(chain.role(ChainRole::Top).clone()),
-        permission_ceiling: Some(chain.role(ChainRole::Top).clone()),
+        authority_ceiling: Some(*chain.role(ChainRole::Top)),
+        permission_ceiling: Some(*chain.role(ChainRole::Top)),
         membership: Membership::InClass,
         expected_chain_hash: None,
     };

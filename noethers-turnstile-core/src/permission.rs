@@ -81,7 +81,7 @@ impl Permission {
 
 impl std::fmt::Display for Permission {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.name)
+        f.write_str(self.name)
     }
 }
 
@@ -99,14 +99,14 @@ impl std::fmt::Display for Permission {
 // and chain.meet() directly, never the operators.
 impl PartialOrd for Permission {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        let chain = PermissionChain::default_chain();
-        chain.cmp(self, other)
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Permission {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap_or_else(|| {
+        let chain = PermissionChain::default_chain();
+        chain.cmp(self, other).unwrap_or_else(|| {
             panic!(
                 "Permission::cmp called with a level not in the default chain: {} or {}. \
                 Use chain.cmp(&a, &b) against an explicit chain for non-default chains.",
@@ -134,14 +134,12 @@ impl Permission {
     /// Meet of an iterator of levels under the **default chain**. Returns
     /// `None` if empty. Panics if any level is not in the default chain.
     pub fn meet_n<I: IntoIterator<Item = Permission>>(iter: I) -> Option<Permission> {
-        iter.into_iter().reduce(|a, b| a.meet(&b))
+        iter.into_iter().reduce(|a, b| a.meet(b))
     }
 
     /// Top of the default chain. For custom chains, use `chain.role(ChainRole::Top)`.
     pub fn top() -> Permission {
-        PermissionChain::default_chain()
-            .role(ChainRole::Top)
-            .clone()
+        *PermissionChain::default_chain().role(ChainRole::Top)
     }
 
     /// Iterator over the default chain's levels from top to bottom.
@@ -537,7 +535,7 @@ impl PermissionChain {
         // L9b: DisallowedUsesCeiling < Top (the ceiling must NOT equal the top
         // — otherwise disallowed_uses has no effect). May sit anywhere strictly
         // below the top.
-        if disallowed_uses >= levels.len() - 1 + 1 {
+        if disallowed_uses > levels.len() - 1 {
             // index < len always holds since we checked earlier; the real
             // constraint is just < top, i.e. ≤ last - 1. But top == last and
             // we want disallowed_uses < top:
@@ -652,6 +650,13 @@ impl PermissionChain {
         self.levels.len()
     }
 
+    /// Whether the chain has zero levels. Always `false` for any chain built via
+    /// [`PermissionChain::new`] (which requires at least the structural anchors),
+    /// but defined to satisfy the [`len`][Self::len] / `is_empty` clippy lint.
+    pub fn is_empty(&self) -> bool {
+        self.levels.is_empty()
+    }
+
     /// Levels as a slice.
     pub fn levels(&self) -> &[Permission] {
         &self.levels
@@ -720,9 +725,9 @@ fn compute_chain_hash(levels: &[Permission], roles: &HashMap<ChainRole, usize>) 
     }
     hasher.update(b"\xff"); // boundary marker between levels and roles
                             // Roles in fixed order (ChainRole::ALL) so the hash is deterministic.
-    for role in ChainRole::ALL.iter().copied() {
-        let idx = roles[&role];
-        hasher.update(&(idx as u32).to_be_bytes());
+    for role in ChainRole::ALL.iter() {
+        let idx = roles[role];
+        hasher.update((idx as u32).to_be_bytes());
     }
     let out = hasher.finalize();
     let mut arr = [0u8; 32];

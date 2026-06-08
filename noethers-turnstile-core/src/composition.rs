@@ -50,30 +50,31 @@ pub fn compose_with_chain(
         // in this chain, fail cleanly. (Downstream meets would still catch it,
         // but the error type would be Chain(ForeignLevel) which is less
         // informative than ChainMismatch.)
-        for ceiling in [&ctx.authority_ceiling, &ctx.permission_ceiling] {
-            if let Some(p) = ceiling {
-                if !chain.contains(p) {
-                    let _ = label; // silence unused
-                    return Err(CompositionError::ChainMismatch.into());
-                }
+        for p in [&ctx.authority_ceiling, &ctx.permission_ceiling]
+            .into_iter()
+            .flatten()
+        {
+            if !chain.contains(p) {
+                let _ = label; // silence unused
+                return Err(CompositionError::ChainMismatch.into());
             }
         }
     }
 
-    let bottom = chain.role(ChainRole::Bottom).clone();
-    let top = chain.role(ChainRole::Top).clone();
+    let bottom = *chain.role(ChainRole::Bottom);
+    let top = *chain.role(ChainRole::Top);
 
     // Non-promotion pre-check (T9 / T16). Compile each component under the
     // supplied chain to compute meet(p1, p2). That becomes the permission_ceiling.
     let p1: Permission = compile_with_chain(g1.clone(), chain)
         .map(|j| j.permission)
-        .unwrap_or_else(|_| bottom.clone());
+        .unwrap_or(bottom);
     let p2: Permission = compile_with_chain(g2.clone(), chain)
         .map(|j| j.permission)
-        .unwrap_or_else(|_| bottom.clone());
+        .unwrap_or(bottom);
 
-    let g1_ceiling = g1.permission_ceiling.clone().unwrap_or_else(|| top.clone());
-    let g2_ceiling = g2.permission_ceiling.clone().unwrap_or_else(|| top.clone());
+    let g1_ceiling = g1.permission_ceiling.unwrap_or(top);
+    let g2_ceiling = g2.permission_ceiling.unwrap_or(top);
     let non_promotion_ceiling = chain
         .meet(&p1, &p2)
         .and_then(|m| chain.meet(&m, &g1_ceiling))
@@ -91,8 +92,8 @@ pub fn compose_with_chain(
     let scope = g1.scope.intersect(g2.scope);
     let expiry = g1.expiry.min(g2.expiry);
 
-    let g1_auth = g1.authority_ceiling.clone().unwrap_or_else(|| top.clone());
-    let g2_auth = g2.authority_ceiling.clone().unwrap_or_else(|| top.clone());
+    let g1_auth = g1.authority_ceiling.unwrap_or(top);
+    let g2_auth = g2.authority_ceiling.unwrap_or(top);
     let authority_ceiling = chain.meet(&g1_auth, &g2_auth)?;
 
     let gaps = compose_gaps(g1.gaps, g2.gaps);
