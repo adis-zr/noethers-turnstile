@@ -618,8 +618,14 @@ fn check_requirement(
         Some(g) => g,
         None => return false,
     };
-    let effective_status =
-        effective_gap_status(ctx, gap, now, consulted, provenance_mismatch, dead_credential);
+    let effective_status = effective_gap_status(
+        ctx,
+        gap,
+        now,
+        consulted,
+        provenance_mismatch,
+        dead_credential,
+    );
     req.minimum_status.satisfied_by(&effective_status)
 }
 

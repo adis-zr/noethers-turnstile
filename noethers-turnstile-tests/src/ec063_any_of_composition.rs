@@ -43,10 +43,7 @@ fn base_ctx(suffix: &str, gap_ids: &[&str]) -> ProofContext {
         allowed_use: allowed_use.into(),
         disallowed_uses: vec![],
         scope: Scope::default(),
-        gaps: gap_ids
-            .iter()
-            .map(|g| GapRecord::open(*g, "t"))
-            .collect(),
+        gaps: gap_ids.iter().map(|g| GapRecord::open(*g, "t")).collect(),
         profiles: vec![],
         tokens: vec![],
         expiry: Expiry::never(),
@@ -85,9 +82,7 @@ fn any_of_dia_profile(arms: &[&str]) -> Profile {
         permission: Permission::DIA(),
         required_gaps: vec![GapRequirement::any_of(
             arms.iter()
-                .map(|g| {
-                    GapRequirement::single((*g).to_string(), RequiredStatus::ClosedRequired)
-                })
+                .map(|g| GapRequirement::single((*g).to_string(), RequiredStatus::ClosedRequired))
                 .collect(),
         )],
     }
@@ -157,7 +152,11 @@ fn a2_compose_emits_dia_when_both_clauses_satisfied() {
         j.derivation
             .steps
             .iter()
-            .map(|s| (s.phase.as_str(), s.permission_after.as_str(), s.note.as_str()))
+            .map(|s| (
+                s.phase.as_str(),
+                s.permission_after.as_str(),
+                s.note.as_str()
+            ))
             .collect::<Vec<_>>()
     );
 }
@@ -229,7 +228,10 @@ fn a4_compose_mixed_any_of_and_single_keeps_both() {
     g1.profiles = vec![any_of_dia_profile(&["g_a", "g_b"])];
     g2.profiles = vec![Profile {
         permission: Permission::DIA(),
-        required_gaps: vec![GapRequirement::single("g_a", RequiredStatus::ClosedRequired)],
+        required_gaps: vec![GapRequirement::single(
+            "g_a",
+            RequiredStatus::ClosedRequired,
+        )],
     }];
 
     let composed = compose(g1, g2).expect("compose succeeds");
