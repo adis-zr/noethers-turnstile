@@ -81,6 +81,7 @@ fn closing_token(ctx: &ProofContext, is_negative_control: bool) -> ProofToken {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control,
+        negative_control_id: None,
     }
 }
 
@@ -268,6 +269,7 @@ fn multiple_nc_tokens_all_live_passes() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     };
     let tok2 = ProofToken {
         token_id: "nc-2".into(),
@@ -282,6 +284,7 @@ fn multiple_nc_tokens_all_live_passes() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     };
     ctx.tokens = vec![tok1, tok2];
 
@@ -324,6 +327,7 @@ fn multiple_nc_tokens_one_non_live_floors_to_ref() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     };
     let tok2 = ProofToken {
         token_id: "nc-b".into(),
@@ -338,6 +342,7 @@ fn multiple_nc_tokens_one_non_live_floors_to_ref() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     };
     ctx.tokens = vec![tok1, tok2];
 

@@ -293,6 +293,7 @@ fn d6_nc_registration_step_appears_when_nc_token_present() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();

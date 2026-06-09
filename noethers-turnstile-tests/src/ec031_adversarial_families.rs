@@ -618,6 +618,7 @@ fn a8_stale_nc_token_floors_to_ref_in_strict_mode() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     };
     ctx.tokens.push(nc_tok);
 
@@ -671,6 +672,7 @@ fn a8_missing_nc_token_floors_to_ref_in_strict_mode() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -715,6 +717,7 @@ fn a8_nc_token_passes_when_live_in_strict_mode() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: true,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();

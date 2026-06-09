@@ -363,23 +363,19 @@ impl PyPermission {
     /// is not in the default chain. Use `PermissionChain.cmp(a, b)` (via the
     /// underlying Rust API) for custom chains.
     fn __lt__(&self, other: &PyPermission) -> PyResult<bool> {
-        default_chain_cmp(&self.inner, &other.inner)
-            .map(|o| o == std::cmp::Ordering::Less)
+        default_chain_cmp(&self.inner, &other.inner).map(|o| o == std::cmp::Ordering::Less)
     }
 
     fn __le__(&self, other: &PyPermission) -> PyResult<bool> {
-        default_chain_cmp(&self.inner, &other.inner)
-            .map(|o| o != std::cmp::Ordering::Greater)
+        default_chain_cmp(&self.inner, &other.inner).map(|o| o != std::cmp::Ordering::Greater)
     }
 
     fn __gt__(&self, other: &PyPermission) -> PyResult<bool> {
-        default_chain_cmp(&self.inner, &other.inner)
-            .map(|o| o == std::cmp::Ordering::Greater)
+        default_chain_cmp(&self.inner, &other.inner).map(|o| o == std::cmp::Ordering::Greater)
     }
 
     fn __ge__(&self, other: &PyPermission) -> PyResult<bool> {
-        default_chain_cmp(&self.inner, &other.inner)
-            .map(|o| o != std::cmp::Ordering::Less)
+        default_chain_cmp(&self.inner, &other.inner).map(|o| o != std::cmp::Ordering::Less)
     }
 
     fn __hash__(&self) -> u64 {
@@ -723,6 +719,7 @@ impl PyProofToken {
                 issuer,
                 details: details_value,
                 is_negative_control,
+                negative_control_id: None,
             },
         })
     }
@@ -1145,8 +1142,7 @@ impl PyLiveJudgment {
     /// Raises `ExpiredError` if the judgment has expired (the live read returned
     /// this chain's `ExpiryFloor` level).
     fn permission(&self, runtime: &PyRuntimeContext) -> PyResult<PyPermission> {
-        let live =
-            RustLiveJudgment::with_chain(self.judgment.clone(), &runtime.inner, &self.chain);
+        let live = RustLiveJudgment::with_chain(self.judgment.clone(), &runtime.inner, &self.chain);
         let p = live.permission();
         if p == *self.chain.role(RustChainRole::ExpiryFloor) {
             return Err(ExpiredError::new_err(format!(
@@ -1160,8 +1156,7 @@ impl PyLiveJudgment {
     /// Get the permission without raising on expiry — returns the
     /// chain-specific ExpiryFloor name when expired.
     fn permission_str(&self, runtime: &PyRuntimeContext) -> String {
-        let live =
-            RustLiveJudgment::with_chain(self.judgment.clone(), &runtime.inner, &self.chain);
+        let live = RustLiveJudgment::with_chain(self.judgment.clone(), &runtime.inner, &self.chain);
         live.permission().as_str().to_owned()
     }
 
@@ -1209,10 +1204,7 @@ fn init_tracing() -> PyResult<()> {
 /// authorizing chain rather than the default chain.
 #[pyfunction]
 #[pyo3(signature = (ctx, chain=None))]
-fn compile(
-    ctx: &PyProofContext,
-    chain: Option<&PyPermissionChain>,
-) -> PyResult<PyLiveJudgment> {
+fn compile(ctx: &PyProofContext, chain: Option<&PyPermissionChain>) -> PyResult<PyLiveJudgment> {
     let chain_for_live = match chain {
         Some(c) => c.inner.clone(),
         None => RustPermissionChain::default_chain().clone(),
@@ -1232,10 +1224,7 @@ fn compile(
 /// Compile a ProofContext into a Judgment (static snapshot, no live-check).
 #[pyfunction]
 #[pyo3(signature = (ctx, chain=None))]
-fn compile_static(
-    ctx: &PyProofContext,
-    chain: Option<&PyPermissionChain>,
-) -> PyResult<PyJudgment> {
+fn compile_static(ctx: &PyProofContext, chain: Option<&PyPermissionChain>) -> PyResult<PyJudgment> {
     let result = match chain {
         Some(c) => rust_compile_with_chain(ctx.inner.clone(), &c.inner),
         None => rust_compile(ctx.inner.clone()),
@@ -1291,31 +1280,45 @@ impl PyChainRole {
 
     #[classattr]
     fn Bottom() -> Self {
-        Self { inner: RustChainRole::Bottom }
+        Self {
+            inner: RustChainRole::Bottom,
+        }
     }
     #[classattr]
     fn ExpiryFloor() -> Self {
-        Self { inner: RustChainRole::ExpiryFloor }
+        Self {
+            inner: RustChainRole::ExpiryFloor,
+        }
     }
     #[classattr]
     fn Refused() -> Self {
-        Self { inner: RustChainRole::Refused }
+        Self {
+            inner: RustChainRole::Refused,
+        }
     }
     #[classattr]
     fn Unsatisfied() -> Self {
-        Self { inner: RustChainRole::Unsatisfied }
+        Self {
+            inner: RustChainRole::Unsatisfied,
+        }
     }
     #[classattr]
     fn DisallowedUsesCeiling() -> Self {
-        Self { inner: RustChainRole::DisallowedUsesCeiling }
+        Self {
+            inner: RustChainRole::DisallowedUsesCeiling,
+        }
     }
     #[classattr]
     fn BlockerThreshold() -> Self {
-        Self { inner: RustChainRole::BlockerThreshold }
+        Self {
+            inner: RustChainRole::BlockerThreshold,
+        }
     }
     #[classattr]
     fn Top() -> Self {
-        Self { inner: RustChainRole::Top }
+        Self {
+            inner: RustChainRole::Top,
+        }
     }
 
     fn __repr__(&self) -> String {
@@ -1403,8 +1406,10 @@ impl PyPermissionChain {
     /// chain spec).
     #[staticmethod]
     fn new(levels: Vec<String>, roles: &Bound<'_, pyo3::types::PyDict>) -> PyResult<Self> {
-        let rust_levels: Vec<RustPermission> =
-            levels.iter().map(|s| RustPermission::new(s.as_str())).collect();
+        let rust_levels: Vec<RustPermission> = levels
+            .iter()
+            .map(|s| RustPermission::new(s.as_str()))
+            .collect();
         let mut rust_roles: HashMap<RustChainRole, usize> = HashMap::new();
         for (k, v) in roles.iter() {
             let py_role: PyChainRole = k.extract()?;
@@ -1489,7 +1494,11 @@ impl PyPermissionChain {
 
     fn __repr__(&self) -> String {
         let names: Vec<&str> = self.inner.levels().iter().map(|l| l.as_str()).collect();
-        format!("PermissionChain({:?}, hash={})", names, self.inner.chain_hash())
+        format!(
+            "PermissionChain({:?}, hash={})",
+            names,
+            self.inner.chain_hash()
+        )
     }
 }
 
@@ -1530,10 +1539,7 @@ impl PyInMemoryChainRegistry {
 // ── verify_published ──────────────────────────────────────────────────────────
 
 #[pyfunction]
-fn verify_published(
-    judgment: &PyJudgment,
-    registry: &PyInMemoryChainRegistry,
-) -> PyResult<()> {
+fn verify_published(judgment: &PyJudgment, registry: &PyInMemoryChainRegistry) -> PyResult<()> {
     rust_verify_published(&judgment.inner, &registry.inner)
         .map_err(|e| AuditError::new_err(format!("{}", e)))
 }
