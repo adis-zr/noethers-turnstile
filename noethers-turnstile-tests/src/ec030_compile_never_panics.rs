@@ -123,6 +123,7 @@ fn n3_all_token_status_variants_do_not_panic() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         });
         let result = compile(ctx);
         assert!(
@@ -273,6 +274,7 @@ fn n10_thousand_token_context_does_not_panic() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         });
     }
     // One correct token at the end.
@@ -289,6 +291,7 @@ fn n10_thousand_token_context_does_not_panic() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
 
     let result = compile(ctx);
@@ -366,6 +369,7 @@ fn n13_long_field_strings_do_not_panic() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),

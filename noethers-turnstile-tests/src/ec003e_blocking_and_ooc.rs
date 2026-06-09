@@ -185,6 +185,7 @@ fn malformed_token_does_not_satisfy_profile() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
     // Malformed token → skipped, gap stays Open, profile not satisfied → REF
     let j = compile(ctx).unwrap();
@@ -221,6 +222,7 @@ fn out_of_class_exact_gives_ooc() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
     let j = compile(ctx).unwrap();
     assert_eq!(j.permission, Permission::OOC());
@@ -270,6 +272,7 @@ fn disallowed_uses_caps_at_rol() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
     ctx.disallowed_uses = vec!["production-write".into()];
 
@@ -306,6 +309,7 @@ fn disallowed_uses_only_cap_if_above_rol() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
     ctx.disallowed_uses = vec!["something".into()];
 
@@ -342,6 +346,7 @@ fn authority_ceiling_hard_caps_outcome() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
     ctx.authority_ceiling = Some(Permission::DIA());
 
@@ -415,6 +420,7 @@ proptest! {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         });
         ctx.disallowed_uses = (0..n).map(|i| format!("use-{i}")).collect();
         let j = compile(ctx).unwrap();

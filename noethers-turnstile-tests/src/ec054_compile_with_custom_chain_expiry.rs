@@ -34,6 +34,7 @@ fn t_expiry_01_floors_to_chain_role_not_hardcoded_exp() {
         issuer: "t".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let ctx = ProofContext {
         claim_id: "c".into(),
@@ -88,6 +89,7 @@ fn t_expiry_02_expiry_meet_only_lowers_never_raises() {
         issuer: "t".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let expired_tok = ProofToken {
         token_id: "exp".into(),
@@ -102,6 +104,7 @@ fn t_expiry_02_expiry_meet_only_lowers_never_raises() {
         issuer: "t".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let ctx = ProofContext {
         claim_id: "c".into(),

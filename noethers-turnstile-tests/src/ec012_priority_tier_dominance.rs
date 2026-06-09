@@ -71,6 +71,7 @@ fn make_ctx_with_profile(membership: Membership, profile_perm: Permission) -> Pr
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),
@@ -164,6 +165,7 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
 
     // Separate expired token (closes a different gap that isn't required).
@@ -180,6 +182,7 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
 
     let ctx = ProofContext {
@@ -261,6 +264,7 @@ fn context_expiry_fired_yields_exp() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::at(Utc::now() - Duration::hours(1)), // context expired
         authority_ceiling: Some(Permission::AAA()),
@@ -334,6 +338,7 @@ fn authority_ceiling_clips_profile_permission_all_pairs() {
                     issuer: "test".into(),
                     details: serde_json::Value::Null,
                     is_negative_control: false,
+            negative_control_id: None,
                 }],
                 expiry: Expiry::never(),
                 authority_ceiling: Some(ceiling),
@@ -395,6 +400,7 @@ fn disallowed_uses_ceiling_rol_applied_correctly() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),

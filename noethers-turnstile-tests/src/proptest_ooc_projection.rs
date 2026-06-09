@@ -103,6 +103,7 @@ fn maximally_permissive_ctx(membership: Membership, ceiling: Permission) -> Proo
             issuer: "ooc-test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(ceiling),
@@ -167,6 +168,7 @@ fn ooc_is_independent_of_token_count() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
 
     for n_tokens in 0..=5 {
@@ -277,6 +279,7 @@ proptest! {
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
                 is_negative_control: false,
+            negative_control_id: None,
             }]
         } else {
             vec![]

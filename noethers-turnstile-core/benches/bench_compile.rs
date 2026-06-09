@@ -36,6 +36,7 @@ fn make_token(closes: Vec<String>, ctx: &ProofContext) -> ProofToken {
         issuer: "bench".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     }
 }
 

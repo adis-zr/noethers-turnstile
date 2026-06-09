@@ -97,6 +97,7 @@ fn base_ctx(suffix: &str, permission: Permission) -> ProofContext {
             issuer: format!("certifier-{suffix}"),
             details: serde_json::json!({ "kl_bound": 0.05, "subgroup": "all" }),
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::at_with_reason(
             Utc::now() + chrono::Duration::hours(1),

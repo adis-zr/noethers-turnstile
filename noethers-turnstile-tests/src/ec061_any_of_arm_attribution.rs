@@ -42,6 +42,7 @@ fn ctx_with_two_gaps_and_any_of_profile(
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         });
     }
     if g2_closed {
@@ -58,6 +59,7 @@ fn ctx_with_two_gaps_and_any_of_profile(
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         });
     }
 
@@ -216,6 +218,7 @@ fn nested_any_of_records_structured_label() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let ctx = ProofContext {
         claim_id,

@@ -84,6 +84,7 @@ fn make_ctx_satisfied_at(chain: &PermissionChain, level: Permission, suffix: &st
             issuer: "t".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(*chain.role(ChainRole::Top)),

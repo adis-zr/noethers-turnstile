@@ -63,6 +63,7 @@ fn base_ctx(suffix: &str) -> ProofContext {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),
@@ -337,6 +338,7 @@ proptest! {
                         issuer: "test".into(),
                         details: serde_json::Value::Null,
                         is_negative_control: false,
+            negative_control_id: None,
                     }]
                 } else {
                     vec![]

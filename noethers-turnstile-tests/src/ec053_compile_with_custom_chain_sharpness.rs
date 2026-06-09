@@ -55,6 +55,7 @@ fn closed_gap_ctx(chain: &PermissionChain, profile_perms: Vec<&str>, suffix: &st
             issuer: "t".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(*chain.role(ChainRole::Top)),

@@ -33,6 +33,7 @@ fn satisfied_ctx(chain: &PermissionChain, profile_perm: Permission, suffix: &str
         issuer: "t".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     ProofContext {
         claim_id,

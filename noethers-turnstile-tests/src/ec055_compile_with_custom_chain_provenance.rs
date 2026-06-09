@@ -66,6 +66,7 @@ fn t_prov_01_provenance_mismatch_meets_to_refused_on_three_chains() {
             issuer: "t".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         };
         ctx.tokens.push(bad);
         let j = compile_with_chain(ctx, &chain).unwrap();
@@ -104,6 +105,7 @@ fn t_prov_02_correct_provenance_above_threshold_suppresses_blocker() {
         issuer: "t".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let bad_tok = ProofToken {
         token_id: "bad".into(),
@@ -118,6 +120,7 @@ fn t_prov_02_correct_provenance_above_threshold_suppresses_blocker() {
         issuer: "t".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let ctx = ProofContext {
         claim_id,

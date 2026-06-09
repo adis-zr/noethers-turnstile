@@ -52,6 +52,7 @@ fn build_dia_ctx_with_expiry(expiry: Expiry) -> ProofContext {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry,
         authority_ceiling: Some(Permission::AAA()),

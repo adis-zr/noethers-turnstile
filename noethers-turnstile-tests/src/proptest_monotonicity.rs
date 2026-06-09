@@ -113,6 +113,7 @@ proptest! {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         };
 
         // Also update the gap record to Closed (the token attests to closure).
@@ -189,6 +190,7 @@ fn wrong_provenance_token_does_not_lower_permission() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
 
     let ctx_with_bad = ProofContext {

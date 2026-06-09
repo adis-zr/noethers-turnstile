@@ -210,6 +210,7 @@ fn t18_audit_entry_cannot_be_used_as_proof_token() {
         issuer: "audit-store".into(),
         details: serde_json::json!({"source": "audit_record", "prior_permission": "DIA"}),
         is_negative_control: false,
+            negative_control_id: None,
     };
 
     let mut ctx = ctx_ref;
@@ -315,6 +316,7 @@ fn t19_compiler_accepts_any_valid_token_regardless_of_domain_science() {
                 "comment": "This bound is nonsensical but structurally valid"
             }),
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),
@@ -381,6 +383,7 @@ fn t19_compiler_does_not_validate_details_json_schema() {
                 issuer: "test".into(),
                 details,
                 is_negative_control: false,
+            negative_control_id: None,
             }],
             expiry: Expiry::never(),
             authority_ceiling: Some(Permission::AAA()),

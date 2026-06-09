@@ -79,6 +79,7 @@ impl Certifier for CalibrationCertifier {
             issuer: "calibration-certifier".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         })
     }
 

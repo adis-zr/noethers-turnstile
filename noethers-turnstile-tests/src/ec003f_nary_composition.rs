@@ -55,6 +55,7 @@ fn make_ctx_with_permission(target: Permission, suffix: &str) -> ProofContext {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(target),

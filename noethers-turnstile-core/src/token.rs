@@ -193,6 +193,7 @@ mod tests {
             issuer: "test-issuer".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         };
         assert!(verify_provenance(&token, "claim", "cand", "ctx", "allowed"));
         assert!(!verify_provenance(

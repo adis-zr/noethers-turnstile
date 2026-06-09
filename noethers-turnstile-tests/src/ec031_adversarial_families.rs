@@ -71,6 +71,7 @@ fn valid_token(id: &str, closes: Vec<String>, ctx: &ProofContext) -> ProofToken 
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     }
 }
 
@@ -297,6 +298,7 @@ fn a4_wrong_provenance_hash_leaves_gap_open() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -335,6 +337,7 @@ fn a4_recycled_token_from_different_claim_rejected() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -468,6 +471,7 @@ fn a6_bounding_token_does_not_satisfy_closed_required() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -512,6 +516,7 @@ fn a6_bounding_token_satisfies_bounded_required() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -567,6 +572,7 @@ fn a7_missing_required_coupling_gap_blocks_permission() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();

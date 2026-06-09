@@ -352,6 +352,7 @@ fn compose_token_conflict_fails_closed() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let t2 = ProofToken {
         token_id: "tok-1".into(), // same id, different content
@@ -366,6 +367,7 @@ fn compose_token_conflict_fails_closed() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     g1.tokens.push(t1);
     g2.tokens.push(t2);

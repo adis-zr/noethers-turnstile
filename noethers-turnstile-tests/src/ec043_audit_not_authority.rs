@@ -220,6 +220,7 @@ fn a6_audit_replay_as_proof_token_rejected() {
         issuer: "audit-store".into(),
         details: serde_json::json!({"source": "audit_replay", "permission": "DIA"}),
         is_negative_control: false,
+            negative_control_id: None,
     };
 
     let mut ctx = ctx_needs_g1_closed();
@@ -258,6 +259,7 @@ fn a7_audit_entry_fields_do_not_map_to_proof_token() {
         issuer: "audit".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
 
     let mut ctx = ctx_needs_g1_closed();

@@ -177,6 +177,7 @@ fn t11_dia_context_cannot_compose_into_action_permission() {
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
                 is_negative_control: false,
+            negative_control_id: None,
             }],
             expiry: Expiry::never(),
             authority_ceiling: Some(Permission::AAA()),
@@ -264,6 +265,7 @@ fn t11_dia_ceiling_prevents_action_permission() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(ceiling),
@@ -331,6 +333,7 @@ fn t11_compose_dia_ceiling_with_aaa_stays_at_dia() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::DIA()), // diagnostic ceiling

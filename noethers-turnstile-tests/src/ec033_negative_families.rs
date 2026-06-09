@@ -69,6 +69,7 @@ fn full_evidence_token(ctx: &ProofContext) -> ProofToken {
         issuer: "attacker".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     }
 }
 
@@ -236,6 +237,7 @@ fn in_class_system_with_proof_is_admitted() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();

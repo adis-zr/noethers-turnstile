@@ -65,6 +65,7 @@ fn ctx_with_token_expiring_at(token_expires: chrono::DateTime<Utc>) -> ProofCont
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),

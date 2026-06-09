@@ -55,6 +55,7 @@ fn base_ctx(suffix: &str, allowed_use: &str) -> ProofContext {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),
@@ -117,6 +118,7 @@ fn token_conflict_is_reachable_with_token_id() {
         issuer: "certifier-A".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     let tok_b = ProofToken {
         token_id: "conflict-tok".into(),
@@ -131,6 +133,7 @@ fn token_conflict_is_reachable_with_token_id() {
         issuer: "certifier-B".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     ctx1.tokens = vec![tok_a];
     ctx2.tokens = vec![tok_b];

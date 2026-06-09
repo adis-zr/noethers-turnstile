@@ -73,6 +73,7 @@ fn make_closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     }
 }
 
@@ -329,6 +330,7 @@ proptest! {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         };
 
         let enhanced = ProofContext {
@@ -368,6 +370,7 @@ proptest! {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         };
 
         let clean_ctx = ProofContext {

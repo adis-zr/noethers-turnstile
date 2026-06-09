@@ -70,6 +70,7 @@ fn base_ctx() -> ProofContext {
             issuer: "domain-certifier".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),
@@ -137,6 +138,7 @@ fn a1_empty_claim_id_invalidates_provenance_token() {
             issuer: "domain-certifier".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),
@@ -193,6 +195,7 @@ fn a1_empty_candidate_id_invalidates_provenance_token() {
             issuer: "domain-certifier".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry: Expiry::never(),
         authority_ceiling: Some(Permission::AAA()),
@@ -301,6 +304,7 @@ fn a5_empty_schema_version_token_still_checked_for_provenance() {
         issuer: "domain-certifier".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
+            negative_control_id: None,
     };
     // Schema version is not currently checked by the compiler (certifier responsibility)
     // but the token is still valid if provenance matches.
@@ -426,6 +430,7 @@ fn a9_large_profile_compiles_in_finite_time() {
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         });
     }
 

@@ -72,6 +72,7 @@ fn dia_ctx_at(deadline_offset_secs: i64, base_now: chrono::DateTime<Utc>) -> Pro
             issuer: "test".into(),
             details: serde_json::Value::Null,
             is_negative_control: false,
+            negative_control_id: None,
         }],
         expiry,
         authority_ceiling: Some(Permission::AAA()),
