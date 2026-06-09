@@ -64,7 +64,7 @@ fn make_token(suffix: &str, closes: Vec<String>, ctx: &ProofContext) -> ProofTok
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 

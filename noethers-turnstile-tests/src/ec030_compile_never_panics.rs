@@ -291,7 +291,7 @@ fn n10_thousand_token_context_does_not_panic() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     let result = compile(ctx);

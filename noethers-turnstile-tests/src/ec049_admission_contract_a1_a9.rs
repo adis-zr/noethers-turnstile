@@ -348,7 +348,7 @@ fn a6_1_all_12_ceilings_produce_result_leq_ceiling() {
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
                 is_negative_control: false,
-            negative_control_id: None,
+                negative_control_id: None,
             }],
             expiry: Expiry::never(),
             authority_ceiling: Some(ceiling),

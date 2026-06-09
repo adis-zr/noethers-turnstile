@@ -83,7 +83,7 @@ fn same_token(
         issuer: "shared-issuer".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -199,7 +199,7 @@ fn x4_different_token_type_triggers_conflict() {
         issuer: "issuer".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     let tok_b = ProofToken {
         token_id: "conflict-tok".into(),
@@ -214,7 +214,7 @@ fn x4_different_token_type_triggers_conflict() {
         issuer: "issuer".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
 
     let mut g1 = base_ctx("x4a");
@@ -254,7 +254,7 @@ fn x5_identical_tokens_deduplicate_without_conflict() {
         issuer: "issuer".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
 
     let mut g1 = base_ctx("x5a");

@@ -321,7 +321,7 @@ fn au12_two_tokens_wrong_use_neither_closes() {
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
                 is_negative_control: false,
-            negative_control_id: None,
+                negative_control_id: None,
             },
             ProofToken {
                 token_id: "tok-2".into(),
@@ -336,7 +336,7 @@ fn au12_two_tokens_wrong_use_neither_closes() {
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
                 is_negative_control: false,
-            negative_control_id: None,
+                negative_control_id: None,
             },
         ],
         expiry: Expiry::never(),

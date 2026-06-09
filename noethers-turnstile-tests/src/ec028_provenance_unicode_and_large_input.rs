@@ -150,7 +150,7 @@ fn u7_verify_provenance_deterministic() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     let r1 = verify_provenance(&tok, "c", "z", "ctx", "use");
     let r2 = verify_provenance(&tok, "c", "z", "ctx", "use");

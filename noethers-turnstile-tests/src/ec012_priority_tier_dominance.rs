@@ -165,7 +165,7 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
 
     // Separate expired token (closes a different gap that isn't required).
@@ -182,7 +182,7 @@ fn expired_token_floors_outcome_when_profile_would_satisfy() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
 
     let ctx = ProofContext {
@@ -338,7 +338,7 @@ fn authority_ceiling_clips_profile_permission_all_pairs() {
                     issuer: "test".into(),
                     details: serde_json::Value::Null,
                     is_negative_control: false,
-            negative_control_id: None,
+                    negative_control_id: None,
                 }],
                 expiry: Expiry::never(),
                 authority_ceiling: Some(ceiling),

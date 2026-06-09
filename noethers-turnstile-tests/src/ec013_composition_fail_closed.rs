@@ -155,7 +155,7 @@ fn token_conflict_same_id_different_type_blocks_composition() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     let tok_b = ProofToken {
         token_id: "shared-tok".into(),
@@ -170,7 +170,7 @@ fn token_conflict_same_id_different_type_blocks_composition() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx1.tokens = vec![tok_a];
     ctx2.tokens = vec![tok_b];
@@ -212,7 +212,7 @@ fn token_conflict_same_id_different_issuer_blocks_composition() {
         issuer: issuer.into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx1.tokens = vec![make_tok("certifier-A")];
     ctx2.tokens = vec![make_tok("certifier-B")];
@@ -254,7 +254,7 @@ fn identical_token_in_both_contexts_deduplicates_successfully() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx1.tokens = vec![tok.clone()];
     ctx2.tokens = vec![tok];

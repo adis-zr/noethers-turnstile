@@ -218,7 +218,7 @@ fn nested_any_of_records_structured_label() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     let ctx = ProofContext {
         claim_id,

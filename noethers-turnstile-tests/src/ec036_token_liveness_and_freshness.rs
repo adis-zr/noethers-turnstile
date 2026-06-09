@@ -85,7 +85,7 @@ fn token_with_status_and_expiry(
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -310,7 +310,7 @@ fn l10_one_expired_valid_token_triggers_exp_regardless_of_others() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     // Expired valid token
@@ -327,7 +327,7 @@ fn l10_one_expired_valid_token_triggers_exp_regardless_of_others() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -419,7 +419,7 @@ fn l12_bounding_expired_valid_token_triggers_exp() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -457,7 +457,7 @@ fn l13_context_expiry_fires_at_compile_time() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -495,7 +495,7 @@ fn l14_context_expiry_not_yet_fired_no_exp() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();
@@ -534,7 +534,7 @@ fn l15_context_expiry_fires_at_exact_boundary() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     let j = compile(ctx).unwrap();

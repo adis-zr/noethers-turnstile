@@ -67,7 +67,7 @@ fn closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -91,7 +91,7 @@ fn bounding_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -323,7 +323,7 @@ fn expired_bounding_token_provides_no_support() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![expired_tok];
 
@@ -375,7 +375,7 @@ fn expired_closing_token_floors_to_exp_when_profile_would_otherwise_pass() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![expired_tok];
 

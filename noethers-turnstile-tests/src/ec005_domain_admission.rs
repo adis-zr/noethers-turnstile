@@ -304,7 +304,7 @@ fn a5_empty_schema_version_token_still_checked_for_provenance() {
         issuer: "domain-certifier".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     // Schema version is not currently checked by the compiler (certifier responsibility)
     // but the token is still valid if provenance matches.

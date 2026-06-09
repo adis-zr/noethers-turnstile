@@ -87,7 +87,7 @@ fn valid_closing_token(
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -116,7 +116,7 @@ fn dead_token(
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -151,7 +151,7 @@ fn d1_valid_expired_token_triggers_exp() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     let mut ctx = placeholder;
     ctx.tokens = vec![good_tok, exp_tok];
@@ -277,7 +277,7 @@ fn d6_valid_expired_dominates_dead_expired() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     let dead_expired = dead_token("d6-dead", &placeholder, TokenStatus::Invalid, Some(past));
     let mut ctx = placeholder;

@@ -42,7 +42,7 @@ fn make_token(gap_ids: &[&str], bounds_gap_ids: &[&str], ctx: &ProofContext) -> 
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -286,7 +286,7 @@ fn bounding_token_satisfies_bounded_required() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![t];
 
@@ -330,7 +330,7 @@ fn bounding_token_does_not_satisfy_closed_required() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![t];
 

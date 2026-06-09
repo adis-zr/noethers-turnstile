@@ -73,7 +73,7 @@ fn make_closing_token(gap_id: &str, ctx: &ProofContext) -> ProofToken {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 

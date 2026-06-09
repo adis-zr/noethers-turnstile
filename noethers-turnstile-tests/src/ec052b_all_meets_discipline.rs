@@ -47,7 +47,7 @@ fn token_for(
         issuer: "am".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -241,7 +241,7 @@ fn am_03_mid_chain_refused_meet_does_not_promote_from_below() {
         issuer: "am".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens.push(bad_tok);
 
@@ -307,7 +307,7 @@ fn am_04_refused_meet_lowers_outcome_at_threshold() {
         issuer: "am".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens.push(bad_tok);
 
@@ -378,7 +378,7 @@ fn make_satisfied_ctx(
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ProofContext {
         claim_id,
@@ -497,7 +497,7 @@ fn am_07_collapsed_anchor_multi_blocker_compile_is_monotone() {
         issuer: "am".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens.push(bad_tok);
 

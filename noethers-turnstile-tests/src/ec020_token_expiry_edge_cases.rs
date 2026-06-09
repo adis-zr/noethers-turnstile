@@ -82,7 +82,7 @@ fn valid_token(
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     }
 }
 
@@ -122,7 +122,7 @@ fn e1_token_expired_at_exact_boundary_floors_to_exp() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![good_tok, exp_tok];
     let j = compile(ctx).unwrap();
@@ -244,7 +244,7 @@ fn e7_invalid_token_does_not_trigger_exp_floor() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![dead_tok];
 
@@ -286,7 +286,7 @@ fn e7_revoked_token_does_not_trigger_exp_floor() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![revoked_tok];
     let j = compile(ctx).unwrap();
@@ -334,7 +334,7 @@ fn e8_expired_token_not_satisfying_required_gap_still_floors_to_exp() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     };
     ctx.tokens = vec![good_tok, expired_tok];
     let j = compile(ctx).unwrap();

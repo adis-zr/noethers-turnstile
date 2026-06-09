@@ -390,7 +390,7 @@ fn one_expired_token_among_many_floors_to_exp() {
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
                 is_negative_control: false,
-            negative_control_id: None,
+                negative_control_id: None,
             },
             ProofToken {
                 token_id: "tok-expired".into(),
@@ -405,7 +405,7 @@ fn one_expired_token_among_many_floors_to_exp() {
                 issuer: "test".into(),
                 details: serde_json::Value::Null,
                 is_negative_control: false,
-            negative_control_id: None,
+                negative_control_id: None,
             },
         ],
         expiry: Expiry::never(),

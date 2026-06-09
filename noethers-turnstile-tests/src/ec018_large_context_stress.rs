@@ -157,7 +157,7 @@ fn l3_compose_n_twenty_contexts_non_promotion() {
                     issuer: "test".into(),
                     details: serde_json::Value::Null,
                     is_negative_control: false,
-            negative_control_id: None,
+                    negative_control_id: None,
                 }],
                 expiry: Expiry::never(),
                 authority_ceiling: Some(Permission::AAA()),
@@ -226,7 +226,7 @@ fn l4_200_tokens_only_one_valid_provenance_emits_dia() {
         issuer: "test".into(),
         details: serde_json::Value::Null,
         is_negative_control: false,
-            negative_control_id: None,
+        negative_control_id: None,
     });
 
     let ctx = ProofContext {
@@ -320,7 +320,7 @@ fn l6_compose_n_50_contexts_ceiling_is_meet_of_all() {
                     issuer: "test".into(),
                     details: serde_json::Value::Null,
                     is_negative_control: false,
-            negative_control_id: None,
+                    negative_control_id: None,
                 }],
                 expiry: Expiry::never(),
                 authority_ceiling: Some(ceiling),
