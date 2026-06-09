@@ -70,6 +70,13 @@ pub struct ProofToken {
     /// treated identically to the existing gap-closing / gap-bounding logic.
     #[serde(default)]
     pub is_negative_control: bool,
+    /// Optional stable identifier for this negative-control token.
+    ///
+    /// Only meaningful when `is_negative_control` is `true`. Allows callers to
+    /// reference a specific NC token by id rather than embedding the id in
+    /// `token_id`. Deserialized as `null`/absent on older payloads.
+    #[serde(default)]
+    pub negative_control_id: Option<String>,
 }
 
 impl ProofToken {
